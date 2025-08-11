@@ -12,7 +12,7 @@ export function Analytics() {
         <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
           <Trophy className="w-16 h-16 text-gray-400 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Aucune donnée</h2>
-          <p className="text-gray-600 mb-6">Jouez quelques mains pour voir les statistiques</p>
+          <p className="text-gray-600 mb-6">Jouez quelques mains pour voir les statistiques !</p>
           <button
             onClick={() => navigateTo('game')}
             className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
