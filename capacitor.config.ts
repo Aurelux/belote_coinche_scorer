@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.example.app',
-  appName: 'belote-coinche-scorer',
+  appId: 'com.belotecoinchescorer.app',
+  appName: 'Belote Coinche Scorer',
   webDir: 'dist'
   
 };
