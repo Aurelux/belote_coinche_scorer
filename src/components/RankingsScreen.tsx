@@ -1,0 +1,321 @@
+import React, { useState, useEffect } from 'react';
+import { ArrowLeft, Trophy, Medal, Award, Crown, TrendingUp, Users, Target, Star } from 'lucide-react';
+import { useGame } from '../context/GameContext';
+import { PROFILE_TITLES } from '../types/game';
+
+export function RankingsScreen() {
+  const { gameState, setCurrentScreen, getUserRankings, navigateTo, goBack } = useGame();
+  const [selectedMode, setSelectedMode] = useState<'belote' | 'coinche'>('belote');
+  const [selectedPlayerCount, setSelectedPlayerCount] = useState<2 | 3 | 4>(4);
+  const [rankings, setRankings] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    loadRankings();
+  }, [selectedMode, selectedPlayerCount]);
+
+  const loadRankings = async () => {
+    setLoading(true);
+    try {
+      const rankingsData = await getUserRankings(selectedMode, selectedPlayerCount);
+      // Limit to top 30 players
+      setRankings(rankingsData.slice(0, 30));
+    } catch (error) {
+      console.error('Error loading rankings:', error);
+      setRankings([]); // Set empty array on error
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getRankIcon = (rank: number) => {
+    switch (rank) {
+      case 1:
+        return '🥇';
+      case 2:
+        return '🥈';
+      case 3:
+        return '🥉';
+      default:
+        return null;
+    }
+  };
+
+  const getRankBadgeColor = (rank: number) => {
+    switch (rank) {
+      case 1:
+        return 'bg-gradient-to-r from-yellow-400 to-yellow-600 text-white shadow-lg';
+      case 2:
+        return 'bg-gradient-to-r from-gray-300 to-gray-500 text-white shadow-lg';
+      case 3:
+        return 'bg-gradient-to-r from-amber-400 to-amber-600 text-white shadow-lg';
+      default:
+        return 'bg-gray-100 text-gray-700';
+    }
+  };
+
+  const getProfileTitle = (titleId: string) => {
+    return PROFILE_TITLES.find(t => t.id === titleId);
+  };
+
+  const getCurrentUserRank = () => {
+    if (!gameState.currentUser) return null;
+    return rankings.find(r => r.userId === gameState.currentUser!.id);
+  };
+
+  const currentUserRank = getCurrentUserRank();
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900 p-4">
+      <div className="max-w-4xl mx-auto">
+        {/* Header */}
+        <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 mb-4 sm:mb-6">
+          <div className="flex items-center space-x-4">
+            <button
+              onClick={() => navigateTo('profile')}
+              className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <ArrowLeft className="w-6 h-6" />
+            </button>
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Classements</h1>
+              <p className="text-gray-600">Top 30 joueurs par mode</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Mode and Player Count Selection */}
+        <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 mb-4 sm:mb-6">
+          <div className="space-y-4 sm:space-y-6">
+            {/* Game Mode Selection */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Mode de jeu</h3>
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                <button
+                  onClick={() => setSelectedMode('belote')}
+                  className={`p-3 sm:p-4 rounded-xl border-2 transition-all duration-200 ${
+                    selectedMode === 'belote'
+                      ? 'border-blue-500 bg-blue-50 text-blue-700'
+                      : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                  }`}
+                >
+                  <div className="font-semibold">Belote</div>
+                  <div className="text-sm opacity-75">Classique</div>
+                </button>
+                
+                <button
+                  onClick={() => setSelectedMode('coinche')}
+                  className={`p-3 sm:p-4 rounded-xl border-2 transition-all duration-200 ${
+                    selectedMode === 'coinche'
+                      ? 'border-blue-500 bg-blue-50 text-blue-700'
+                      : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                  }`}
+                >
+                  <div className="font-semibold">Coinche</div>
+                  <div className="text-sm opacity-75">Avec enchères</div>
+                </button>
+              </div>
+            </div>
+
+            {/* Player Count Selection */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Nombre de joueurs</h3>
+              <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                {[2, 3, 4].map(count => (
+                  <button
+                    key={count}
+                    onClick={() => setSelectedPlayerCount(count as 2 | 3 | 4)}
+                    className={`py-2 sm:py-3 px-3 sm:px-4 rounded-lg border-2 font-semibold transition-all duration-200 text-sm sm:text-base ${
+                      selectedPlayerCount === count
+                        ? 'border-blue-500 bg-blue-50 text-blue-700'
+                        : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                    }`}
+                  >
+                    {count}J
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Current User Rank (if not in top 30) */}
+        {currentUserRank && currentUserRank.rank > 30 && (
+          <div className="bg-white rounded-2xl shadow-xl p-4 mb-4">
+            <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center space-x-2">
+              <Star className="w-5 h-5 text-blue-600" />
+              <span>Votre classement</span>
+            </h3>
+            <div className="p-3 bg-blue-50 rounded-xl border border-blue-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-sm">
+                    #{currentUserRank.rank}
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    {gameState.currentUser?.profilePicture ? (
+                      <img
+                        src={gameState.currentUser.profilePicture}
+                        alt={gameState.currentUser.displayName}
+                        className="w-8 h-8 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
+                        <Users className="w-4 h-4 text-gray-600" />
+                      </div>
+                    )}
+                    <div>
+                      <div className="font-semibold text-gray-900 text-sm">{gameState.currentUser?.displayName}</div>
+                    </div>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-lg font-bold text-blue-600">{currentUserRank.rankingScore}</div>
+                  <div className="text-xs text-gray-600">{currentUserRank.winRate.toFixed(1)}% victoires</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Rankings */}
+        <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6">
+          <div className="flex items-center space-x-3 mb-4 sm:mb-6">
+            <Trophy className="w-6 h-6 text-yellow-500" />
+            <h3 className="text-lg sm:text-xl font-bold text-gray-900">
+              Top 30 - {selectedMode === 'belote' ? 'Belote' : 'Coinche'} ({selectedPlayerCount}J)
+            </h3>
+          </div>
+
+          {loading ? (
+            <div className="text-center py-12">
+              <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+              <p className="text-gray-600">Chargement des classements...</p>
+            </div>
+          ) : rankings.length === 0 ? (
+            <div className="text-center py-12">
+              <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+              <h4 className="text-xl font-semibold text-gray-900 mb-2">Aucun classement disponible</h4>
+              <p className="text-gray-600">
+                Aucun joueur n'a encore joué en mode {selectedMode === 'belote' ? 'Belote' : 'Coinche'} à {selectedPlayerCount} joueurs.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-2 sm:space-y-3">
+              {rankings.map((player, index) => {
+                const profileTitle = getProfileTitle(player.profileTitle || 'player');
+                const rankIcon = getRankIcon(player.rank);
+                
+                return (
+                  <div
+                    key={player.userId}
+                    className={`p-3 sm:p-4 rounded-xl border-2 transition-all duration-200 ${
+                      player.rank <= 3
+                        ? 'border-yellow-200 bg-gradient-to-r from-yellow-50 to-amber-50'
+                        : 'border-gray-200 bg-gray-50'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3 min-w-0 flex-1">
+                        {/* Rank Badge */}
+                        <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-bold text-sm sm:text-base ${getRankBadgeColor(player.rank)}`}>
+                          {rankIcon || player.rank}
+                        </div>
+
+                        {/* Player Info */}
+                        <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
+                          {player.profilePicture ? (
+                            <img
+                              src={player.profilePicture}
+                              alt={player.name}
+                              className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover flex-shrink-0"
+                            />
+                          ) : (
+                            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
+                              <Users className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
+                            </div>
+                          )}
+                          <div className="min-w-0 flex-1">
+                            <div className="font-semibold text-gray-900 text-sm sm:text-base truncate">{player.name}</div>
+                            <div className={`text-xs sm:text-sm font-medium truncate ${profileTitle?.color || 'text-gray-600'}`}>
+                              {profileTitle?.title || 'Joueur'}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Stats - Mobile Optimized */}
+                      <div className="flex items-center space-x-3 sm:space-x-6 flex-shrink-0">
+                        <div className="text-center">
+                          <div className="text-lg sm:text-2xl font-bold text-blue-600">{player.rankingScore}</div>
+                          <div className="text-xs text-gray-600">Score</div>
+                        </div>
+                        <div className="text-center hidden sm:block">
+                          <div className="text-lg font-semibold text-green-600">{player.winRate.toFixed(1)}%</div>
+                          <div className="text-xs text-gray-600">Victoires</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-sm sm:text-lg font-semibold text-purple-600">{player.gamesPlayed}</div>
+                          <div className="text-xs text-gray-600">Parties</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Mobile Stats Row */}
+                    <div className="mt-2 pt-2 border-t border-gray-200 sm:hidden">
+                      <div className="flex justify-between text-xs text-gray-600">
+                        <span>{player.winRate.toFixed(1)}% victoires</span>
+                        <span>{player.averagePoints.toFixed(0)} pts/partie</span>
+                        {selectedMode === 'coinche' && (
+                          <span>{player.totalCoinches} coinches</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Additional info for top 3 on desktop */}
+                    {player.rank <= 3 && (
+                      <div className="mt-3 pt-3 border-t border-yellow-200 hidden sm:block">
+                        <div className="flex items-center justify-center space-x-6 text-sm">
+                          <div className="flex items-center space-x-1 text-gray-600">
+                            <TrendingUp className="w-4 h-4" />
+                            <span>Taux de victoire: {player.winRate.toFixed(1)}%</span>
+                          </div>
+                          <div className="flex items-center space-x-1 text-gray-600">
+                            <Target className="w-4 h-4" />
+                            <span>Moyenne: {player.averagePoints.toFixed(0)} pts/partie</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Ranking Explanation */}
+        <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 mt-4 sm:mt-6">
+          <h3 className="text-lg font-bold text-gray-900 mb-4">Comment fonctionne le classement ?</h3>
+          <div className="space-y-3 text-sm text-gray-600">
+            <p>
+              <strong>Score de classement</strong> : Formule avancée basée sur :
+            </p>
+            <ul className="list-disc list-inside space-y-1 ml-4">
+              <li><strong>Taux de victoire</strong> (0-100 points) : Pourcentage de parties gagnées</li>
+              <li><strong>Bonus expérience</strong> (max 25 points) : Récompense le nombre de parties jouées</li>
+              <li><strong>Bonus performance</strong> (max 20 points) : Ratio points marqués/concédés</li>
+              <li><strong>Bonus coinche</strong> (max 15 points) : Taux de réussite des coinches</li>
+              <li><strong>Bonus contrats</strong> (max 15 points) : Taux de réussite des contrats pris</li>
+              <li><strong>Bonus capots</strong> (max 10 points) : Nombre de capots réalisés</li>
+              <li><strong>Malus pénalités</strong> (max -15 points) : Pénalités reçues</li>
+            </ul>
+            <p className="text-xs text-gray-500 mt-3">
+              * Les parties de moins de 10 minutes ne comptent pas dans les statistiques
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
