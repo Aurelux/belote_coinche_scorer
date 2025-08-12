@@ -1,8 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 
 // Create a mock client when Supabase credentials are not available
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://placeholder.supabase.co'
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'placeholder-key'
+const supabaseUrl = 'https://zjmspwhsedkmnlbptpnj.supabase.co'
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpqbXNwd2hzZWRrbW5sYnB0cG5qIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIwNzk3ODEsImV4cCI6MjA2NzY1NTc4MX0.f4Aoj1yHDZ5BW8GRdolAiNGpHA3JNJbHXOX-D3kwo5U'
 
 // Only import and create real client if we have valid credentials
 let supabase: any = null;
