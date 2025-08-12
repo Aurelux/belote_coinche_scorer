@@ -51,7 +51,7 @@
     <false/>
     <key>NSExceptionDomains</key>
     <dict>
-        <key>supabase.co</key> <!-- Domaine principal Supabase -->
+        <key>zjmspwhsedkmnlbptpnj.supabase.co</key>
         <dict>
             <key>NSIncludesSubdomains</key>
             <true/>
@@ -64,6 +64,8 @@
         </dict>
     </dict>
 </dict>
+
+
 
 </dict>
 </plist>
