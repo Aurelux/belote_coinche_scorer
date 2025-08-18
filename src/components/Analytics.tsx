@@ -416,7 +416,7 @@ gameState.hands
 >
       <div 
   className="max-w-7xl mx-auto relative" 
-  style={{ top: 'calc(0.5em + env(safe-area-inset-top))' }}
+  style={{ top: 'calc(2em + env(safe-area-inset-top))' }}
 >
         {/* Header */}
         <div className="bg-white rounded-2xl shadow-xl p-6 mb-6">

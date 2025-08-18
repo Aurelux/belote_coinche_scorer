@@ -170,12 +170,7 @@ const debouncedSearch = debounce(async (index: number, value: string) => {
      }}
 >
       <div
-  className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-3xl relative mx-auto"
-  style={{
-    top: 'calc(1.5rem + env(safe-area-inset-top))',
-    left: '0.5rem',
-    right: '0.5rem'
-  }}
+  className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-3xl relative left-1/2 transform -translate-x-1/2" style={{ top: 'calc(1.5rem + env(safe-area-inset-top))' }}
 >
         
         <div className="text-center mb-8">
