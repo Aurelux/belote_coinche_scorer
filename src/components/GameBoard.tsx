@@ -7,9 +7,10 @@ import { CoincheSuccessAnimation } from './CoincheSuccessAnimation';
 import { SurcoincheSuccessAnimation } from './SurcoincheSuccessAnimation';
 import { PlayerConfirmationModal } from './PlayerConfirmationModal';
 import { PenaltyModal } from './PenaltyModal';
+import DealerSelector from "../components/DealerSelector";
 
 export function GameBoard() {
-  const { gameState, setCurrentScreen, startNewGame, resetGame, startRematch, applyPenaltyToPlayer, navigateTo, goBack } = useGame();
+  const { gameState, setCurrentScreen, startNewGame, resetGame, startRematch, applyPenaltyToPlayer, navigateTo, goBack, nextDealer, setDealer} = useGame();
   const [editedHand, setEditedHand] = useState<Hand | null>(null);
   const [showScoreEntry, setShowScoreEntry] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
@@ -24,10 +25,24 @@ export function GameBoard() {
     return null;
   }
 
-  const currentDealer = gameState.players[gameState.currentDealer];
+  const currentDealer = gameState.currentDealer !== null 
+  ? gameState.players[gameState.currentDealer] 
+  : null;
   const teamAPlayers = gameState.players.filter(p => p.team === 'A');
   const teamBPlayers = gameState.players.filter(p => p.team === 'B');
   const teamCPlayers = gameState.players.filter(p => p.team === 'C');
+
+  
+
+  // si aucun dealer choisi encore → affiche la popup
+  if (currentDealer === null) {
+    return (
+      <DealerSelector
+  players={gameState.players.map(p => p.name)}
+  onSelect={setDealer}
+/>
+    );
+  }
 
   const handleEditHand = (hand: Hand) => {
   setEditedHand(hand);
@@ -125,11 +140,11 @@ export function GameBoard() {
                   <User className="w-4 h-4 text-gray-400 flex-shrink-0" />
                 )}
                 <span className="text-gray-700 text-sm sm:text-base truncate">{player.name}</span>
-                {player.id === currentDealer.id && (
-                  <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full whitespace-nowrap">
-                    Donneur
-                  </span>
-                )}
+                {currentDealer && player.id === currentDealer.id && (
+  <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full whitespace-nowrap">
+    Donneur
+  </span>
+)}
               </div>
             </div>
           ))}
@@ -252,8 +267,15 @@ export function GameBoard() {
                 <div className="text-center sm:text-left">
                   <h3 className="text-lg font-semibold text-gray-900">Prochaine main</h3>
                   <p className="text-gray-600">
-                    Donneur: <span className="font-medium">{currentDealer.name}</span>
-                  </p>
+  Donneur: <span className="font-medium">{currentDealer?.name || '—'}</span>
+</p>
+                  <button
+   onClick={nextDealer}
+  className="mt-4 bg-gray-300 rounded-xl px-4 py-2 hover:bg-gray-400 transition"
+>
+  Main blanche
+</button>
+
                 </div>
                 
                 <button

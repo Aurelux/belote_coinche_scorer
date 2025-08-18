@@ -506,6 +506,7 @@ const [beloteModalTeam, setBeloteModalTeam] = useState<null | 'A' | 'B'>(null);
             ['A', 'B', 'C'][i] !== contractTeam
           );
           const success = takerTotalPoints > Math.max(...otherScores);
+          setContractFulfilled(success);
           
           if (success) {
             // Taker wins
@@ -541,6 +542,7 @@ const [beloteModalTeam, setBeloteModalTeam] = useState<null | 'A' | 'B'>(null);
             ['A', 'B'][i] !== contractTeam
           );
           const success = takerTotalPoints > Math.max(...otherScores);
+          setContractFulfilled(success);
           
           if (success) {
         // 2 or 4 player Belote

@@ -36,6 +36,8 @@ interface GameContextType {
   hidePlayerConfirmationModal: () => void;
   saveGameToSupabase: () => Promise<void>;
   loadMatchHistory: () => Promise<void>;
+  setDealer: (index: number) => void;
+  nextDealer: () => void;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -94,7 +96,7 @@ const initialGameState: GameState = {
     isOnline: true
   },
   hands: [],
-  currentDealer: 0,
+  currentDealer: null,
   teamAScore: 0,
   teamBScore: 0,
   teamCScore: 0,
@@ -133,9 +135,12 @@ type GameAction =
   | { type: 'SHOW_PLAYER_CONFIRMATION' }
   | { type: 'HIDE_PLAYER_CONFIRMATION' }
   | { type: 'SET_PENDING_CONFIRMATIONS'; payload: PlayerConfirmation[] }
+  | { type: 'SET_CURRENT_DEALER'; payload: number }
   | { type: 'SET_GAME_STATE'; payload: Partial<GameState> };
 
+
 // Calculate ranking score based on multiple factors
+
 const calculateRankingScore = (stats: GameModeStats): number => {
   if (stats.games === 0) return 0;
 
@@ -184,6 +189,8 @@ const getNextDealerIndex = (currentDealer: number, playerCount: number): number 
     return (currentDealer + 1) % playerCount;
   }
 };
+
+
 
 function gameReducer(state: GameState, action: GameAction): GameState {
   switch (action.type) {
@@ -314,6 +321,8 @@ function gameReducer(state: GameState, action: GameAction): GameState {
       }
       return state;
     }
+
+    
     
     case 'RESET_GAME':
       return { ...initialGameState, currentUser: state.currentUser, friends: state.friends };
@@ -325,7 +334,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         teamAScore: 0,
         teamBScore: 0,
         teamCScore: 0,
-        currentDealer: 0,
+        currentDealer: null,
         gameEnded: false,
         winningTeam: undefined,
         gameStartTime: new Date()
@@ -338,7 +347,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         teamAScore: 0,
         teamBScore: 0,
         teamCScore: 0,
-        currentDealer: 0,
+        currentDealer: null,
         gameEnded: false,
         winningTeam: undefined,
         gameStartTime: new Date()
@@ -447,6 +456,12 @@ function gameReducer(state: GameState, action: GameAction): GameState {
           : state.currentUser
       };
 
+      case 'SET_CURRENT_DEALER':
+  return {
+    ...state,
+    currentDealer: action.payload
+  };
+
     case 'UPDATE_USER':
       return {
         ...state,
@@ -484,6 +499,16 @@ export function GameProvider({ children }: { children: ReactNode }) {
       ...prevState,
       hands: updatedHands,
     };
+  });
+};
+const setDealer = (index: number) => {
+  dispatch({ type: 'SET_CURRENT_DEALER', payload: index });
+};
+
+const nextDealer = () => {
+  dispatch({
+    type: 'SET_CURRENT_DEALER',
+    payload: getNextDealerIndex(gameState.currentDealer ?? 0, gameState.settings.playerCount)
   });
 };
 
@@ -1570,7 +1595,9 @@ dispatch({ type: 'SET_MATCH_HISTORY', payload: matchHistoryFiltered });
       showPlayerConfirmationModal,
       hidePlayerConfirmationModal,
       saveGameToSupabase,
-      loadMatchHistory
+      loadMatchHistory,
+      setDealer,
+      nextDealer
     }}>
       {children}
     </GameContext.Provider>

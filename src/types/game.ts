@@ -182,7 +182,7 @@ export interface GameState {
   players: Player[];
   settings: GameSettings;
   hands: Hand[];
-  currentDealer: number;
+  currentDealer: number | null;
   teamAScore: number;
   teamBScore: number;
   teamCScore: number;
