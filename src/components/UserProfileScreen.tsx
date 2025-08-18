@@ -53,7 +53,7 @@ export function UserProfileScreen() {
        backgroundSize: '20px 20px'
      }}
 >
-      <div className="max-w-4xl mx-auto relative" style={{ top: 'calc(.5rem + env(safe-area-inset-top))' }}>
+      <div className="max-w-4xl mx-auto relative" style={{ top: 'calc(1.5rem + env(safe-area-inset-top))' }}>
         {/* Header */}
         <div className="bg-white text-gray-900 rounded-xl shadow-md p-6 mb-6">
           <div className="flex items-center space-x-4">
@@ -68,7 +68,7 @@ export function UserProfileScreen() {
               <img
                 src={user.profilePicture}
                 alt={user.displayName}
-                className="w-16 h-16 rounded-full object-cover border-2 border-blue-300"
+                className="w-16 h-16 rounded-full object-cover border-2 border-green-300"
               />
             ) : (
               <div className="w-16 h-16 bg-gray-300 rounded-full flex items-center justify-center">

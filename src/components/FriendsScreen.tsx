@@ -93,7 +93,7 @@ export function FriendsScreen() {
      }}
 >
 
-      <div className="max-w-4xl mx-auto relative" style={{ top: 'calc(.5rem + env(safe-area-inset-top))' }}>
+      <div className="max-w-4xl mx-auto relative" style={{ top: 'calc(1.5rem + env(safe-area-inset-top))' }}>
         {/* Header */}
         <div className="bg-white rounded-2xl shadow-xl p-6 mb-6">
           <div className="flex items-center space-x-4">
