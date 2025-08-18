@@ -152,7 +152,7 @@ export function GameBoard() {
         
         <div className="w-full bg-gray-200 rounded-full h-3">
           <div 
-            className={`bg-gradient-to-r from-${teamColor}-500 to-${teamColor}-600 h-3 rounded-full transition-all duration-500`}
+            className={`h-3 rounded-full transition-all duration-500 bg-${teamColor}-600`}
             style={{ width: `${Math.min(progress, 100)}%` }}
           ></div>
         </div>
@@ -162,7 +162,18 @@ export function GameBoard() {
 
   return (
     <>
-      <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900 p-2 sm:p-4">
+      <div className="min-h-screen pt-safe pb-safe flex items-center justify-center p-4"
+     style={{
+       backgroundColor: '#0b3d0b', // vert très foncé
+       backgroundImage: `
+         radial-gradient(circle, rgba(0,0,0,0.1) 1px, transparent 1px),
+         radial-gradient(circle, rgba(0,0,0,0.1) 1px, transparent 1px)
+       `,
+       backgroundPosition: '0 0, 10px 10px',
+       backgroundSize: '20px 20px'
+     }}
+>
+
         <div className="max-w-6xl mx-auto">
           {/* Header */}
           <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 mb-4 sm:mb-6">
@@ -280,7 +291,7 @@ export function GameBoard() {
                 
                 <button
                   onClick={() => setShowScoreEntry(true)}
-                  className="flex items-center space-x-2 px-4 sm:px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg text-sm sm:text-base"
+                  className="flex items-center space-x-2 px-4 sm:px-6 py-3 bg-gradient-to-r from-green-600 to-green-800 text-white rounded-lg hover:from-green-700 hover:to-green-900 transition-all duration-200 shadow-lg text-sm sm:text-base"
                 >
                   <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
                   <span>Ajouter une Main</span>
@@ -388,7 +399,7 @@ export function GameBoard() {
                             <div className="mt-4 flex justify-end">
   <button
     onClick={() => handleEditHand(hand)}
-    className="bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-semibold shadow hover:bg-blue-700 transition"
+    className="bg-green-600 text-white px-4 py-2 rounded-lg text-xs font-semibold shadow hover:bg-green-700 transition"
   >
     ✏️ Modifier
   </button>

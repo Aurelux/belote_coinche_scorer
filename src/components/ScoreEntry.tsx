@@ -736,7 +736,7 @@ const [beloteModalTeam, setBeloteModalTeam] = useState<null | 'A' | 'B'>(null);
                 onClick={() => setActiveTab(tab.id as any)}
                 className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap ${
                   activeTab === tab.id
-                    ? 'bg-white text-blue-600 shadow-sm'
+                    ? 'bg-white text-green-600 shadow-sm'
                     : 'text-gray-600 hover:text-gray-800'
                 }`}
               >
@@ -789,7 +789,7 @@ const [beloteModalTeam, setBeloteModalTeam] = useState<null | 'A' | 'B'>(null);
                           }))}
                           className={`p-3 rounded-xl border-2 transition-all duration-200 ${
                             bid?.suit === suit.value
-                              ? 'border-blue-500 bg-blue-50'
+                              ? 'border-green-500 bg-green-50'
                               : 'border-gray-200 hover:border-gray-300 bg-gray-50'
                           }`}
                         >
@@ -819,7 +819,7 @@ const [beloteModalTeam, setBeloteModalTeam] = useState<null | 'A' | 'B'>(null);
                       }))}
                       className={`p-3 rounded-xl border-2 transition-all duration-200 ${
                         bid?.value === value
-                          ? 'border-blue-500 bg-blue-50 text-blue-700'
+                          ? 'border-green-500 bg-green-50 text-green-700'
                           : 'border-gray-200 hover:border-gray-300 bg-gray-50 text-gray-700'
                       }`}
                     >
@@ -838,7 +838,7 @@ const [beloteModalTeam, setBeloteModalTeam] = useState<null | 'A' | 'B'>(null);
                       }))}
                     className={`p-3 rounded-xl border-2 transition-all duration-200 ${
                         bid?.value === 250
-                          ? 'border-blue-500 bg-blue-50 text-blue-700'
+                          ? 'border-green-500 bg-green-50 text-green-700'
                           : 'border-gray-200 hover:border-gray-300 bg-gray-50 text-gray-700'
                       }`}
                   >
@@ -1223,7 +1223,7 @@ const [beloteModalTeam, setBeloteModalTeam] = useState<null | 'A' | 'B'>(null);
                 <button
                   type="submit"
                   disabled={!taker}
-                  className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                  className="w-full py-3 px-4 bg-gradient-to-r from-green-600 to-green-800 text-white rounded-xl font-semibold hover:from-green-700 hover:to-green-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
                 >
                   Valider
                 </button>

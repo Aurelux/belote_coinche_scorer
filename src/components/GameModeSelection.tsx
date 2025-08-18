@@ -79,7 +79,18 @@ export function GameModeSelection() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900 flex items-center justify-center p-4 touch-manipulation">
+    <div className="min-h-screen pt-safe pb-safe flex items-center justify-center p-4"
+     style={{
+       backgroundColor: '#0b3d0b', // vert très foncé
+       backgroundImage: `
+         radial-gradient(circle, rgba(0,0,0,0.1) 1px, transparent 1px),
+         radial-gradient(circle, rgba(0,0,0,0.1) 1px, transparent 1px)
+       `,
+       backgroundPosition: '0 0, 10px 10px',
+       backgroundSize: '20px 20px'
+     }}
+>
+
       <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-2xl">
         <div className="flex items-center mb-8">
           <button
@@ -103,7 +114,7 @@ export function GameModeSelection() {
                 onClick={() => setSelectedMode('belote')}
                 className={`p-6 rounded-xl border-2 transition-all duration-200 touch-manipulation ${
                   selectedMode === 'belote'
-                    ? 'border-blue-500 bg-blue-50 text-blue-700'
+                    ? 'border-green-500 bg-green-50 text-green-700'
                     : 'border-gray-200 hover:border-gray-300 text-gray-700'
                 }`}
               >
@@ -116,7 +127,7 @@ export function GameModeSelection() {
                 onClick={() => setSelectedMode('coinche')}
                 className={`p-6 rounded-xl border-2 transition-all duration-200 touch-manipulation ${
                   selectedMode === 'coinche'
-                    ? 'border-blue-500 bg-blue-50 text-blue-700'
+                    ? 'border-green-500 bg-green-50 text-green-700'
                     : 'border-gray-200 hover:border-gray-300 text-gray-700'
                 }`}
               >
@@ -156,7 +167,7 @@ export function GameModeSelection() {
                   onClick={() => setTargetScore(score)}
                   className={`py-3 px-4 rounded-lg border-2 font-semibold transition-all duration-200 ${
                     targetScore === score
-                      ? 'border-blue-500 bg-blue-50 text-blue-700'
+                      ? 'border-green-500 bg-green-50 text-green-700'
                       : 'border-gray-200 hover:border-gray-300 text-gray-700'
                   }`}
                 >

@@ -158,10 +158,31 @@ const debouncedSearch = debounce(async (index: number, value: string) => {
   const teamStructure = getTeamStructure();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900 flex items-center justify-center p-4">
+    <div className="min-h-screen pt-safe pb-safe flex items-center justify-center p-4"
+     style={{
+       backgroundColor: '#0b3d0b', // vert très foncé
+       backgroundImage: `
+         radial-gradient(circle, rgba(0,0,0,0.1) 1px, transparent 1px),
+         radial-gradient(circle, rgba(0,0,0,0.1) 1px, transparent 1px)
+       `,
+       backgroundPosition: '0 0, 10px 10px',
+       backgroundSize: '20px 20px'
+     }}
+>
       <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-3xl">
         <div className="text-center mb-8">
-          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
+     style={{
+       backgroundColor: '#0b3d0b', // vert très foncé
+       backgroundImage: `
+         radial-gradient(circle, rgba(0,0,0,0.1) 1px, transparent 1px),
+         radial-gradient(circle, rgba(0,0,0,0.1) 1px, transparent 1px)
+       `,
+       backgroundPosition: '0 0, 10px 10px',
+       backgroundSize: '20px 20px'
+     }}
+>
+          
             <Users className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Configuration des Joueurs</h1>
@@ -180,7 +201,7 @@ const debouncedSearch = debounce(async (index: number, value: string) => {
                   onClick={() => setPlayerCount(count as 2 | 3 | 4)}
                   className={`py-3 px-4 rounded-lg border-2 font-semibold transition-all duration-200 ${
                     playerCount === count
-                      ? 'border-blue-500 bg-blue-50 text-blue-700'
+                      ? 'border-green-500 bg-green-50 text-green-700'
                       : 'border-gray-200 hover:border-gray-300 text-gray-700'
                   }`}
                 >
@@ -437,7 +458,7 @@ const debouncedSearch = debounce(async (index: number, value: string) => {
           <button
             type="submit"
             disabled={!isFormValid}
-            className={`w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-4 px-6 rounded-lg font-semibold text-lg hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg ${
+            className={`w-full bg-gradient-to-r from-green-600 to-green-900 text-white py-4 px-6 rounded-lg font-semibold text-lg hover:from-green-700 hover:to-green-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg ${
               !isFormValid ? 'cursor-not-allowed' : 'cursor-pointer'
             }`}
           >

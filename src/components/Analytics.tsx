@@ -403,7 +403,17 @@ gameState.hands
   }));
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900 p-4">
+    <div className="min-h-screen pt-safe pb-safe flex items-center justify-center p-4"
+     style={{
+       backgroundColor: '#0b3d0b', // vert très foncé
+       backgroundImage: `
+         radial-gradient(circle, rgba(0,0,0,0.1) 1px, transparent 1px),
+         radial-gradient(circle, rgba(0,0,0,0.1) 1px, transparent 1px)
+       `,
+       backgroundPosition: '0 0, 10px 10px',
+       backgroundSize: '20px 20px'
+     }}
+>
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="bg-white rounded-2xl shadow-xl p-6 mb-6">

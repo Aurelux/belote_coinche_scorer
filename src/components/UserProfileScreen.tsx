@@ -11,7 +11,17 @@ export function UserProfileScreen() {
 
   if (!user) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gray-100 text-gray-700">
+      <div className="min-h-screen pt-safe pb-safe flex items-center justify-center p-4"
+     style={{
+       backgroundColor: '#0b3d0b', // vert très foncé
+       backgroundImage: `
+         radial-gradient(circle, rgba(0,0,0,0.1) 1px, transparent 1px),
+         radial-gradient(circle, rgba(0,0,0,0.1) 1px, transparent 1px)
+       `,
+       backgroundPosition: '0 0, 10px 10px',
+       backgroundSize: '20px 20px'
+     }}
+>
         <p className="mb-4">Aucun utilisateur sélectionné.</p>
         <button
           onClick={() => navigateTo('friends')}
@@ -32,7 +42,17 @@ export function UserProfileScreen() {
   const userTitle = PROFILE_TITLES.find(t => t.id === user.profileTitle);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-blue-800 to-blue-900 text-white p-4">
+    <div className="min-h-screen pt-safe pb-safe flex items-center justify-center p-4"
+     style={{
+       backgroundColor: '#0b3d0b', // vert très foncé
+       backgroundImage: `
+         radial-gradient(circle, rgba(0,0,0,0.1) 1px, transparent 1px),
+         radial-gradient(circle, rgba(0,0,0,0.1) 1px, transparent 1px)
+       `,
+       backgroundPosition: '0 0, 10px 10px',
+       backgroundSize: '20px 20px'
+     }}
+>
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="bg-white text-gray-900 rounded-xl shadow-md p-6 mb-6">

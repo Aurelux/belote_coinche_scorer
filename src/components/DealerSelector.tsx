@@ -5,22 +5,23 @@ export default function DealerSelector({
   onSelect,
 }: { players: string[]; onSelect: (index: number) => void }) {
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
-      <div className="bg-white rounded-2xl shadow-lg p-6 w-80">
-        <h2 className="text-xl font-bold mb-4 text-center">
+    <div className="fixed inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm z-50">
+      <div className="bg-green-900 rounded-3xl shadow-2xl p-6 w-80">
+        <h2 className="text-2xl font-extrabold mb-6 text-center text-yellow-300">
           Qui distribue en premier ?
         </h2>
-        <div className="grid gap-2">
+        <div className="grid gap-3">
           {players.map((p, i) => (
             <button
               key={i}
-              className="bg-blue-500 text-white rounded-xl py-2 hover:bg-blue-600 transition"
+              className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white font-semibold rounded-xl py-2 shadow-lg hover:scale-105 transition-transform duration-200"
               onClick={() => onSelect(i)}
             >
               {p}
             </button>
           ))}
         </div>
+        
       </div>
     </div>
   );

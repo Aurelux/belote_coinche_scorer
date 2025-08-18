@@ -9,7 +9,7 @@ export default function SplashScreen({ onFinish }: { onFinish: () => void }) {
   }, []);
 
   return (
-    <div className="fixed inset-0 bg-blue-600 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-green-900 flex items-center justify-center z-50">
       <AnimatePresence>
         <motion.div
           className="flex flex-col items-center gap-4"
