@@ -158,7 +158,7 @@ const debouncedSearch = debounce(async (index: number, value: string) => {
   const teamStructure = getTeamStructure();
 
   return (
-    <div className="min-h-screen pt-safe pb-safe flex items-center justify-center p-4"
+    <div className="app-container min-h-screen pt-safe pb-safe flex items-center justify-center p-4"
      style={{
        backgroundColor: '#0b3d0b', // vert très foncé
        backgroundImage: `
@@ -169,7 +169,15 @@ const debouncedSearch = debounce(async (index: number, value: string) => {
        backgroundSize: '20px 20px'
      }}
 >
-      <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-3xl">
+      <div
+  className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-3xl fixed mx-auto"
+  style={{
+    top: 'calc(1.5rem + env(safe-area-inset-top))',
+    left: '0.5rem',
+    right: '0.5rem'
+  }}
+>
+        
         <div className="text-center mb-8">
           <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
      style={{

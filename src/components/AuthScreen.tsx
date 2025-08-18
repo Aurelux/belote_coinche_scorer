@@ -95,7 +95,7 @@ export function AuthScreen() {
     
       <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="bg-gradient-to-r from-blue-600 to-indigo-600 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="bg-gradient-to-r from-green-800 to-green-900 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
             <Users className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
@@ -205,8 +205,7 @@ export function AuthScreen() {
                 maxLength={4}
                 inputMode="numeric"
                 pattern="[0-9]*"
-                inputMode="numeric"
-                pattern="[0-9]*"
+                
                 required
               />
               <button
@@ -234,6 +233,8 @@ export function AuthScreen() {
                   className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all duration-200 text-center text-2xl tracking-widest"
                   placeholder="••••"
                   maxLength={4}
+                  inputMode="numeric"
+                pattern="[0-9]*"
                   required
                 />
               </div>
@@ -251,7 +252,7 @@ export function AuthScreen() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 px-6 rounded-lg font-semibold hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center space-x-2"
+            className="w-full bg-gradient-to-r from-green-700 to-green-800 text-white py-3 px-6 rounded-lg font-semibold hover:from-green-700 hover:to-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center space-x-2"
           >
             {loading ? (
               <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -279,7 +280,7 @@ export function AuthScreen() {
                 profileTitle: 'player'
               });
             }}
-            className="text-blue-600 hover:text-blue-700 font-medium"
+            className="text-green-600 hover:text-green-700 font-medium"
           >
             {isLogin ? "Pas encore de compte ? S'inscrire" : "Déjà un compte ? Se connecter"}
           </button>
@@ -299,7 +300,7 @@ export function AuthScreen() {
         <div className="mt-4 text-center">
           <button
             onClick={() => navigateTo('profile')}
-            className="flex items-center space-x-2 mx-auto text-blue-600 hover:text-blue-700 text-sm"
+            className="flex items-center space-x-2 mx-auto text-green-600 hover:text-green-700 text-sm"
           >
             <User className="w-4 h-4" />
             <span>Voir mon profil</span>

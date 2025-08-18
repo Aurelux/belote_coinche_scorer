@@ -162,7 +162,7 @@ export function GameBoard() {
 
   return (
     <>
-      <div className="min-h-screen pt-safe pb-safe flex items-center justify-center p-4"
+      <div className="min-h-screen flex items-center justify-center p-4"
      style={{
        backgroundColor: '#0b3d0b', // vert très foncé
        backgroundImage: `
@@ -174,7 +174,7 @@ export function GameBoard() {
      }}
 >
 
-        <div className="max-w-6xl mx-auto">
+        <div className="w-full mx-auto px-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)] relative" style={{ top: 'calc(.5rem + env(safe-area-inset-top))' }}>
           {/* Header */}
           <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 mb-4 sm:mb-6">
             <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:justify-between sm:items-center">

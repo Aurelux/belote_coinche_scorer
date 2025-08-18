@@ -414,7 +414,10 @@ gameState.hands
        backgroundSize: '20px 20px'
      }}
 >
-      <div className="max-w-7xl mx-auto">
+      <div 
+  className="max-w-7xl mx-auto relative" 
+  style={{ top: 'calc(0.5em + env(safe-area-inset-top))' }}
+>
         {/* Header */}
         <div className="bg-white rounded-2xl shadow-xl p-6 mb-6">
           <div className="flex items-center space-x-4">

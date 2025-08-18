@@ -21,7 +21,8 @@ function ProfileButton() {
   return (
     <button
       onClick={() => setCurrentScreen('profile')}
-      className="fixed top-4 right-4 z-40 p-3 bg-white rounded-full shadow-lg hover:shadow-xl transition-all duration-200 border-2 border-blue-100 hover:border-blue-300"
+      className="fixed top-4 right-4 z-40 p-3 bg-white rounded-full shadow-lg hover:shadow-xl transition-all duration-200 border-2 border-green-100 hover:border-green-300"
+      style={{ top: 'calc(1.5rem + env(safe-area-inset-top))' }}
       title="Mon profil"
     >
       {gameState.currentUser.profilePicture ? (
@@ -31,7 +32,7 @@ function ProfileButton() {
           className="w-8 h-8 rounded-full object-cover"
         />
       ) : (
-        <User className="w-8 h-8 text-blue-600" />
+        <User className="w-8 h-8 text-green-600" />
       )}
     </button>
   );

@@ -77,7 +77,7 @@ export function RankingsScreen() {
        backgroundSize: '20px 20px'
      }}
 >
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-4xl mx-auto relative" style={{ top: 'calc(.5rem + env(safe-area-inset-top))' }}>
         {/* Header */}
         <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 mb-4 sm:mb-6">
           <div className="flex items-center space-x-4">

@@ -93,7 +93,7 @@ export function FriendsScreen() {
      }}
 >
 
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-4xl mx-auto relative" style={{ top: 'calc(.5rem + env(safe-area-inset-top))' }}>
         {/* Header */}
         <div className="bg-white rounded-2xl shadow-xl p-6 mb-6">
           <div className="flex items-center space-x-4">
@@ -123,13 +123,13 @@ export function FriendsScreen() {
                 onClick={() => setActiveTab(tab.id as any)}
                 className={`px-4 py-2 rounded-lg font-medium transition-colors ${
                   activeTab === tab.id
-                    ? 'bg-blue-100 text-blue-700'
+                    ? 'bg-green-100 text-green-700'
                     : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
                 }`}
               >
                 {tab.label}
                 {tab.count !== null && tab.count > 0 && (
-                  <span className="ml-2 px-2 py-1 bg-blue-600 text-white text-xs rounded-full">
+                  <span className="ml-2 px-2 py-1 bg-green-600 text-white text-xs rounded-full">
                     {tab.count}
                   </span>
                 )}
@@ -147,7 +147,7 @@ export function FriendsScreen() {
                   <p className="text-gray-600 mb-4">Commencez par rechercher et ajouter des amis</p>
                   <button
                     onClick={() => setActiveTab('search')}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
                   >
                     Rechercher des amis
                   </button>
@@ -174,7 +174,7 @@ export function FriendsScreen() {
                         </div>
                         <button
                           onClick={() => viewProfile(friend)}
-                          className="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
+                          className="px-3 py-1 text-sm bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
                         >
                           Voir profil
                         </button>
@@ -259,7 +259,7 @@ export function FriendsScreen() {
 
               {loading && (
                 <div className="text-center py-8">
-                  <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                  <div className="w-8 h-8 border-2 border-green-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
                   <p className="text-gray-600 mt-2">Recherche en cours...</p>
                 </div>
               )}
@@ -296,7 +296,7 @@ export function FriendsScreen() {
                           </button>
                           <button
                             onClick={() => handleSendFriendRequest(user.id)}
-                            className="px-3 py-1 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-1"
+                            className="px-3 py-1 text-sm bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-1"
                           >
                             <UserPlus className="w-4 h-4" />
                             <span>Ajouter</span>

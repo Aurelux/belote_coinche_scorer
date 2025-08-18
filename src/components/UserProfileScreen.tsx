@@ -53,7 +53,7 @@ export function UserProfileScreen() {
        backgroundSize: '20px 20px'
      }}
 >
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-4xl mx-auto relative" style={{ top: 'calc(.5rem + env(safe-area-inset-top))' }}>
         {/* Header */}
         <div className="bg-white text-gray-900 rounded-xl shadow-md p-6 mb-6">
           <div className="flex items-center space-x-4">
