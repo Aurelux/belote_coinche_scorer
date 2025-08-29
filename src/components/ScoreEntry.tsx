@@ -14,7 +14,7 @@ export function ScoreEntry({ onClose, onSubmit, editedHand }: ScoreEntryProps) {
   
   const [activeTab, setActiveTab] = useState<'prise' | 'mise' | 'coinche' | 'score' | 'penalty' | 'total'>('prise');
   const [winningTeam, setWinningTeam] = useState<'A' | 'B' | 'C'>('A');
-  const [teamScores, setTeamScores] = useState({ A: 82, B: 80, C: 0 });
+  const [teamScores, setTeamScores] = useState<{ [key: string]: string }>({ A: '', B: '', C: '' });
   const [announcements, setAnnouncements] = useState(0);
   const [isCapot, setIsCapot] = useState(false);
   const [taker, setTaker] = useState<string>('');
@@ -78,6 +78,7 @@ const [beloteModalTeam, setBeloteModalTeam] = useState<null | 'A' | 'B'>(null);
   console.log("editedHand in handleSubmit", editedHand);
   // Auto-calculate opposing scores
   useEffect(() => {
+     const handler = setTimeout(() => {
     if (gameState.settings.playerCount === 2 || gameState.settings.playerCount === 4) {
     if (!isCapot && lastChangedTeam) {
       const totalPoints = 162;
@@ -88,47 +89,60 @@ const [beloteModalTeam, setBeloteModalTeam] = useState<null | 'A' | 'B'>(null);
       }
     }
   } else if (gameState.settings.playerCount === 3) {
-    if (!isCapot && lastChangedTeam) {
+      const { A, B, C } = teamScores;
       const totalPoints = 162;
-      setTeamScores(prev => {
-        let { A, B, C } = prev;
+      const filled = [A, B, C].filter(v => v !== '').length;
 
-        if (lastChangedTeam === 'A') {
-          // A reste fixe, on modifie seulement celui qui n'était PAS le précédent changé
-          const fixed = previousChangedTeam;
-          const free = ['B', 'C'].filter(p => p !== fixed)[0];
-          if (free === 'B') {
-            B = totalPoints - A - C;
-          } else {
-            C = totalPoints - A - B;
-          }
-        } 
-        else if (lastChangedTeam === 'B') {
-          const fixed = previousChangedTeam;
-          const free = ['A', 'C'].filter(p => p !== fixed)[0];
-          if (free === 'A') {
-            A = totalPoints - B - C;
-          } else {
-            C = totalPoints - B - A;
-          }
-        } 
-        else if (lastChangedTeam === 'C') {
-          const fixed = previousChangedTeam;
-          const free = ['A', 'B'].filter(p => p !== fixed)[0];
-          if (free === 'A') {
-            A = totalPoints - C - B;
-          } else {
-            B = totalPoints - C - A;
-          }
-        }
+      if (filled >= 2) {
+        setTeamScores(prev => {
+          let { A, B, C } = prev;
 
-        return { A, B, C };
-      });
+          const aVal = parseInt(A) || 0;
+          const bVal = parseInt(B) || 0;
+          const cVal = parseInt(C) || 0;
 
-      // on enregistre l'ancien pour la prochaine fois
-      setPreviousChangedTeam(lastChangedTeam);
+          if (filled === 2) {
+            // Cas normal : un seul champ vide
+            if (A === '') A = (totalPoints - bVal - cVal);
+            if (B === '') B = (totalPoints - aVal - cVal);
+            if (C === '') C = (totalPoints - aVal - bVal);
+          } else {
+            // Cas : les 3 sont remplis -> recalcul de celui qui n'est PAS lastChangedTeam
+            if (lastChangedTeam === 'A') {
+              // recalculer C si B a été fixé avant
+              if (Math.abs(aVal + bVal + cVal - totalPoints) > 0) {
+                if (previousChangedTeam === 'B') {
+                  C = (totalPoints - aVal - bVal);
+                } else {
+                  B = (totalPoints - aVal - cVal);
+                }
+              }
+            } else if (lastChangedTeam === 'B') {
+              if (Math.abs(aVal + bVal + cVal - totalPoints) > 0) {
+                if (previousChangedTeam === 'A') {
+                  C = (totalPoints - aVal - bVal);
+                } else {
+                  A = (totalPoints - bVal - cVal);
+                }
+              }
+            } else if (lastChangedTeam === 'C') {
+              if (Math.abs(aVal + bVal + cVal - totalPoints) > 0) {
+                if (previousChangedTeam === 'A') {
+                  B = (totalPoints - aVal - cVal);
+                } else {
+                  A = (totalPoints - bVal - cVal);
+                }
+              }
+            }
+          }
+
+          return { A, B, C };
+        });
+      }
     }
-  }
+  }, 400);
+return () => clearTimeout(handler);
+
 }, [
   teamScores.A, 
   teamScores.B, 
@@ -931,14 +945,15 @@ const [beloteModalTeam, setBeloteModalTeam] = useState<null | 'A' | 'B'>(null);
 </div>
                       </div>
                       <input
-                        type="number"
-                        value={isCapot ? (teamScores[team as keyof typeof teamScores] || 0) : teamScores[team as keyof typeof teamScores]}
-                        onChange={(e) => {
-  const value = parseInt(e.target.value) || 0;
-  setTeamScores(prev => ({ ...prev, [team]: value }));
-  setLastChangedTeam(team as 'A' | 'B' | 'C'); // <-- ici
-  setIsCapot(false);
-}}
+  type="number"
+  value={isCapot ? (teamScores[team] || '') : (teamScores[team] || '')}
+  onChange={(e) => {
+    const value = parseInt(e.target.value); // <-- laisse la chaîne
+    setTeamScores(prev => ({ ...prev, [team]: value }));
+    setLastChangedTeam(team as 'A' | 'B' | 'C');
+    setIsCapot(false);
+  }}
+  
                         disabled={isCapot}
                         className="w-full text-center text-lg sm:text-xl font-bold bg-gray-50 border border-gray-200 rounded-lg py-2 px-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 touch-manipulation"
                         min="0"

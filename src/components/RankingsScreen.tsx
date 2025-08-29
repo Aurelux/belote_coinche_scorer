@@ -1,23 +1,46 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Trophy, Medal, Award, Crown, TrendingUp, Users, Target, Star } from 'lucide-react';
+import { ArrowLeft, Trophy, Medal, Award, Crown, TrendingUp, Users, Target, Star,Globe } from 'lucide-react';
 import { useGame } from '../context/GameContext';
 import { PROFILE_TITLES } from '../types/game';
+import { supabase } from '../lib/supabase';
 
 export function RankingsScreen() {
-  const { gameState, setCurrentScreen, getUserRankings, navigateTo, goBack } = useGame();
+  const { gameState, setCurrentScreen, getUserRankings, navigateTo, goBack, setSelectedUser} = useGame();
   const [selectedMode, setSelectedMode] = useState<'belote' | 'coinche'>('belote');
   const [selectedPlayerCount, setSelectedPlayerCount] = useState<2 | 3 | 4>(4);
+  const [selectedGroup, setSelectedGroup] = useState<'world' | 'friends'>('world');
+  const [popupPosition, setPopupPosition] = useState<{ x: number; y: number; playerId: string } | null>(null);
+
+
+
   const [rankings, setRankings] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [users, setUsers] = useState<User[]>([]);
+
 
   useEffect(() => {
     loadRankings();
-  }, [selectedMode, selectedPlayerCount]);
+  }, [selectedMode, selectedPlayerCount,selectedGroup]);
+  useEffect(() => {
+  const loadUsers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('id, display_name, profile_picture, profile_title, stats'); // pas de email
+      
+      if (error) throw error;
+      setUsers(data || []);
+    } catch (err) {
+      console.error('Erreur lors du chargement des users:', err);
+    }
+  };
 
+  loadUsers();
+}, []);
   const loadRankings = async () => {
     setLoading(true);
     try {
-      const rankingsData = await getUserRankings(selectedMode, selectedPlayerCount);
+      const rankingsData = await getUserRankings(selectedMode, selectedPlayerCount,selectedGroup);
       // Limit to top 30 players
       setRankings(rankingsData.slice(0, 30));
     } catch (error) {
@@ -146,6 +169,28 @@ export function RankingsScreen() {
                 ))}
               </div>
             </div>
+            <div>
+  <h3 className="text-lg font-semibold text-gray-900 mb-4">Classement</h3>
+  <div className="grid grid-cols-2 gap-2 sm:gap-3">
+    {[
+      { key: 'world', label: 'Monde', icon: <Globe size={18} /> },
+      { key: 'friends', label: 'Amis', icon: <Users size={18} /> }
+    ].map(option => (
+      <button
+        key={option.key}
+        onClick={() => setSelectedGroup(option.key)}
+        className={`flex items-center justify-center gap-2 py-2 sm:py-3 px-3 sm:px-4 rounded-lg border-2 font-semibold transition-all duration-200 text-sm sm:text-base ${
+          selectedGroup === option.key
+            ? 'border-blue-500 bg-blue-50 text-blue-700'
+            : 'border-gray-200 hover:border-gray-300 text-gray-700'
+        }`}
+      >
+        <span className="text-lg">{option.icon}</span>
+        {option.label}
+      </button>
+    ))}
+  </div>
+</div>
           </div>
         </div>
 
@@ -193,7 +238,7 @@ export function RankingsScreen() {
           <div className="flex items-center space-x-3 mb-4 sm:mb-6">
             <Trophy className="w-6 h-6 text-yellow-500" />
             <h3 className="text-lg sm:text-xl font-bold text-gray-900">
-              Top 30 - {selectedMode === 'belote' ? 'Belote' : 'Coinche'} ({selectedPlayerCount}J)
+              Top 30 - {selectedMode === 'belote' ? 'Belote' : 'Coinche'} ({selectedPlayerCount}J) ({selectedGroup})
             </h3>
           </div>
 
@@ -224,7 +269,27 @@ export function RankingsScreen() {
                         ? 'border-yellow-200 bg-gradient-to-r from-yellow-50 to-amber-50'
                         : 'border-gray-200 bg-gray-50'
                     }`}
-                  >
+                    onClick={(e) => {
+  const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
+  const popupWidth = 150; // largeur approximative du popup
+  let x = rect.left + 8;  // départ à gauche + petit offset
+
+  // Empêcher le popup de dépasser l'écran à droite
+  if (x + popupWidth > window.innerWidth) {
+    x = window.innerWidth - popupWidth - 8; // 8px de marge
+  }
+  // Chercher le user correspondant à player.userId
+  const user = users.find(u => u.id === player.userId);
+  if (!user) return; // sécurité
+
+  setPopupPosition({
+    x,
+    y: rect.top + rect.height / 2, // centre verticalement sur le joueur
+    playerId: user,
+  });
+}}
+>
+                  
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3 min-w-0 flex-1">
                         {/* Rank Badge */}
@@ -300,9 +365,34 @@ export function RankingsScreen() {
                   </div>
                 );
               })}
+              
             </div>
           )}
+          {popupPosition && (
+  <div
+    className="absolute bg-white border rounded-lg shadow-lg px-3 py-2 z-50"
+    style={{
+      top: popupPosition.y,
+      left: popupPosition.x, // décalage à droite
+      transform: 'translateY(-50%)', // centrer verticalement sur le joueur
+    }}
+  >
+    <button
+      className="text-green-600 font-semibold hover:underline text-sm"
+      onClick={() => {
+        // action pour voir le profil
+        
+        setSelectedUser(popupPosition.playerId);
+        navigateTo('user-profile')
+        setPopupPosition(null); // fermer le popup
+      }}
+    >
+      Voir le profil
+    </button>
+  </div>
+)}
         </div>
+        
 
         {/* Ranking Explanation */}
         <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 mt-4 sm:mt-6">

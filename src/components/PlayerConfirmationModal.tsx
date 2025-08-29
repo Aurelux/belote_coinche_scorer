@@ -97,13 +97,13 @@ export function PlayerConfirmationModal() {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-6 rounded-t-2xl">
+        <div className="bg-gradient-to-r from-green-600 to-green-600 text-white p-6 rounded-t-2xl">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
               <Shield className="w-8 h-8" />
               <div>
                 <h2 className="text-xl font-bold">Confirmation Joueur</h2>
-                <p className="text-blue-100 text-sm">
+                <p className="text-green-100 text-sm">
                   {currentPlayerIndex + 1} sur {pendingConfirmations.length}
                 </p>
               </div>
@@ -113,7 +113,7 @@ export function PlayerConfirmationModal() {
                 hidePlayerConfirmationModal();
                 navigateTo('setup');
               }}
-              className="p-2 text-blue-100 hover:text-white hover:bg-blue-700 rounded-lg transition-colors"
+              className="p-2 text-green-100 hover:text-white hover:bg-green-700 rounded-lg transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
@@ -127,7 +127,7 @@ export function PlayerConfirmationModal() {
               <img
                 src={user.profilePicture}
                 alt={user.displayName}
-                className="w-20 h-20 rounded-full object-cover mx-auto mb-4 border-4 border-blue-200"
+                className="w-20 h-20 rounded-full object-cover mx-auto mb-4 border-4 border-green-200"
               />
             ) : (
               <div className="w-20 h-20 bg-gray-300 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -153,7 +153,7 @@ export function PlayerConfirmationModal() {
                   setAccessCode(e.target.value.replace(/\D/g, '').slice(0, 4));
                   setError('');
                 }}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all duration-200 text-center text-2xl tracking-widest"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-4 focus:ring-green-100 focus:border-green-500 transition-all duration-200 text-center text-2xl tracking-widest"
                 placeholder="••••"
                 maxLength={4}
                 autoFocus
@@ -195,7 +195,7 @@ export function PlayerConfirmationModal() {
               <button
                 type="submit"
                 disabled={loading || accessCode.length !== 4}
-                className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center justify-center space-x-2"
+                className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center justify-center space-x-2"
               >
                 {loading ? (
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />

@@ -7,14 +7,19 @@ import { PROFILE_TITLES } from '../types/game';
 
 
 
+
 export function ProfileScreen() {
 
   
-  
+  const [notifications, setNotifications] = useState<string[]>([]);
+
   const { gameState, setCurrentScreen, logoutUser, updateProfileTitle, updateProfilePicture, navigateTo, goBack, loadMatchHistory, getUserSoftRankings} = useGame();
   const [showTitleSelector, setShowTitleSelector] = useState(false);
   const [updating, setUpdating] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [unlockedTitles, setUnlockedTitles] = useState<string[]>([]);
+  
+
   
   const currentUser = gameState.currentUser;
 
@@ -75,6 +80,24 @@ useEffect(() => {
   const stats = currentUser.stats;
  let winStreak = 0;
 let lossStreak = 0;
+const addNotification = (id: string, message: string) => {
+  const shown = JSON.parse(localStorage.getItem('shownNotifications') || '[]');
+
+  if (shown.includes(id)) return; // déjà affichée → on ne refait pas
+
+  setNotifications(prev => [...prev, message]);
+
+  // Marquer comme vue
+  localStorage.setItem('shownNotifications', JSON.stringify([...shown, id]));
+
+  // Supprimer après 3 sec
+  setTimeout(() => {
+    setNotifications(prev => prev.slice(1));
+  }, 3000);
+};
+
+
+
 let mostPlayedWith: { userId: 'id'; name: 'nobody'; count: 0 } ;
   let worstTeammate: { userId: 'id'; name: 'nobody'; losses: 0 } ;
 
@@ -746,7 +769,22 @@ if (worstEntry.userId) {
     </div>
  
 </div>
-          </div>
+</div>
+          <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 flex flex-col gap-3">
+  {notifications.map((notif, index) => (
+    <div
+  key={index}
+  className="notif-item px-6 py-3 rounded-2xl shadow-lg 
+             bg-white/30 backdrop-blur-md border border-white/20 
+             text-gray-900 font-semibold
+             animate-slide-in-up transition-opacity duration-500"
+>
+  {notif}
+</div>
+
+  ))}
+</div>
+
 
           {/* Challenge Progress Section */}
           <div className="mb-8 mt-8">
@@ -762,32 +800,74 @@ if (worstEntry.userId) {
       if (title.requirement && title.threshold) {
         currentValue = stats[title.requirement as keyof typeof stats] as number;
         isUnlocked = currentValue >= title.threshold && meetsMinGames;
+        if (isUnlocked && !unlockedTitles.includes(title.id)) {
+  // Nouveau défi débloqué !
+  addNotification(`Défi débloqué : ${title.title} 🎉`);
+
+  // Ajoute-le à la liste des titres débloqués pour éviter de le redéclencher
+  setUnlockedTitles(prev => [...prev, title.id]);
+}
         progress = Math.min((currentValue / title.threshold) * 100, 100);
       }
       if (title.requirement === 'winStreak'){
         currentValue = maxWinStreak
         isUnlocked = currentValue >= title.threshold && meetsMinGames;
+        if (isUnlocked && !unlockedTitles.includes(title.id)) {
+  // Nouveau défi débloqué !
+  addNotification(title.id, `Défi débloqué : ${title.title} 🎉`);
+
+  // Ajoute-le à la liste des titres débloqués pour éviter de le redéclencher
+  setUnlockedTitles(prev => [...prev, title.id]);
+}
         progress = Math.min((currentValue / title.threshold) * 100, 100);
       }
 
       if (title.requirement === 'lossStreak'){
         currentValue = maxLossStreak
         isUnlocked = currentValue >= title.threshold && meetsMinGames;
+        if (isUnlocked && !unlockedTitles.includes(title.id)) {
+  // Nouveau défi débloqué !
+  addNotification(title.id,`Défi débloqué : ${title.title} 🎉`);
+
+  // Ajoute-le à la liste des titres débloqués pour éviter de le redéclencher
+  setUnlockedTitles(prev => [...prev, title.id]);
+}
         progress = Math.min((currentValue / title.threshold) * 100, 100);
       }
       if (title.requirement === 'isPastis'){
         currentValue = isPastis? 1 : 0
         isUnlocked = currentValue >= title.threshold && meetsMinGames;
+        if (isUnlocked && !unlockedTitles.includes(title.id)) {
+  // Nouveau défi débloqué !
+  addNotification(title.id,`Défi débloqué : ${title.title} 🎉`);
+
+  // Ajoute-le à la liste des titres débloqués pour éviter de le redéclencher
+  setUnlockedTitles(prev => [...prev, title.id]);
+}
         progress = Math.min((currentValue / title.threshold) * 100, 100);
       }
       if (title.requirement === 'isBiere'){
         currentValue = isBiere? 1 : 0
         isUnlocked = currentValue >= title.threshold && meetsMinGames;
+        if (isUnlocked && !unlockedTitles.includes(title.id)) {
+  // Nouveau défi débloqué !
+  addNotification(title.id,`Défi débloqué : ${title.title} 🎉`);
+
+  // Ajoute-le à la liste des titres débloqués pour éviter de le redéclencher
+  setUnlockedTitles(prev => [...prev, title.id]);
+}
         progress = Math.min((currentValue / title.threshold) * 100, 100);
       }
       if (title.requirement === 'isTempete'){
         currentValue = isTempete? 1 : 0
         isUnlocked = currentValue >= title.threshold && meetsMinGames;
+        if (isUnlocked && !unlockedTitles.includes(title.id)) {
+  // Nouveau défi débloqué !
+  addNotification(title.id,`Défi débloqué : ${title.title} 🎉`);
+
+  // Ajoute-le à la liste des titres débloqués pour éviter de le redéclencher
+  setUnlockedTitles(prev => [...prev, title.id]);
+}
         progress = Math.min((currentValue / title.threshold) * 100, 100);
       }
      if (title.requirement === 'mostPlayedWith') {
@@ -795,11 +875,25 @@ if (worstEntry.userId) {
 
   currentValue = count;
   isUnlocked = currentValue >= title.threshold && meetsMinGames;
+  if (isUnlocked && !unlockedTitles.includes(title.id)) {
+  // Nouveau défi débloqué !
+  addNotification(title.id,`Défi débloqué : ${title.title} 🎉`);
+
+  // Ajoute-le à la liste des titres débloqués pour éviter de le redéclencher
+  setUnlockedTitles(prev => [...prev, title.id]);
+}
   progress = Math.min((currentValue / title.threshold) * 100, 100);
 }
 
       if (title.customCheck && typeof customChecks[title.customCheck] === 'function') {
         isUnlocked = customChecks[title.customCheck](playerGames) && meetsMinGames;
+        if (isUnlocked && !unlockedTitles.includes(title.id)) {
+  // Nouveau défi débloqué !
+  addNotification(title.id,`Défi débloqué : ${title.title} 🎉`);
+
+  // Ajoute-le à la liste des titres débloqués pour éviter de le redéclencher
+  setUnlockedTitles(prev => [...prev, title.id]);
+}
         progress = isUnlocked ? 100 : 0; // Tout ou rien
       }
 

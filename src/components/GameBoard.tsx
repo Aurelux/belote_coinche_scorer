@@ -20,6 +20,7 @@ export function GameBoard() {
   const [celebrationPlayer, setCelebrationPlayer] = useState('');
   const [showPenaltyModal, setShowPenaltyModal] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState<'A' | 'B' | 'C'>('A');
+  const [showExitGameModal, setShowExitGameModal] = useState(false);
 
   if (!gameState.players.length) {
     return null;
@@ -180,11 +181,38 @@ export function GameBoard() {
             <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:justify-between sm:items-center">
               <div className="flex items-center space-x-4">
                 <button
-                  onClick={() => navigateTo('setup')}
-                  className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
-                >
+      onClick={() => setShowExitGameModal(true)} // ouvre directement le modal
+      className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+    >
                   <ArrowLeft className="w-6 h-6" />
                 </button>
+                {showExitGameModal && (
+      <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+        <div className="bg-white rounded-2xl shadow-xl p-6 w-11/12 max-w-md text-center">
+          <h2 className="text-lg font-semibold mb-4">Quitter la partie ?</h2>
+          <p className="mb-6 text-gray-700">
+            Si vous quittez maintenant, la partie en cours sera perdue.
+          </p>
+          <div className="flex justify-center gap-4">
+            <button
+              className="px-4 py-2 rounded-lg bg-gray-200 text-gray-800 font-semibold hover:bg-gray-300"
+              onClick={() => setShowExitGameModal(false)} // Annuler
+            >
+              Annuler
+            </button>
+            <button
+              className="px-4 py-2 rounded-lg bg-red-500 text-white font-semibold hover:bg-red-600"
+              onClick={() => {
+                setShowExitGameModal(false);
+                navigateTo('setup'); // Confirme et navigue
+              }}
+            >
+              Quitter
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
                 <div>
                   <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
                     {gameState.settings.mode === 'belote' ? 'Belote' : 'Coinche'}

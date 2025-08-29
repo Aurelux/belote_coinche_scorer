@@ -484,7 +484,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
    const [screenHistory, setScreenHistory] = useState<AppScreen[]>([]);
 
   const navigateTo = (screen: AppScreen) => {
-    if (screen !== currentScreen) {
+    const previousScreen = screenHistory[screenHistory.length - 1]
+    console.log('➡️ Previous screen:', previousScreen);
+  console.log('➡️ Current screen:', currentScreen);
+    if (currentScreen === 'user-profile' && previousScreen === 'rankings'){
+      setScreenHistory((prev) => [...prev, currentScreen]);
+      setCurrentScreen(previousScreen);
+    };
+    if ((currentScreen !== 'user-profile' && previousScreen !== 'rankings') && screen !== currentScreen) {
       setScreenHistory((prev) => [...prev, currentScreen]);
       setCurrentScreen(screen);
     }
@@ -514,6 +521,7 @@ const nextDealer = () => {
 
 
   const goBack = () => {
+      
   setScreenHistory((prevHistory) => {
     const history = [...prevHistory];
     history.pop(); // remove current screen
@@ -1394,20 +1402,40 @@ dispatch({ type: 'SET_MATCH_HISTORY', payload: matchHistoryFiltered });
     return true;
   };
 
-  const getUserRankings = async (mode: 'belote' | 'coinche', playerCount: 2 | 3 | 4): Promise<PlayerRanking[]> => {
+  const getUserRankings = async (mode: 'belote' | 'coinche', playerCount: 2 | 3 | 4,group: 'world' | 'friends'): Promise<PlayerRanking[]> => {
     try {
       const { data: users, error } = await supabase
         .from('users')
         .select('id, display_name, profile_picture, profile_title, stats');
 
       if (error) throw error;
+      let filteredUsers = users || [];
+
+    // 2. Si groupe = "friends", récupérer la liste d'amis
+    if (group === 'friends') {
+      const { data: friendships, error: friendsError } = await supabase
+        .from('friendships')
+        .select('user_id, friend_id')
+        .or(`user_id.eq.${gameState.currentUser.id},friend_id.eq.${gameState.currentUser.id}`)
+        .eq('status', 'accepted');
+
+
+      if (friendsError) throw friendsError;
+
+      const friendIds = (friendships || []).map(f => f.friend_id);
+      // Inclure aussi l'utilisateur lui-même
+      friendIds.push(gameState.currentUser.id);
+
+      filteredUsers = filteredUsers.filter(user => friendIds.includes(user.id));
+    }
+
 
       const modeKey = `${mode}${playerCount}P` as keyof UserStats;
       
-      const rankings: PlayerRanking[] = (users || [])
-        .map(user => {
-          const stats = user.stats || createEmptyUserStats();
-          const modeStats = stats[modeKey] as GameModeStats;
+      const rankings: PlayerRanking[] = filteredUsers
+      .map(user => {
+        const stats = user.stats || createEmptyUserStats();
+        const modeStats = stats[modeKey] as GameModeStats;
           
           // Debug log to see what stats we're getting
           console.log(`User ${user.display_name} stats for ${modeKey}:`, modeStats);
