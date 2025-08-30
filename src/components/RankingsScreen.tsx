@@ -26,10 +26,19 @@ export function RankingsScreen() {
     try {
       const { data, error } = await supabase
         .from('users')
-        .select('id, display_name, profile_picture, profile_title, stats'); // pas de email
+        .select('id, display_name, profile_picture, profile_title, stats'); // pas d'email
       
       if (error) throw error;
-      setUsers(data || []);
+
+      const formattedUsers = (data || []).map((u: any) => ({
+        id: u.id,
+        displayName: u.display_name,
+        profilePicture: u.profile_picture,
+        profileTitle: u.profile_title,
+        stats: u.stats || {}
+      }));
+
+      setUsers(formattedUsers);
     } catch (err) {
       console.error('Erreur lors du chargement des users:', err);
     }
@@ -37,6 +46,7 @@ export function RankingsScreen() {
 
   loadUsers();
 }, []);
+
   const loadRankings = async () => {
     setLoading(true);
     try {
@@ -370,7 +380,7 @@ export function RankingsScreen() {
           )}
           {popupPosition && (
   <div
-    className="absolute bg-white border rounded-lg shadow-lg px-3 py-2 z-50"
+    className="fixed bg-white border rounded-lg shadow-lg px-3 py-2 z-50"
     style={{
       top: popupPosition.y,
       left: popupPosition.x, // décalage à droite

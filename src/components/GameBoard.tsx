@@ -21,6 +21,7 @@ export function GameBoard() {
   const [showPenaltyModal, setShowPenaltyModal] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState<'A' | 'B' | 'C'>('A');
   const [showExitGameModal, setShowExitGameModal] = useState(false);
+  const [showNewGameModal, setShowNewGameModal] = useState(false);
 
   if (!gameState.players.length) {
     return null;
@@ -244,15 +245,43 @@ export function GameBoard() {
   </div>
 
   {/* Bouton à droite */}
-  <div>
-    <button
-      onClick={startNewGame}
-      className="flex items-center space-x-2 px-4 py-3 text-base sm:px-3 sm:py-2 sm:text-sm bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
+  <div className="flex items-center space-x-4">
+                <button
+      onClick={() => setShowNewGameModal(true)} // ouvre directement le modal
+className="flex items-center space-x-2 px-4 py-3 text-base sm:px-3 sm:py-2 sm:text-sm bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
     >
-      <RotateCcw className="w-5 h-5 sm:w-4 sm:h-4" />
-      <span className="hidden sm:inline">Nouvelle</span>
-    </button>
-  </div>
+                  <RotateCcw className="w-6 h-6" />
+                </button>
+                {showNewGameModal && (
+      <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+        <div className="bg-white rounded-2xl shadow-xl p-6 w-11/12 max-w-md text-center">
+          <h2 className="text-lg font-semibold mb-4">Recommencez la partie ?</h2>
+          <p className="mb-6 text-gray-700">
+            Si vous recommencez maintenant, la partie en cours sera perdue et les scores seront reinitialisés.
+          </p>
+          <div className="flex justify-center gap-4">
+            <button
+              className="px-4 py-2 rounded-lg bg-gray-200 text-gray-800 font-semibold hover:bg-gray-300"
+              onClick={() => setShowNewGameModal(false)} // Annuler
+            >
+              Annuler
+            </button>
+            <button
+              className="px-4 py-2 rounded-lg bg-green-500 text-white font-semibold hover:bg-green-600"
+              onClick={() => {
+                setShowNewGameModal(false);
+                startNewGame; // Confirme et navigue
+              }}
+            >
+              Nouvelle partie
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+                </div>
+
+  
 </div>
 
             </div>

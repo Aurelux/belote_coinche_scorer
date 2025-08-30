@@ -13,7 +13,7 @@ export function ProfileScreen() {
   
   const [notifications, setNotifications] = useState<string[]>([]);
 
-  const { gameState, setCurrentScreen, logoutUser, updateProfileTitle, updateProfilePicture, navigateTo, goBack, loadMatchHistory, getUserSoftRankings} = useGame();
+  const { gameState, setCurrentScreen, logoutUser, updateProfileTitle, updateProfilePicture, navigateTo, goBack, loadMatchHistory, getUserSoftRankings, loadFriendRequests, loadFriends} = useGame();
   const [showTitleSelector, setShowTitleSelector] = useState(false);
   const [updating, setUpdating] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
@@ -76,6 +76,11 @@ useEffect(() => {
       </div>
     );
   }
+
+  useEffect(() => {
+    loadFriendRequests();
+    loadFriends();
+  }, []);
 
   const stats = currentUser.stats;
  let winStreak = 0;
@@ -354,14 +359,14 @@ if (worstEntry.userId) {
                     <img
                       src={currentUser.profilePicture}
                       alt={currentUser.displayName}
-                      className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover border-4 border-blue-200 flex-shrink-0"
+                      className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover border-4 border-green-200 flex-shrink-0"
                     />
                   ) : (
                     <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
                       <Users className="w-6 h-6 sm:w-8 sm:h-8 text-gray-600" />
                     </div>
                   )}
-                  <label className="absolute bottom-0 right-0 bg-blue-600 text-white p-1 rounded-full cursor-pointer hover:bg-blue-700 transition-colors">
+                  <label className="absolute bottom-0 right-0 bg-green-600 text-white p-1 rounded-full cursor-pointer hover:bg-green-700 transition-colors">
                     {uploadingPhoto ? (
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                     ) : (
@@ -379,7 +384,7 @@ if (worstEntry.userId) {
                 <div className="min-w-0 flex-1">
                   <h1 className="text-xl sm:text-3xl font-bold text-gray-900 truncate">{currentUser.displayName}</h1>
                   <div className="flex items-center space-x-2">
-                    <span className={`text-sm sm:text-base font-medium ${currentTitle?.color || 'text-blue-600'}`}>
+                    <span className={`text-sm sm:text-base font-medium ${currentTitle?.color || 'text-green-600'}`}>
                       {currentTitle?.title}
                     </span>
                     <button
@@ -401,13 +406,24 @@ if (worstEntry.userId) {
             </div>
             
             <div className="flex flex-wrap gap-2 w-full sm:w-auto">
-              <button
-                onClick={() => navigateTo('friends')}
-                className="flex items-center space-x-2 px-3 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors text-sm"
-              >
-                <UserPlus className="w-4 h-4" />
-                <span>Amis ({gameState.friends.length})</span>
-              </button>
+              <div className="relative">
+  <button
+    onClick={() => navigateTo('friends')}
+    className="flex items-center space-x-2 px-3 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors text-sm"
+  >
+    <UserPlus className="w-4 h-4" />
+    <span>Amis ({gameState.friends.length})</span>
+  </button>
+
+  {/* Pastille rouge avec le nombre de demandes */}
+  {gameState.friendRequests.length > 0 && (
+    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold h-5 w-5 flex items-center justify-center rounded-full shadow">
+      {gameState.friendRequests.length}
+    </span>
+  )}
+</div>
+
+
               <button
                 onClick={() => navigateTo('rankings')}
                 className="flex items-center space-x-2 px-3 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors text-sm"
