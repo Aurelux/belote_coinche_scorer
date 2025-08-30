@@ -270,7 +270,7 @@ className="flex items-center space-x-2 px-4 py-3 text-base sm:px-3 sm:py-2 sm:te
               className="px-4 py-2 rounded-lg bg-green-500 text-white font-semibold hover:bg-green-600"
               onClick={() => {
                 setShowNewGameModal(false);
-                startNewGame; // Confirme et navigue
+                startNewGame(); // Confirme et navigue
               }}
             >
               Nouvelle partie

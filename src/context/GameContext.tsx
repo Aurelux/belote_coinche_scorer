@@ -528,7 +528,11 @@ const nextDealer = () => {
 
     console.log('🔙 Full history before goBack:', prevHistory);
     console.log('📜 History after pop:', history);
-
+    if (currentScreen === 'history') {
+      const previous = prevHistory[history.length] || 'setup';
+      setCurrentScreen(previous)
+      return prevHistory
+    }
     if (currentScreen === 'profile') {
       const lastPlayableScreen = [...history].reverse().find(
         (screen) => screen === 'game' || screen === 'setup'
@@ -548,7 +552,7 @@ const nextDealer = () => {
       return [];
     }
 
-    const previous = history[history.length - 1] || 'setup';
+    const previous = history[history.length-1] || 'setup';
     console.log('↩️ Going back to:', previous);
     setCurrentScreen(previous);
     return history;

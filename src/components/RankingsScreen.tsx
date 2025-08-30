@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Trophy, Medal, Award, Crown, TrendingUp, Users, Target, Star,Globe } from 'lucide-react';
+import { ArrowLeft, Trophy, Medal, Award, Crown, TrendingUp, Users, Target, Star,Globe, User } from 'lucide-react';
 import { useGame } from '../context/GameContext';
 import { PROFILE_TITLES } from '../types/game';
 import { supabase } from '../lib/supabase';
@@ -292,6 +292,11 @@ export function RankingsScreen() {
   const user = users.find(u => u.id === player.userId);
   if (!user) return; // sécurité
 
+   if (popupPosition && popupPosition.playerId.id === user.id) {
+    setPopupPosition(null);
+    return;
+  }
+
   setPopupPosition({
     x,
     y: rect.top + rect.height / 2, // centre verticalement sur le joueur
@@ -380,27 +385,30 @@ export function RankingsScreen() {
           )}
           {popupPosition && (
   <div
-    className="fixed bg-white border rounded-lg shadow-lg px-3 py-2 z-50"
+    className="fixed bg-green-50 rounded-xl shadow-lg border border-green-200 p-4 z-50"
     style={{
       top: popupPosition.y,
-      left: popupPosition.x, // décalage à droite
-      transform: 'translateY(-50%)', // centrer verticalement sur le joueur
+      left: popupPosition.x + 120,
+      transform: 'translateY(-50%)',
+      minWidth: '160px',
     }}
   >
-    <button
-      className="text-green-600 font-semibold hover:underline text-sm"
-      onClick={() => {
-        // action pour voir le profil
-        
-        setSelectedUser(popupPosition.playerId);
-        navigateTo('user-profile')
-        setPopupPosition(null); // fermer le popup
-      }}
-    >
-      Voir le profil
-    </button>
+    <div className="flex flex-col space-y-3">
+      <button
+        className="flex items-center gap-2 px-3 py-2 text-green-700 font-medium text-sm bg-white rounded-lg shadow-sm hover:bg-green-100 transition-all duration-200"
+        onClick={() => {
+          setSelectedUser(popupPosition.playerId);
+          navigateTo('user-profile');
+          setPopupPosition(null);
+        }}
+      >
+        <User className="w-4 h-4" />
+        Voir le profil
+      </button>
+    </div>
   </div>
 )}
+
         </div>
         
 
