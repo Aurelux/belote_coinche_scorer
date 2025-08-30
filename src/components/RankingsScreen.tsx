@@ -17,7 +17,7 @@ export function RankingsScreen() {
   const [loading, setLoading] = useState(false);
   const [users, setUsers] = useState<User[]>([]);
 
-
+  
   useEffect(() => {
     loadRankings();
   }, [selectedMode, selectedPlayerCount,selectedGroup]);

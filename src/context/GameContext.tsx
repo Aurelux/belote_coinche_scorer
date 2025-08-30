@@ -491,7 +491,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       setScreenHistory((prev) => [...prev, currentScreen]);
       setCurrentScreen(previousScreen);
     };
-    if ((currentScreen !== 'user-profile' && previousScreen !== 'rankings') && screen !== currentScreen) {
+    if (!(currentScreen == 'user-profile' && previousScreen == 'rankings') && screen !== currentScreen) {
       setScreenHistory((prev) => [...prev, currentScreen]);
       setCurrentScreen(screen);
     }
