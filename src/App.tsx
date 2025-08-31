@@ -14,13 +14,13 @@ import SplashScreen from './components/SplashScreen';
 import { User } from 'lucide-react';
 
 function ProfileButton() {
-  const { gameState, setCurrentScreen } = useGame();
+  const { gameState, navigateTo } = useGame();
   
   if (!gameState.currentUser) return null;
 
   return (
     <button
-      onClick={() => setCurrentScreen('profile')}
+      onClick={() => navigateTo('profile')}
       className="fixed top-4 right-4 z-40 p-3 bg-white rounded-full shadow-lg hover:shadow-xl transition-all duration-200 border-2 border-green-100 hover:border-green-300"
       style={{ top: 'calc(2.5rem + env(safe-area-inset-top))' }}
       title="Mon profil"

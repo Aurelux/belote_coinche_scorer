@@ -487,6 +487,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     const previousScreen = screenHistory[screenHistory.length - 1]
     console.log('➡️ Previous screen:', previousScreen);
   console.log('➡️ Current screen:', currentScreen);
+  console.log('➡️ Screen:', screen);
     if (currentScreen === 'user-profile' && previousScreen === 'rankings'){
       setScreenHistory((prev) => [...prev, currentScreen]);
       setCurrentScreen(previousScreen);
@@ -534,7 +535,7 @@ const nextDealer = () => {
       return prevHistory
     }
     if (currentScreen === 'profile') {
-      const lastPlayableScreen = [...history].reverse().find(
+      const lastPlayableScreen = [...prevHistory].reverse().find(
         (screen) => screen === 'game' || screen === 'setup'
       );
 
