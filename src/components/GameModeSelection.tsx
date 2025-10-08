@@ -4,7 +4,7 @@ import { useGame } from '../context/GameContext';
 import { GameSettings } from '../types/game';
 
 export function GameModeSelection() {
-  const { gameState, setGameSettings, setCurrentScreen, goBack, navigateTo } = useGame();
+  const { gameState, setGameSettings, setCurrentScreen, goBack, navigateTo, startNewGame } = useGame();
   const [selectedMode, setSelectedMode] = React.useState<'belote' | 'coinche'>('belote');
   const [withAnnouncements, setWithAnnouncements] = React.useState(false);
   const [targetScore, setTargetScore] = React.useState(501);
@@ -12,16 +12,20 @@ export function GameModeSelection() {
   const playerCount = gameState.players.length as 2 | 3 | 4;
 
   const handleStartGame = () => {
-    const settings: GameSettings = {
-      mode: selectedMode,
-      playerCount,
-      withAnnouncements,
-      targetScore
-    };
-    
-    setGameSettings(settings);
-    navigateTo('game');
+  const settings: GameSettings = {
+    mode: selectedMode,
+    playerCount,
+    withAnnouncements,
+    targetScore
   };
+
+  setGameSettings(settings);
+  
+  // Réinitialiser les scores et mains
+  startNewGame();
+
+  navigateTo('game');
+};
   
   const getTeamDisplay = () => {
     if (playerCount === 2) {

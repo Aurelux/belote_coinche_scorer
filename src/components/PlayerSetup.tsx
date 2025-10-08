@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, ArrowRight, Search, UserPlus, X } from 'lucide-react';
+import { HelpCircle,Users, ArrowRight, Search, UserPlus, X } from 'lucide-react';
 import { useGame } from '../context/GameContext';
 import { PlayerConfirmationModal } from './PlayerConfirmationModal';
 import { Player } from '../types/game';
@@ -172,6 +172,23 @@ const debouncedSearch = debounce(async (index: number, value: string) => {
       <div
   className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-3xl relative left-1/2 transform -translate-x-1/2" style={{ top: 'calc(1.5rem + env(safe-area-inset-top))' }}
 >
+<button
+  onClick={() => navigateTo("help")}
+  className="
+    w-10 h-10 
+    bg-white 
+    border-2 border-green-600 
+    text-green-600 
+    flex items-center justify-center 
+    rounded-lg 
+    shadow-md 
+    hover:shadow-lg 
+    transition-all duration-200 
+    hover:scale-110
+  "
+>
+  <HelpCircle className="w-6 h-6" />
+</button>
         
         <div className="text-center mb-8">
           <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"

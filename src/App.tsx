@@ -11,6 +11,13 @@ import { UserProfileScreen } from './components/UserProfileScreen';
 import { RankingsScreen } from './components/RankingsScreen';
 import { FriendsScreen } from './components/FriendsScreen';
 import SplashScreen from './components/SplashScreen';
+import HelpScreen from './components/HelpScreen';
+import HelpBelote2j from './components/HelpBelote2j';
+import HelpBelote4j from './components/HelpBelote4j';
+import HelpBelote3j from './components/HelpBelote3j';
+import HelpCoinche2j from './components/HelpCoinche2j';
+import HelpCoinche3j from './components/HelpCoinche3j';
+import HelpCoinche4j from './components/HelpCoinche4j';
 import { User } from 'lucide-react';
 
 function ProfileButton() {
@@ -79,6 +86,20 @@ function AppContent() {
             return <RankingsScreen />;
           case 'friends':
             return <FriendsScreen />;
+          case 'help':
+            return <HelpScreen />;
+          case 'helpBelote2j':
+            return <HelpBelote2j />;
+          case 'helpBelote3j':
+            return <HelpBelote3j />;
+          case 'helpBelote4j':
+            return <HelpBelote4j />;
+          case 'helpCoinche2j':
+            return <HelpCoinche2j />;
+          case 'helpCoinche3j':
+            return <HelpCoinche3j />;
+          case 'helpCoinche4j':
+            return <HelpCoinche4j />;
           default:
             return <AuthScreen />;
         }

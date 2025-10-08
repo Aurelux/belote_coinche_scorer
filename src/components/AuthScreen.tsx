@@ -4,9 +4,10 @@ import { useGame } from '../context/GameContext';
 import { PROFILE_TITLES } from '../types/game';
 
 export function AuthScreen() {
-  const { registerUser, loginUser, setCurrentScreen, navigateTo, goBack } = useGame();
+  const { registerUser, loginUser, setCurrentScreen, navigateTo, goBack, updateProfilePicture } = useGame();
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [formData, setFormData] = useState({
     displayName: '',
     email: '',
@@ -67,16 +68,20 @@ export function AuthScreen() {
     }
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setFormData(prev => ({ ...prev, profilePicture: event.target?.result as string }));
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+  
+      setUploadingPhoto(true);
+      try {
+        await updateProfilePicture(file);
+      } catch (error) {
+        console.error('Error uploading photo:', error);
+      } finally {
+        setUploadingPhoto(false);
+      }
+    };
+  
 
   const defaultTitles = PROFILE_TITLES.filter(title => !title.requirement);
 

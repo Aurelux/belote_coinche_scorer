@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useReducer, ReactNode, useEffect,useState } from 'react';
 import { GameState, Player, GameSettings, Hand, AppScreen, MatchHistory, User, UserStats, GameModeStats, PlayerRanking, FriendRequest, Achievement, PROFILE_TITLES, PlayerConfirmation, DEALER_ROTATION_4P } from '../types/game';
 import { supabase } from '../lib/supabase';
+import { startOfWeek, startOfMonth, isAfter } from 'date-fns';
 
 interface GameContextType {
   gameState: GameState;
@@ -140,6 +141,20 @@ type GameAction =
 
 
 // Calculate ranking score based on multiple factors
+const calculateRankingScoretime = (player: PlayerStatsForTimeframe) => {
+  if (player.gamesPlayed === 0) return 0;
+  const winRate = player.wins / player.gamesPlayed; // 0-1
+  const pointsRatio = player.pointsScored / (player.pointsScored + player.pointsConceded); // 0-1
+
+  // pondérations personnalisables
+  const gamesWeight = Math.min(player.gamesPlayed / 20, 1); // max 20 parties = full weight
+  const winRateWeight = 0.5;
+  const pointsWeight = 0.5;
+
+  const score = gamesWeight * (winRate * winRateWeight + pointsRatio * pointsWeight) * 100;
+
+  return Math.round(score);
+};
 
 const calculateRankingScore = (stats: GameModeStats): number => {
   if (stats.games === 0) return 0;
@@ -156,10 +171,11 @@ const calculateRankingScore = (stats: GameModeStats): number => {
   // 3. Coinches et contrats réussis
   const coincheSuccess = stats.coinches > 0 ? stats.successfulCoinches / stats.coinches : 0;
   const contractSuccess = stats.contractsTaken > 0 ? stats.successfulContracts / stats.contractsTaken : 0;
-  const actionScore = (coincheSuccess * 10) + (contractSuccess * 10); // max 20 pts
+  const activite = stats.games > 0 ? stats.contractsTaken/stats.games : 0;
+  const actionScore = (coincheSuccess * 10); // max 20 pts
 
   // 4. Capots comme bonus qualitatif
-  const capotScore = Math.min(10, stats.capots * 0.5);
+  const capotScore = Math.min(10, stats.capots * 0.5); 
 
   // 5. Bonus modéré pour le taux de victoire (ne doit plus dominer)
   const winScore = stats.winRate * 0.4; // max 40 pts au lieu de 100
@@ -168,7 +184,7 @@ const calculateRankingScore = (stats: GameModeStats): number => {
   const penaltyMalus = Math.max(-15, -(stats.penalties / Math.max(stats.games, 1)) * 3);
 
   // Score combiné brut
-  const rawScore = winScore + ratioScore + actionScore + capotScore + penaltyMalus;
+  const rawScore = winScore + ratioScore + actionScore + capotScore + penaltyMalus +activite*contractSuccess*2;
 
   // Appliquer l'expérience comme pondération finale
   const finalScore = (rawScore * 0.7 + (stats.games * 0.1)) * experienceFactor + 10; 
@@ -529,6 +545,21 @@ const nextDealer = () => {
 
     console.log('🔙 Full history before goBack:', prevHistory);
     console.log('📜 History after pop:', history);
+    console.log(currentScreen.length);
+    if (currentScreen.length>10){
+      const previous = prevHistory[history.length] || 'setup';
+      console.log('directionnn', previous);
+      if (previous === 'help') {
+        setCurrentScreen(previous)
+        
+    }
+      else{setCurrentScreen('game')
+        
+      }
+      return []
+    }
+    
+    
     if (currentScreen === 'history') {
       const previous = prevHistory[history.length] || 'setup';
       setCurrentScreen(previous)
@@ -1183,36 +1214,41 @@ dispatch({ type: 'SET_MATCH_HISTORY', payload: matchHistoryFiltered });
     dispatch({ type: 'LOGOUT_USER' });
     navigateTo('auth');
   };
+  function normalizeString(str: string): string {
+  return str
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
 
   const searchUsers = async (query: string): Promise<User[]> => {
-    if (!query.trim()) return [];
+  if (!query.trim()) return [];
 
-    try {
-      const { data: results, error } = await supabase
-        .from('users')
-        .select('*')
-        .or(`display_name.ilike.%${query}%`);
+  try {
+    const { data, error } = await supabase
+      .rpc('search_users', { query });
 
-      if (error) throw error;
+    if (error) throw error;
 
-      return (results || []).map(u => ({
-        id: u.id,
-        displayName: u.display_name,
-        email: u.email,
-        profilePicture: u.profile_picture,
-        accessCode: u.access_code,
-        profileTitle: u.profile_title,
-        friends: [],
-        createdAt: new Date(u.created_at),
-        stats: u.stats || createEmptyUserStats(),
-        achievements: [],
-        lastLoginAt: new Date()
-      }));
-    } catch (error) {
-      console.error('Error searching users:', error);
-      return [];
-    }
-  };
+    return (data || []).map(u => ({
+      id: u.id,
+      displayName: u.display_name,
+      email: u.email,
+      profilePicture: u.profile_picture,
+      accessCode: u.access_code,
+      profileTitle: u.profile_title,
+      friends: [],
+      createdAt: new Date(u.created_at),
+      stats: u.stats || createEmptyUserStats(),
+      achievements: [],
+      lastLoginAt: new Date()
+    }));
+  } catch (error) {
+    console.error('Error searching users:', error);
+    return [];
+  }
+};
+
 
   const sendFriendRequest = async (userId: string): Promise<void> => {
     if (!gameState.currentUser) throw new Error('Must be logged in');
@@ -1406,6 +1442,170 @@ dispatch({ type: 'SET_MATCH_HISTORY', payload: matchHistoryFiltered });
     dispatch({ type: 'CONFIRM_PLAYER', payload: { userId, confirmed: true } });
     return true;
   };
+interface PlayerStatsForTimeframe {
+  userId: string;
+  name: string;
+  profilePicture?: string;
+  profileTitle?: string;
+  games: number;
+  wins: number;
+  totalPoints: number;
+  pointsConceded: number;
+  coinches: number;
+  penalties: number;
+}
+
+interface PlayerRanking {
+  userId: string;
+  name: string;
+  profilePicture?: string;
+  profileTitle?: string;
+  rankingScore: number;
+  gamesPlayed: number;
+  winRate: number;
+  averagePoints: number;
+  totalCoinches: number;
+  pointsConceded: number;
+  penalties: number;
+  rank: number;
+}
+
+const getTimeFrameUserRankings = async (
+  mode: 'belote' | 'coinche',
+  playerCount: 2 | 3 | 4,
+  timeframe: 'month' | 'week',
+  group: 'all' | 'friends'
+): Promise<PlayerRanking[]> => {
+  
+  try {
+    // 1. Charger les users
+    const { data: users, error: userError } = await supabase
+      .from('users')
+      .select('id, display_name, profile_picture, profile_title');
+
+    if (userError) throw userError;
+    let filteredUsers = users || [];
+
+    // 2. Si groupe = "friends", filtrer
+    if (group === 'friends') {
+      const { data: friendships, error: friendsError } = await supabase
+        .from('friendships')
+        .select('user_id, friend_id')
+        .or(
+          `user_id.eq.${gameState.currentUser.id},friend_id.eq.${gameState.currentUser.id}`
+        )
+        .eq('status', 'accepted');
+
+      if (friendsError) throw friendsError;
+
+      const friendIds = (friendships || []).map(f =>
+        f.user_id === gameState.currentUser.id ? f.friend_id : f.user_id
+      );
+      friendIds.push(gameState.currentUser.id); // inclure soi-même
+
+      filteredUsers = filteredUsers.filter(u => friendIds.includes(u.id));
+    }
+  
+    const { data: matches, error } = await supabase
+      .from('match_history')
+      .select('id, players, final_scores, winning_team, created_at, settings');
+
+    if (error) throw error;
+    if (!matches) return [];
+
+    let startDate: Date;
+    const now = new Date();
+    if (timeframe === 'week') startDate = startOfWeek(now, { weekStartsOn: 1 });
+    else if (timeframe === 'month') startDate = startOfMonth(now);
+    else startDate = new Date(0);
+
+    const recentMatches = matches.filter(match =>
+      isAfter(new Date(match.created_at), startDate)
+    );
+
+    const playerMap: Record<string, PlayerStatsForTimeframe> = {};
+
+    recentMatches.forEach(match => {
+      match.players.forEach((player: any) => {
+        
+
+        if (!playerMap[player.userId]) {
+          playerMap[player.userId] = {
+            userId: player.userId,
+            name: player.name,
+            profilePicture: player.profilePicture,
+            profileTitle: player.profileTitle,
+            games: 0,
+            wins: 0,
+            totalPoints: 0,
+            pointsConceded: 0,
+            coinches: 0,
+            penalties: 0
+          };
+        }
+
+        const stats = playerMap[player.userId];
+        stats.games += 1;
+
+        if (player.team === match.winning_team) stats.wins += 1;
+
+        const teamKey = player.team === 'A' ? 'teamA' : 'teamB';
+const opponentKey = player.team === 'A' ? 'teamB' : 'teamA';
+
+const teamPoints = match.final_scores?.[teamKey] || 0;
+const otherTeamPoints = match.final_scores?.[opponentKey] || 0;
+
+        stats.totalPoints += teamPoints;
+        stats.pointsConceded += otherTeamPoints;
+
+        // coinches / penalties si tu les as dans ton modèle
+        
+      });
+    });
+
+    const rankings: PlayerRanking[] = Object.entries(playerMap)
+      .map(([userId, stats]) => {
+        const userInfo = filteredUsers.find(u => u.id === userId);
+
+        const winRate = stats.games > 0 ? (stats.wins / stats.games) * 100 : 0;
+        const averagePoints = stats.games > 0 ? stats.totalPoints / stats.games : 0;
+        const  ratiopoint = stats.pointsConceded >0 ? stats.totalPoints / stats.pointsConceded : 1
+        const gamesWeight = Math.min(0.7 + stats.games/ 60, 1);
+
+        const rankingScore =
+          Math.round(gamesWeight*(
+          winRate * 2/10 +
+          ratiopoint *10 +
+          averagePoints/100));
+          
+
+        return {
+          userId,
+          name: stats.name,
+          profilePicture: userInfo?.profile_picture || '',
+          profileTitle: stats.profileTitle,
+          rankingScore,
+          gamesPlayed: stats.games,
+          winRate,
+          averagePoints,
+          totalCoinches: stats.coinches,
+          pointsConceded: stats.pointsConceded,
+          penalties: stats.penalties,
+          rank: 0
+        };
+      })
+      .filter(r => r.gamesPlayed >= 2)
+      .sort((a, b) => b.rankingScore - a.rankingScore)
+      .map((ranking, index) => ({ ...ranking, rank: index + 1 }));
+
+    console.log(`Final ${timeframe} rankings:`, rankings);
+    return rankings;
+  } catch (error) {
+    console.error('Error getting timeframe rankings:', error);
+    return [];
+  }
+};
+
 
   const getUserRankings = async (mode: 'belote' | 'coinche', playerCount: 2 | 3 | 4,group: 'world' | 'friends'): Promise<PlayerRanking[]> => {
     try {
@@ -1460,7 +1660,7 @@ dispatch({ type: 'SET_MATCH_HISTORY', payload: matchHistoryFiltered });
             rank: 0
           };
         })
-        .filter(ranking => ranking.gamesPlayed >= 2) // Minimum 5 games to be ranked
+        .filter(ranking => ranking.gamesPlayed >= 2) 
         .sort((a, b) => b.rankingScore - a.rankingScore)
         .map((ranking, index) => ({ ...ranking, rank: index + 1 }));
 
@@ -1539,39 +1739,46 @@ dispatch({ type: 'SET_MATCH_HISTORY', payload: matchHistoryFiltered });
   };
 
   const updateProfilePicture = async (file: File): Promise<void> => {
-    if (!gameState.currentUser) throw new Error('Must be logged in');
+  if (!gameState.currentUser) throw new Error('Must be logged in');
 
-    try {
-      // Upload file to Supabase Storage
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${gameState.currentUser.id}-${Date.now()}.${fileExt}`;
-      
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('profile-pictures')
-        .upload(fileName, file);
+  try {
+    // Upload file to Supabase Storage
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${gameState.currentUser.id}-${Date.now()}.${fileExt}`;
 
-      if (uploadError) throw uploadError;
+    const { error: uploadError } = await supabase.storage
+      .from('profile-pictures')
+      .upload(fileName, file);
 
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('profile-pictures')
-        .getPublicUrl(fileName);
-      console.log('Updating user with id', gameState.currentUser.id);
-      // Update user profile
-      const { error: updateError } = await supabase
-        .from('users')
-        .update({ profile_picture: publicUrl })
-        .eq('id', gameState.currentUser.id);
+    if (uploadError) throw uploadError;
 
-      if (updateError) throw updateError;
+    // Get public URL
+    const { data: { publicUrl } } = supabase.storage
+      .from('profile-pictures')
+      .getPublicUrl(fileName);
 
-      const updatedUser = { ...gameState.currentUser, profilePicture: publicUrl };
-      dispatch({ type: 'UPDATE_USER', payload: updatedUser });
-    } catch (error) {
-      console.error('Error updating profile picture:', error);
-      throw new Error('Failed to update profile picture');
-    }
-  };
+    // Ajouter automatiquement les paramètres d'optimisation
+    const optimizedUrl = `${publicUrl}?width=50&height=50&quality=5&format=webp`;
+
+    console.log('Updating user with id', gameState.currentUser.id);
+
+    // Update user profile
+    const { error: updateError } = await supabase
+      .from('users')
+      .update({ profile_picture: optimizedUrl })
+      .eq('id', gameState.currentUser.id);
+
+    if (updateError) throw updateError;
+
+    // Mettre à jour le state local
+    const updatedUser = { ...gameState.currentUser, profilePicture: optimizedUrl };
+    dispatch({ type: 'UPDATE_USER', payload: updatedUser });
+  } catch (error) {
+    console.error('Error updating profile picture:', error);
+    throw new Error('Failed to update profile picture');
+  }
+};
+
 
   const checkAchievements = async (userId: string): Promise<Achievement[]> => {
     // Implementation for checking achievements
@@ -1618,6 +1825,7 @@ dispatch({ type: 'SET_MATCH_HISTORY', payload: matchHistoryFiltered });
       confirmPlayer,
       getUserRankings,
       getUserSoftRankings,
+      getTimeFrameUserRankings,
       updateUserStats,
       setSelectedUser,
       updateProfileTitle,

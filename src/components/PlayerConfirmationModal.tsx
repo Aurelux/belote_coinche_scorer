@@ -195,7 +195,7 @@ export function PlayerConfirmationModal() {
               <button
                 type="submit"
                 disabled={loading || accessCode.length !== 4}
-                className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center justify-center space-x-2"
+                className="flex-1 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center justify-center space-x-2"
               >
                 {loading ? (
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -217,7 +217,7 @@ export function PlayerConfirmationModal() {
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div 
-                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                className="bg-green-600 h-2 rounded-full transition-all duration-300"
                 style={{ width: `${((currentPlayerIndex + 1) / pendingConfirmations.length) * 100}%` }}
               />
             </div>

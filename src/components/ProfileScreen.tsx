@@ -247,6 +247,55 @@ if (worstEntry.userId) {
 }
 }
 
+interface TeammateStats {
+  name: string;
+  wins: number;
+  games: number;
+  winRate: number; // en %
+}
+
+const teammateStats: Record<string, TeammateStats> = {};
+
+// Parcourir l'historique
+gameState.matchHistory.forEach(match => {
+  const currentPlayer = match.players.find(p => p.userId === currentUser.id);
+  if (!currentPlayer || !currentPlayer.team || !match.winningTeam) return;
+
+  // Cherche les coéquipiers (même équipe, autre que toi)
+  const teammates = match.players.filter(
+    p => p.team === currentPlayer.team && p.userId !== currentUser.id
+  );
+
+  const isWin = currentPlayer.team === match.winningTeam;
+
+  teammates.forEach(teammate => {
+    if (!teammateStats[teammate.userId]) {
+      teammateStats[teammate.userId] = { name: teammate.name, wins: 0, games: 0, winRate: 0 };
+    }
+
+    teammateStats[teammate.userId].games += 1;
+    if (isWin) teammateStats[teammate.userId].wins += 1;
+  });
+});
+
+// Calculer le pourcentage de victoire
+Object.values(teammateStats).forEach(stat => {
+  stat.winRate = (stat.wins / stat.games) * 100;
+});
+
+// Filtrer les coéquipiers avec au moins 4 parties
+const eligibleTeammates = Object.values(teammateStats).filter(stat => stat.games >= 4);
+
+let bestTeammate: TeammateStats | null = null;
+let worstTeammate2: TeammateStats | null = null;
+
+if (eligibleTeammates.length > 0) {
+  bestTeammate = eligibleTeammates.reduce((acc, curr) => (curr.winRate > acc.winRate ? curr : acc), eligibleTeammates[0]);
+  worstTeammate2 = eligibleTeammates.reduce((acc, curr) => (curr.winRate < acc.winRate ? curr : acc), eligibleTeammates[0]);
+}
+
+console.log('Meilleur coéquipier:', bestTeammate);
+console.log('Pire coéquipier:', worstTeammate2);
   const getGameModeStats = (mode: 'belote' | 'coinche', playerCount: 2 | 3 | 4) => {
     const key = `${mode}${playerCount}P` as keyof typeof stats;
     return stats[key];
@@ -327,7 +376,7 @@ if (worstEntry.userId) {
     }
   };
 
-  const currentTitle = PROFILE_TITLES.find(t => t.id === currentUser.profileTitle);
+  const currentTitle = PROFILE_TITLES.find(t => t.title === currentUser.profileTitle);
   
 
   return (
@@ -459,10 +508,10 @@ if (worstEntry.userId) {
                 {availableTitles.map(title => (
                   <button
                     key={title.id}
-                    onClick={() => handleTitleUpdate(title.id)}
+                    onClick={() => handleTitleUpdate(title.title)}
                     disabled={updating}
                     className={`w-full p-3 text-left rounded-lg border-2 transition-all ${
-                      currentUser.profileTitle === title.id
+                      currentUser.profileTitle === title.title
                         ? 'border-blue-500 bg-blue-50'
                         : 'border-gray-200 hover:border-gray-300'
                     } ${updating ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -560,7 +609,7 @@ if (worstEntry.userId) {
               </div>
             </div>
           </div>
-          {mostPlayedWith && (
+          {bestTeammate && (
   <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6">
     <div className="flex items-center space-x-3">
       <div className="bg-yellow-100 p-2 sm:p-3 rounded-lg">
@@ -568,16 +617,16 @@ if (worstEntry.userId) {
       </div>
       <div>
         <div className="text-xl sm:text-2xl font-bold text-gray-900">
-          {mostPlayedWith.name}
+          {bestTeammate.name}
         </div>
         <div className="text-xs sm:text-sm text-gray-600">
-          {mostPlayedWith.count} parties à tes côtés 
+          {Math.round(bestTeammate.winRate*10)/10}% de victoires à tes côtés 
         </div>
       </div>
     </div>
   </div>
 )}
-          {worstTeammate && (
+          {worstTeammate2 && (
   <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6">
     <div className="flex items-center space-x-3">
       <div className="bg-black-100 p-2 sm:p-3 rounded-lg">
@@ -585,10 +634,10 @@ if (worstEntry.userId) {
       </div>
       <div>
         <div className="text-xl sm:text-2xl font-bold text-gray-900">
-          {worstTeammate.name}
+          {worstTeammate2.name}
         </div>
         <div className="text-xs sm:text-sm text-gray-600">
-          {worstTeammate.losses} parties perdues à tes côtés 
+          {Math.round(worstTeammate2.winRate*10)/10}% de victoires à tes côtés 
         </div>
       </div>
     </div>

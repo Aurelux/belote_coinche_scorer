@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, BarChart3, RotateCcw, Trophy, Plus, History, RefreshCw, Skull, User } from 'lucide-react';
+import { HelpCircle,ArrowLeft, BarChart3, RotateCcw, Trophy, Plus, History, RefreshCw, Skull, User } from 'lucide-react';
 import { useGame } from '../context/GameContext';
 import { ScoreEntry } from './ScoreEntry';
 import { CapotCelebration } from './CapotCelebration';
@@ -246,6 +246,17 @@ export function GameBoard() {
 
   {/* Bouton à droite */}
   <div className="flex items-center space-x-4">
+  <button
+    onClick={() =>
+      navigateTo(
+        `help${gameState.settings.mode.charAt(0).toUpperCase()}${gameState.settings.mode.slice(1)}${gameState.settings.playerCount}j`
+      )
+    }
+    className="flex items-center justify-center px-4 py-3 text-base sm:px-3 sm:py-2 sm:text-sm 
+               bg-yellow-100 text-yellow-700 rounded-lg hover:bg-yellow-200 transition-colors"
+  >
+    <HelpCircle className="w-6 h-6" />
+  </button>
                 <button
       onClick={() => setShowNewGameModal(true)} // ouvre directement le modal
 className="flex items-center space-x-2 px-4 py-3 text-base sm:px-3 sm:py-2 sm:text-sm bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"

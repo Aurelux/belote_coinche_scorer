@@ -4,11 +4,13 @@ import { useGame } from '../context/GameContext';
 import { PROFILE_TITLES } from '../types/game';
 import { supabase } from '../lib/supabase';
 
+
 export function RankingsScreen() {
-  const { gameState, setCurrentScreen, getUserRankings, navigateTo, goBack, setSelectedUser} = useGame();
+  const { gameState, setCurrentScreen, getUserRankings, navigateTo, goBack, setSelectedUser, getTimeFrameUserRankings} = useGame();
   const [selectedMode, setSelectedMode] = useState<'belote' | 'coinche'>('belote');
   const [selectedPlayerCount, setSelectedPlayerCount] = useState<2 | 3 | 4>(4);
   const [selectedGroup, setSelectedGroup] = useState<'world' | 'friends'>('world');
+  const [selectedTimeFrame, setSelectedTimeFrame] = useState<'all' | 'month'| 'week'>('all');
   const [popupPosition, setPopupPosition] = useState<{ x: number; y: number; playerId: string } | null>(null);
 
 
@@ -20,7 +22,7 @@ export function RankingsScreen() {
   
   useEffect(() => {
     loadRankings();
-  }, [selectedMode, selectedPlayerCount,selectedGroup]);
+  }, [selectedMode, selectedPlayerCount,selectedGroup,selectedTimeFrame]);
   useEffect(() => {
   const loadUsers = async () => {
     try {
@@ -47,19 +49,34 @@ export function RankingsScreen() {
   loadUsers();
 }, []);
 
-  const loadRankings = async () => {
-    setLoading(true);
-    try {
-      const rankingsData = await getUserRankings(selectedMode, selectedPlayerCount,selectedGroup);
-      // Limit to top 30 players
-      setRankings(rankingsData.slice(0, 30));
-    } catch (error) {
-      console.error('Error loading rankings:', error);
-      setRankings([]); // Set empty array on error
-    } finally {
-      setLoading(false);
+  const loadRankings = async (timeframe: 'all' | 'week' | 'month' = 'all') => {
+  setLoading(true);
+  try {
+    let rankingsData: PlayerRanking[] = [];
+
+    if (selectedTimeFrame === 'all') {
+      // utilisation de l'ancien getUserRankings pour le global
+      rankingsData = await getUserRankings(selectedMode, selectedPlayerCount, selectedGroup);
+    } else {
+      // utilisation de la nouvelle fonction timeframe
+      rankingsData = await getTimeFrameUserRankings(selectedMode, selectedPlayerCount, selectedTimeFrame);
     }
-  };
+
+    // Limiter à top 30
+    setRankings(rankingsData.slice(0, 30));
+  } catch (error) {
+    console.error('Error loading rankings:', error);
+    setRankings([]);
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+
+
+// Nouvelle fonction pour récupérer les classements par période
+
 
   const getRankIcon = (rank: number) => {
     switch (rank) {
@@ -200,6 +217,23 @@ export function RankingsScreen() {
       </button>
     ))}
   </div>
+  <h3 className="text-lg font-semibold text-gray-900 mb-4">Temporaité</h3>
+<div className="grid grid-cols-3 gap-2 sm:gap-3">
+  {['all','month','week'].map(tf => (
+    <button
+      key={tf}
+      onClick={() => setSelectedTimeFrame(tf)}
+        className={`flex items-center justify-center gap-2 py-2 sm:py-3 px-3 sm:px-4 rounded-lg border-2 font-semibold transition-all duration-200 text-sm sm:text-base ${
+          selectedTimeFrame === tf
+            ? 'border-blue-500 bg-blue-50 text-blue-700'
+            : 'border-gray-200 hover:border-gray-300 text-gray-700'
+        }`}
+    >
+      {tf === 'all' ? 'Global' : tf === 'week' ? 'Hebdo' : 'Mensuel'}
+    </button>
+  ))}
+</div>
+
 </div>
           </div>
         </div>
