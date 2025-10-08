@@ -106,6 +106,8 @@ export default function HelpCoinche4j() {
                   <li>9 : 9</li>
                   <li>As : 6</li>
                   <li>10 : 5</li>
+                  <li>Roi : 4</li>
+                  <li>Dame : 3</li>
                 </ul>
               </div>
               <div>
@@ -128,10 +130,10 @@ export default function HelpCoinche4j() {
             </h2>
             <ul className="list-disc pl-6 space-y-1">
               <li>On doit <strong>fournir la couleur demandée</strong> si possible.</li>
-              <li>Si ce n’est pas de l’atout : on joue librement.</li>
               <li>Si c’est de l’atout : obligation de jouer un atout plus fort si possible.</li>
+              <li>Si ce n’est pas de l’atout : on joue la couleur demandé ou atout si on n'a pas la couleur demandé.</li>
               <li>Si on n’a ni couleur demandée ni atout : on joue ce qu’on veut.</li>
-              <li>Si le partenaire est maître : pas d’obligation de couper.</li>
+              <li>Si le partenaire est maître : pas d’obligation de mettre un atout.</li>
             </ul>
           </div>
 
@@ -144,7 +146,7 @@ export default function HelpCoinche4j() {
               <li>Gérer ses atouts avec précaution.</li>
               <li>Compter les cartes et mémoriser les atouts sortis.</li>
               <li>Jouer en équipe : protéger son partenaire.</li>
-              <li>Prendre la main pour imposer sa stratégie.</li>
+              <li>Prendre la main pour imposer sa stratégie au bon moment.</li>
             </ul>
           </div>
 
@@ -167,7 +169,7 @@ export default function HelpCoinche4j() {
             <h2 className="flex items-center text-xl font-semibold text-green-700 mb-2">
               <Trophy className="w-5 h-5 mr-2" /> Objectif
             </h2>
-            <p>La partie se joue en <strong>2000 points</strong>. La première équipe qui atteint ce score remporte la partie.</p>
+            <p>La partie se joue généralement en <strong>2000 points</strong>. La première équipe qui atteint ce score remporte la partie.</p>
           </div>
 
           <div className="mt-10">
@@ -177,7 +179,6 @@ export default function HelpCoinche4j() {
             <div className="grid sm:grid-cols-2 gap-4 bg-green-50 border border-green-200 rounded-xl p-6 text-sm text-gray-800 shadow-inner">
               <div className="space-y-2">
                 <p>✔️ Fournir la couleur demandée</p>
-                <p>✔️ Hors atout ➝ jeu libre si pas de couleur</p>
                 <p>✔️ À l’atout ➝ monter si possible</p>
                 <p>✔️ Pas d’obligation si partenaire maître</p>
               </div>
@@ -185,7 +186,7 @@ export default function HelpCoinche4j() {
                 <p>✔️ Belote-Rebelote : +20 pts</p>
                 <p>✔️ Capot = tous les plis</p>
                 <p>✔️ Générale = tous les plis par 1 joueur</p>
-                <p>✔️ Objectif : 2000 points</p>
+                
               </div>
             </div>
           </div>

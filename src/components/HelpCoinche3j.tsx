@@ -94,13 +94,26 @@ export default function HelpCoinche3j() {
           </ul>
           <p className="italic">⚠️ En Sans Atout, il n’y a <strong>pas de Belote-Rebelote</strong>.</p>
 
+          <div>
+            <h2 className="flex items-center text-xl font-semibold text-green-700 mb-2">
+              <BookOpen className="w-5 h-5 mr-2" /> Règles essentielles
+            </h2>
+            <ul className="list-disc pl-6 space-y-1">
+              <li>On doit <strong>fournir la couleur demandée</strong> si possible.</li>
+              <li>Si c’est de l’atout : obligation de jouer un atout plus fort si possible.</li>
+              <li>Si ce n’est pas de l’atout : on joue la couleur demandé ou atout si on n'a pas la couleur demandé.</li>
+              <li>Si on n’a ni couleur demandée ni atout : on joue ce qu’on veut.</li>
+              <li>Si le partenaire est maître : pas d’obligation de mettre un atout.</li>
+            </ul>
+          </div>
+
           <h2 className="text-xl font-semibold text-green-600 mt-4">📊 Calcul des points</h2>
           <ul className="list-disc pl-6 space-y-1">
             <li>Le preneur doit atteindre son contrat avec ses <strong>points de plis + Belote/Rebelote</strong>.</li>
             <li>Si le preneur réussit ➝ il marque ses points, les deux autres marquent leurs propres plis.</li>
             <li>Si le preneur échoue et qu’aucun adversaire n’a coinché ➝ <strong>-80 points pour lui</strong> et <strong>+80 pour chacun des deux autres</strong>.</li>
-            <li>Si un adversaire a coinché ➝ <strong>seul ce joueur marque ou perd le double des points</strong>.</li>
-            <li>Surcoinche ➝ les points sont quadruplés.</li>
+            <li>Si un adversaire a coinché ➝ <strong>Ce joueur va marquer plus de points en cas de victoire.</strong>.</li>
+            <li>Surcoinche ➝ les points sont triplés.</li>
           </ul>
 
           <h2 className="text-xl font-semibold text-green-600 mt-4">🏆 Objectif</h2>

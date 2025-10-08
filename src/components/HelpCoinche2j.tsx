@@ -45,8 +45,8 @@ export default function HelpCoinche2j() {
             <li>Distribue 4 paquets de 8 cartes face-basse au centre.</li>
             <li>Chaque joueur choisit 2 paquets :
               <ul className="list-disc pl-6 mt-1">
-                <li>Premier paquet : 4 cartes visibles au-dessus, 4 face cachée dans la main.</li>
-                <li>Deuxième paquet : toutes les cartes ajoutées à la main (face cachée).</li>
+                <li>Premier paquet : 4 cartes visibles au-dessus de 4 cartes face cachées</li>
+                <li>Deuxième paquet : toutes les cartes dans notre main (jeu normal).</li>
               </ul>
             </li>
             <li>Les 4 cartes visibles de chaque joueur restent visibles pendant l’enchère et servent d’indice.</li>
@@ -54,10 +54,10 @@ export default function HelpCoinche2j() {
 
           <h2 className="text-xl font-semibold text-green-600 mt-4">📢 Enchères</h2>
           <ul className="list-disc pl-6 space-y-1">
-            <li>Contrat minimum : 80 points (puis 90, 100 … jusqu’à 160).</li>
+            <li>Contrat minimum : 80 points (puis 90, 100 … jusqu’à 180 ou général).</li>
             <li>Le preneur annonce points + couleur d’atout, ou Tout Atout / Sans Atout.</li>
             <li>Les enchères tiennent compte des cartes visibles de chacun.</li>
-            <li>Coinche = double les points, Surcoinche = quadruple.</li>
+            <li>Coinche = parier sur le fait qeu l'adversaire rate son pari et cela double les points, Surcoinche = triple.</li>
           </ul>
 
           <h2 className="text-xl font-semibold text-green-600 mt-4">🃏 Valeur des cartes</h2>
@@ -108,10 +108,9 @@ export default function HelpCoinche2j() {
           <h2 className="text-xl font-semibold text-green-600 mt-4">📊 Calcul des points</h2>
           <ul className="list-disc pl-6 space-y-1">
             <li>Le preneur doit atteindre son contrat avec ses plis + éventuelle Belote/Rebelote.</li>
-            <li>Si le preneur réussit : il marque ses points, l’adversaire aussi ses plis.</li>
-            <li>Si le preneur échoue et aucun adversaire n’a coinché : -80 pour le preneur, +80 pour l’adversaire.</li>
-            <li>Si coinché : seul le joueur qui a coinché marque ou perd le double des points.</li>
-            <li>Surcoinche quadruple les points.</li>
+            <li>Si le preneur réussit : il marque ses points + contrat, l’adversaire aussi ses plis.</li>
+            <li>Si le preneur échoue et aucun adversaire n’a coinché : 0 pour le preneur, +162 +mise pour l’adversaire.</li>
+            
           </ul>
 
           <h2 className="text-xl font-semibold text-green-600 mt-4">🏆 Objectif</h2>

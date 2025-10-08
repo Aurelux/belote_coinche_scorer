@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useReducer, ReactNode, useEffect,useState } from 'react';
-import { GameState, Player, GameSettings, Hand, AppScreen, MatchHistory, User, UserStats, GameModeStats, PlayerRanking, FriendRequest, Achievement, PROFILE_TITLES, PlayerConfirmation, DEALER_ROTATION_4P } from '../types/game';
+import { PlayerStatsForTimeframe,GameState, Player, GameSettings, Hand, AppScreen, MatchHistory, User, UserStats, GameModeStats, PlayerRanking, FriendRequest, Achievement, PROFILE_TITLES, PlayerConfirmation, DEALER_ROTATION_4P } from '../types/game';
 import { supabase } from '../lib/supabase';
 import { startOfWeek, startOfMonth, isAfter } from 'date-fns';
 
@@ -141,20 +141,7 @@ type GameAction =
 
 
 // Calculate ranking score based on multiple factors
-const calculateRankingScoretime = (player: PlayerStatsForTimeframe) => {
-  if (player.gamesPlayed === 0) return 0;
-  const winRate = player.wins / player.gamesPlayed; // 0-1
-  const pointsRatio = player.pointsScored / (player.pointsScored + player.pointsConceded); // 0-1
 
-  // pondérations personnalisables
-  const gamesWeight = Math.min(player.gamesPlayed / 20, 1); // max 20 parties = full weight
-  const winRateWeight = 0.5;
-  const pointsWeight = 0.5;
-
-  const score = gamesWeight * (winRate * winRateWeight + pointsRatio * pointsWeight) * 100;
-
-  return Math.round(score);
-};
 
 const calculateRankingScore = (stats: GameModeStats): number => {
   if (stats.games === 0) return 0;
@@ -175,7 +162,7 @@ const calculateRankingScore = (stats: GameModeStats): number => {
   const actionScore = (coincheSuccess * 10); // max 20 pts
 
   // 4. Capots comme bonus qualitatif
-  const capotScore = Math.min(10, stats.capots * 0.5); 
+  const capotScore = stats.games > 0 ? Math.max(1, 20*(stats.capots/stats.games) * 0.5) : 0; 
 
   // 5. Bonus modéré pour le taux de victoire (ne doit plus dominer)
   const winScore = stats.winRate * 0.4; // max 40 pts au lieu de 100
@@ -184,7 +171,7 @@ const calculateRankingScore = (stats: GameModeStats): number => {
   const penaltyMalus = Math.max(-15, -(stats.penalties / Math.max(stats.games, 1)) * 3);
 
   // Score combiné brut
-  const rawScore = winScore + ratioScore + actionScore + capotScore + penaltyMalus +activite*contractSuccess*2;
+  const rawScore = winScore + ratioScore + actionScore + capotScore + penaltyMalus +activite*contractSuccess*3;
 
   // Appliquer l'expérience comme pondération finale
   const finalScore = (rawScore * 0.7 + (stats.games * 0.1)) * experienceFactor + 10; 
@@ -1442,33 +1429,7 @@ dispatch({ type: 'SET_MATCH_HISTORY', payload: matchHistoryFiltered });
     dispatch({ type: 'CONFIRM_PLAYER', payload: { userId, confirmed: true } });
     return true;
   };
-interface PlayerStatsForTimeframe {
-  userId: string;
-  name: string;
-  profilePicture?: string;
-  profileTitle?: string;
-  games: number;
-  wins: number;
-  totalPoints: number;
-  pointsConceded: number;
-  coinches: number;
-  penalties: number;
-}
 
-interface PlayerRanking {
-  userId: string;
-  name: string;
-  profilePicture?: string;
-  profileTitle?: string;
-  rankingScore: number;
-  gamesPlayed: number;
-  winRate: number;
-  averagePoints: number;
-  totalCoinches: number;
-  pointsConceded: number;
-  penalties: number;
-  rank: number;
-}
 
 const getTimeFrameUserRankings = async (
   mode: 'belote' | 'coinche',

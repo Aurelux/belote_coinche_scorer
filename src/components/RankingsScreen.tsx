@@ -49,7 +49,7 @@ export function RankingsScreen() {
   loadUsers();
 }, []);
 
-  const loadRankings = async (timeframe: 'all' | 'week' | 'month' = 'all') => {
+  const loadRankings = async () => {
   setLoading(true);
   try {
     let rankingsData: PlayerRanking[] = [];
@@ -59,7 +59,7 @@ export function RankingsScreen() {
       rankingsData = await getUserRankings(selectedMode, selectedPlayerCount, selectedGroup);
     } else {
       // utilisation de la nouvelle fonction timeframe
-      rankingsData = await getTimeFrameUserRankings(selectedMode, selectedPlayerCount, selectedTimeFrame);
+      rankingsData = await getTimeFrameUserRankings(selectedMode, selectedPlayerCount, selectedTimeFrame, selectedGroup);
     }
 
     // Limiter à top 30
@@ -217,7 +217,7 @@ export function RankingsScreen() {
       </button>
     ))}
   </div>
-  <h3 className="text-lg font-semibold text-gray-900 mb-4">Temporaité</h3>
+  <h3 className="text-lg font-semibold text-gray-900 mb-4">Temporalité</h3>
 <div className="grid grid-cols-3 gap-2 sm:gap-3">
   {['all','month','week'].map(tf => (
     <button
@@ -282,7 +282,7 @@ export function RankingsScreen() {
           <div className="flex items-center space-x-3 mb-4 sm:mb-6">
             <Trophy className="w-6 h-6 text-yellow-500" />
             <h3 className="text-lg sm:text-xl font-bold text-gray-900">
-              Top 30 - {selectedMode === 'belote' ? 'Belote' : 'Coinche'} ({selectedPlayerCount}J) ({selectedGroup})
+              Top 30 - {selectedMode === 'belote' ? 'Belote' : 'Coinche'}  à {selectedPlayerCount}J ({selectedTimeFrame} - {selectedGroup})
             </h3>
           </div>
 
@@ -454,16 +454,16 @@ export function RankingsScreen() {
               <strong>Score de classement</strong> : Formule avancée basée sur :
             </p>
             <ul className="list-disc list-inside space-y-1 ml-4">
-              <li><strong>Taux de victoire</strong> (0-100 points) : Pourcentage de parties gagnées</li>
-              <li><strong>Bonus expérience</strong> (max 25 points) : Récompense le nombre de parties jouées</li>
-              <li><strong>Bonus performance</strong> (max 20 points) : Ratio points marqués/concédés</li>
-              <li><strong>Bonus coinche</strong> (max 15 points) : Taux de réussite des coinches</li>
-              <li><strong>Bonus contrats</strong> (max 15 points) : Taux de réussite des contrats pris</li>
-              <li><strong>Bonus capots</strong> (max 10 points) : Nombre de capots réalisés</li>
-              <li><strong>Malus pénalités</strong> (max -15 points) : Pénalités reçues</li>
+              <li><strong>Taux de victoire</strong> (0-40 points) : Pourcentage de parties gagnées</li>
+              <li><strong>Bonus expérience</strong> (un poids entre 0.7 et 1) : Récompense le nombre de parties jouées</li>
+              <li><strong>Bonus performance</strong> (max 40 points) : Ratio points marqués/concédés</li>
+              <li><strong>Bonus coinche</strong> (max 10 points) : Taux de réussite des coinches</li>
+              <li><strong>Bonus contrats et activté</strong> (max 15 points) : Taux de réussite des contrats pris*nombre de conrtat pris par parties</li>
+              <li><strong>Bonus capots</strong> (max 10 points) : Nombre de capots réalisés par partie</li>
+              <li><strong>Malus pénalités</strong> (max -10 points) : Pénalités reçues</li>
             </ul>
             <p className="text-xs text-gray-500 mt-3">
-              * Les parties de moins de 10 minutes ne comptent pas dans les statistiques
+              * Certaines parties peuvent etre annulées et non comptailisés (algo d'anti-triche).
             </p>
           </div>
         </div>
