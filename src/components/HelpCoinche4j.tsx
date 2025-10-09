@@ -16,7 +16,7 @@ export default function HelpCoinche4j() {
        backgroundPosition: '0 0, 10px 10px',
        backgroundSize: '20px 20px'
      }}
->      <div className="max-w-2xl w-full bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl p-8 flex flex-col">
+>      <div className="max-w-md w-full bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl p-8 flex flex-col">
 
         {/* Header */}
         <div className="flex items-center mb-8">

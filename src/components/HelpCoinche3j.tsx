@@ -1,5 +1,5 @@
 import React from "react";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, BookOpen} from "lucide-react";
 import { useGame } from '../context/GameContext';
 
 export default function HelpCoinche3j() {
@@ -15,8 +15,8 @@ export default function HelpCoinche3j() {
        `,
        backgroundPosition: '0 0, 10px 10px',
        backgroundSize: '20px 20px'
-     }}
->      <div className="max-w-md w-full bg-white/90 backdrop-blur-md rounded-2xl shadow-xl p-6 flex flex-col">
+     }}>      
+      <div className="max-w-md w-full bg-white/90 backdrop-blur-md rounded-2xl shadow-xl p-6 flex flex-col">
 
         {/* Header */}
         <div className="flex items-center mb-6">

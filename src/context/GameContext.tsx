@@ -148,7 +148,7 @@ const calculateRankingScore = (stats: GameModeStats): number => {
   if (stats.games === 0) return 0;
 
   // 1. Pondération de l'expérience : plus tu joues, plus ton score est fiable
-  const experienceFactor = Math.min(1, Math.log10(stats.games + 1) / 2); 
+  const experienceFactor = Math.min(1, Math.log10(stats.games + 1) / 1.9); 
   // (→ atteint 1 vers 100 parties, moins de poids avant)
 
   // 2. Performance brute (points marqués vs concédés)
@@ -157,25 +157,25 @@ const calculateRankingScore = (stats: GameModeStats): number => {
   const ratioScore = (Math.min(3, ratio)) * 50/3; // entre 0 et +50 max
 
   // 3. Coinches et contrats réussis
-  const coincheSuccess = stats.coinches > 0 ? stats.successfulCoinches / stats.coinches : 0;
-  const contractSuccess = stats.contractsTaken > 0 ? stats.successfulContracts / stats.contractsTaken : 0;
+  const coincheSuccess = stats.coinches > 0 ? (stats.successfulCoinches / stats.coinches)*1.2 : 0;
+  const contractSuccess = stats.contractsTaken > 0 ? (stats.successfulContracts / stats.contractsTaken) : 0;
   const activite = stats.games > 0 ? stats.contractsTaken/stats.games : 0;
   const actionScore = (coincheSuccess * 10); // max 20 pts
 
   // 4. Capots comme bonus qualitatif
-  const capotScore = stats.games > 0 ? Math.max(1, 20*(stats.capots/stats.games) * 0.5) : 0; 
+  const capotScore = stats.games > 0 ? Math.max(1, 12*(stats.capots/stats.games)) : 0; 
 
   // 5. Bonus modéré pour le taux de victoire (ne doit plus dominer)
-  const winScore = stats.winRate * 0.4; // max 40 pts au lieu de 100
+  const winScore = stats.winRate * 0.5; // max 40 pts au lieu de 100
 
   // 6. Pénalité
   const penaltyMalus = Math.max(-15, -(stats.penalties / Math.max(stats.games, 1)) * 3);
 
   // Score combiné brut
-  const rawScore = winScore + ratioScore + actionScore + capotScore + penaltyMalus +activite*contractSuccess*3;
+  const rawScore = winScore + ratioScore + actionScore + capotScore + penaltyMalus +activite*contractSuccess*5;
 
   // Appliquer l'expérience comme pondération finale
-  const finalScore = (rawScore * 0.7 + (stats.games * 0.1)) * experienceFactor + 10; 
+  const finalScore = (rawScore * 0.8 + Math.min(5,(stats.games * 0.1))) * experienceFactor + 10; 
   // Ajout d’un petit +10 pour éviter des scores trop bas pour les joueurs moyens
 
   return Math.round(finalScore);
