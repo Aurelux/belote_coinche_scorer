@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useReducer, ReactNode, useEffect,useState } from 'react';
 import { PlayerStatsForTimeframe,GameState, Player, GameSettings, Hand, AppScreen, MatchHistory, User, UserStats, GameModeStats, PlayerRanking, FriendRequest, Achievement, PROFILE_TITLES, PlayerConfirmation, DEALER_ROTATION_4P } from '../types/game';
 import { supabase } from '../lib/supabase';
-import { startOfWeek, startOfMonth, isAfter } from 'date-fns';
+
 
 interface GameContextType {
   gameState: GameState;
@@ -25,7 +25,7 @@ interface GameContextType {
   loadFriends: () => Promise<void>;
   loadFriendRequests: () => Promise<void>;
   confirmPlayer: (userId: string, accessCode: string) => Promise<boolean>;
-  getUserRankings: (mode: 'belote' | 'coinche', playerCount: 2 | 3 | 4) => Promise<PlayerRanking[]>;
+  getUserRankings: (mode: 'belote' | 'coinche', playerCount: 2 | 3 | 4, group : 'friends' | 'world') => Promise<PlayerRanking[]>;
   updateUserStats: (userId: string, gameData: any) => Promise<void>;
   setSelectedUser: (user: User | null) => void;
   updateProfileTitle: (titleId: string) => Promise<void>;
@@ -141,6 +141,7 @@ type GameAction =
 
 
 // Calculate ranking score based on multiple factors
+
 
 
 const calculateRankingScore = (stats: GameModeStats): number => {
@@ -1201,23 +1202,44 @@ dispatch({ type: 'SET_MATCH_HISTORY', payload: matchHistoryFiltered });
     dispatch({ type: 'LOGOUT_USER' });
     navigateTo('auth');
   };
-  function normalizeString(str: string): string {
-  return str
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase();
-}
+  // Début de semaine (lundi)
+// Début de la semaine (ramène au lundi)
+const startOfWeek = (date: Date): Date => {
+  const d = new Date(date);
+  const day = d.getDay(); // 0 = dimanche, 1 = lundi...
+  const diff = (day === 0 ? -6 : 1) - day; // ramener à lundi
+  d.setDate(d.getDate() + diff);
+  d.setHours(0, 0, 0, 0);
+  return d;
+};
+
+// Début du mois
+const startOfMonth = (date: Date): Date => {
+  const d = new Date(date);
+  d.setDate(1);
+  d.setHours(0, 0, 0, 0);
+  return d;
+};
+
+// Comparaison : est-ce que dateA est après dateB ?
+const isAfter = (dateA: Date, dateB: Date): boolean => {
+  return dateA.getTime() > dateB.getTime();
+};
+
 
   const searchUsers = async (query: string): Promise<User[]> => {
   if (!query.trim()) return [];
 
   try {
-    const { data, error } = await supabase
-      .rpc('search_users', { query });
+    const { data: results, error } = await supabase
+        .from('users')
+        .select('*')
+        .or(`noaccent_name.ilike.%${query}%`);
+    console.log(results)
 
     if (error) throw error;
 
-    return (data || []).map(u => ({
+    return (results || []).map(u => ({
       id: u.id,
       displayName: u.display_name,
       email: u.email,
@@ -1476,7 +1498,7 @@ const getTimeFrameUserRankings = async (
 
     let startDate: Date;
     const now = new Date();
-    if (timeframe === 'week') startDate = startOfWeek(now, { weekStartsOn: 1 });
+    if (timeframe === 'week') startDate = startOfWeek(now);
     else if (timeframe === 'month') startDate = startOfMonth(now);
     else startDate = new Date(0);
 

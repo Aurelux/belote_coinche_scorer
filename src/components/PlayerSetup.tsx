@@ -107,8 +107,8 @@ const debouncedSearch = debounce(async (index: number, value: string) => {
 
   const allUserResults = await searchUsers(query); // normalisation
   const filteredResults = allUserResults
-  .filter(user => user.id !== gameState.currentUser?.id)
-  .filter(user => user.displayName.toLowerCase().includes(query)); // correspondance stricte
+  .filter(user => user.id !== gameState.currentUser?.id);
+ // correspondance stricte
 
 
 
