@@ -105,7 +105,7 @@ export function RankingsScreen() {
   };
 
   const getProfileTitle = (titleId: string) => {
-    return PROFILE_TITLES.find(t => t.id === titleId);
+    return PROFILE_TITLES.find(t => t.title === titleId);
   };
 
   const getCurrentUserRank = () => {
