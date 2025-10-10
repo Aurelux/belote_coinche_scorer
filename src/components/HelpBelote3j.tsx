@@ -16,7 +16,7 @@ export default function HelpBelote3j() {
        backgroundPosition: '0 0, 10px 10px',
        backgroundSize: '20px 20px'
      }}
->      <div className="max-w-md w-full bg-white/90 backdrop-blur-md rounded-2xl shadow-xl p-6 flex flex-col">
+>      <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-3xl relative left-1/2 transform -translate-x-1/2" style={{ top: 'calc(1.5rem + env(safe-area-inset-top))' }}>
 
         {/* Header */}
         <div className="flex items-center mb-6">
@@ -42,7 +42,6 @@ export default function HelpBelote3j() {
           <ul className="list-disc pl-6 space-y-1">
             <li>Retirer les cartes <strong>7 et 8</strong> → reste 24 cartes.</li>
             <li>Distribution : chaque joueur reçoit <strong>8 cartes</strong> en paquets de 3-2-3, 2-3-3 ou 3-3-2.</li>
-            <li>Le joueur qui prend un paquet retourne <strong>4 cartes visibles</strong> et garde les 4 autres face cachée, puis prend son second paquet.</li>
             <li>Les cartes visibles servent d'information pour choisir la couleur d’atout.</li>
           </ul>
 
@@ -79,22 +78,21 @@ export default function HelpBelote3j() {
           <ul className="list-disc pl-6 space-y-1">
             <li>Chaque joueur compte ses points à la fin de la manche (plis + Belote/Rebelote).</li>
             <li>Victoire : le joueur ayant le plus de points gagne (plus que les deux autres).</li>
-            <li>Exemple : Joueur A = 78 pts, Joueur B = 74 pts, Joueur C = 85 pts → Joueur C gagne.</li>
+            <li>Exemple : Joueur A = 18 pts, Joueur B = 64 pts, Joueur C = 80 pts → Joueur C gagne.</li>
             <li>Belote-Rebelote : 20 pts si présent.</li>
           </ul>
 
           <h2 className="text-xl font-semibold text-green-600 mt-4">📝 Conseils pratiques</h2>
           <ul className="list-disc pl-6 space-y-1">
-            <li>Observez les cartes visibles pour deviner les forces des adversaires.</li>
             <li>Planifiez vos plis et votre stratégie selon les cartes probables des autres joueurs.</li>
-            <li>Les petites cartes servent à contrôler le jeu et préparer Belote-Rebelote.</li>
+            <li>Les petites peuevnt cartes servent à contrôler le jeu.</li>
           </ul>
 
           <div className="mt-6 p-3 bg-green-50 rounded-md border">
             <h3 className="font-semibold">Fiche rapide</h3>
             <ul className="pl-6 list-disc mt-2">
               <li>Deck : 24 cartes (sans 7 et 8).</li>
-              <li>Distribution : paquets 3-2-3 / 2-3-3 / 3-3-2, 4 cartes visibles par joueur.</li>
+              <li>Distribution : paquets 3-2-3 / 2-3-3 / 3-3-2.</li>
               <li>Choix de l’atout : preneur annonce la couleur.</li>
               <li>Belote-Rebelote : 20 pts.</li>
               <li>Victoire : plus de points que le maximum des deux autres joueurs.</li>

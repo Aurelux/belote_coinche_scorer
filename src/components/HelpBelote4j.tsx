@@ -16,7 +16,7 @@ export default function HelpBelote4j() {
        backgroundPosition: '0 0, 10px 10px',
        backgroundSize: '20px 20px'
      }}
->      <div className="max-w-md w-full bg-white/90 backdrop-blur-md rounded-2xl shadow-xl p-6 flex flex-col">
+>      <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-3xl relative left-1/2 transform -translate-x-1/2" style={{ top: 'calc(1.5rem + env(safe-area-inset-top))' }}>
 
         {/* Header */}
         <div className="flex items-center mb-6">
@@ -84,26 +84,17 @@ export default function HelpBelote4j() {
             <li>Valet : 2 pts</li>
           </ul>
 
-          <h3 className="font-semibold mt-2">➡️ Tout Atout / Sans Atout</h3>
-          <ul className="list-disc pl-6 space-y-1">
-            <li>Tout Atout : Valet 20, 9 14, As 11, 10 10, Roi 4, Dame 3, Belote-Rebelote = 20 pts.</li>
-            <li>Sans Atout : As 19, 10 10, Roi 4, Dame 3, Valet 2, pas de Belote-Rebelote.</li>
-          </ul>
+          
 
           <h2 className="text-xl font-semibold text-green-600 mt-4">💯 Calcul des points & victoire</h2>
           <ul className="list-disc pl-6 space-y-1">
             <li>Total par manche : 162 pts (cartes) + 10 pour la dernière levée.</li>
             <li>Belote-Rebelote : 20 pts.</li>
-            <li>Équipe du preneur doit atteindre le contrat annoncé (points cumulés de l’équipe + Belote/Rebelote).</li>
+            <li>Équipe du preneur doit plus de 82 points (points cumulés de l’équipe + Belote/Rebelote).</li>
             <li>Contrat réussi → équipe preneur marque ses points ; sinon, équipe adverse marque tout.</li>
           </ul>
 
-          <h2 className="text-xl font-semibold text-green-600 mt-4">📌 Exemples concrets</h2>
-          <ul className="list-disc pl-6 space-y-1">
-            <li>Ex. 1 : équipe A annonce 100 atout Cœur → finit avec 110 pts (plis + Belote) → contrat réussi → équipe A marque 110 pts.</li>
-            <li>Ex. 2 : équipe B annonce 120 → obtient seulement 110 → contrat raté → équipe A marque 120 pts.</li>
-            <li>Belote-Rebelote réussie : +20 pts au total.</li>
-          </ul>
+          
 
           <h2 className="text-xl font-semibold text-green-600 mt-4">📝 Conseils pratiques</h2>
           <ul className="list-disc pl-6 space-y-1">
@@ -118,9 +109,9 @@ export default function HelpBelote4j() {
             <ul className="pl-6 list-disc mt-2">
               <li>Deck : 32 cartes.</li>
               <li>Distribution : 5 + 3 cartes par joueur.</li>
-              <li>Contrat minimum : 80 pts.</li>
+              
               <li>Belote-Rebelote : 20 pts.</li>
-              <li>Victoire : équipe preneuse réussit contrat → marque ses points ; sinon, équipe adverse marque tout.</li>
+              <li>Victoire : équipe preneuse fait plus de 82 → marque ses points ; sinon, équipe adverse marque tout.</li>
             </ul>
           </div>
         </section>

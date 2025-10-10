@@ -16,7 +16,7 @@ export default function HelpBelote2j() {
        backgroundPosition: '0 0, 10px 10px',
        backgroundSize: '20px 20px'
      }}
->      <div className="max-w-md w-full bg-white/90 backdrop-blur-md rounded-2xl shadow-xl p-6 flex flex-col">
+>      <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-3xl relative left-1/2 transform -translate-x-1/2" style={{ top: 'calc(1.5rem + env(safe-area-inset-top))' }}>
 
         {/* Header */}
         <div className="flex items-center mb-6">
@@ -78,11 +78,11 @@ export default function HelpBelote2j() {
 
           <h2 className="text-xl font-semibold text-green-600 mt-4">💯 Calcul des points & victoire</h2>
           <ul className="list-disc pl-6 space-y-1">
-            <li>Total des plis : 162 points + 10 pour la dernière levée.</li>
+            <li>Total des plis : 152 points + 10 pour la dernière levée.</li>
             <li>Belote-Rebelote : 20 pts.</li>
             <li>Le joueur qui commence doit atteindre le contrat avec ses points + Belote/Rebelote.</li>
             <li>Si réussite : le joueur marque ses points, sinon l’adversaire marque tout.</li>
-            <li>Coinche/Surcoinche : optionnel, points doublés ou quadruplés.</li>
+            
           </ul>
 
           <h2 className="text-xl font-semibold text-green-600 mt-4">🏆 Objectif</h2>
@@ -103,7 +103,7 @@ export default function HelpBelote2j() {
               <li>Deck : 32 cartes.</li>
               <li>Distribution : 2 paquets de 5 + 2 paquets de 6 → révéler 3 cartes du paquet choisi.</li>
               <li>Belote-Rebelote : 20 pts.</li>
-              <li>Coinche/Surcoinche : optionnel ×2 ou ×4.</li>
+              
               <li>Victoire : premier à 1000 points ou à réussir ses plis + Belote/Rebelote.</li>
             </ul>
           </div>

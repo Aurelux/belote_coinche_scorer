@@ -16,7 +16,7 @@ export default function HelpCoinche3j() {
        backgroundPosition: '0 0, 10px 10px',
        backgroundSize: '20px 20px'
      }}>      
-      <div className="max-w-md w-full bg-white/90 backdrop-blur-md rounded-2xl shadow-xl p-6 flex flex-col">
+      <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-3xl relative left-1/2 transform -translate-x-1/2" style={{ top: 'calc(1.5rem + env(safe-area-inset-top))' }}>
 
         {/* Header */}
         <div className="flex items-center mb-6">
