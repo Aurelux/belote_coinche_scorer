@@ -157,16 +157,31 @@ const calculateRankingScore = (stats: GameModeStats): number => {
   const ratioScore = (Math.min(3, ratio)) * 50/3; // entre 0 et +50 max
 
   // 3. Coinches et contrats réussis
-  const coincheSuccess = stats.coinches > 0 ? (stats.successfulCoinches / stats.coinches)*1.2 : 0;
+
   const contractSuccess = stats.contractsTaken > 0 ? (stats.successfulContracts / stats.contractsTaken) : 0;
   const activite = stats.games > 0 ? stats.contractsTaken/stats.games : 0;
-  const actionScore = (coincheSuccess * 10); // max 20 pts
+ // Nouveau bloc de calcul coinche
+let actionScore = 0;
+
+if (stats.coinches > 0) {
+  if (stats.coinches <= 10) {
+    // Cas débutant : 1 point par coinche réussie
+    actionScore = stats.successfulCoinches;
+  } else {
+    // Cas confirmé : formule pondérée
+    const coincheSuccess =
+      stats.coinches > 0
+        ? (stats.successfulCoinches / stats.coinches) * 1.1
+        : 0;
+    actionScore = coincheSuccess * 10;
+  }
+} // max 20 pts
 
   // 4. Capots comme bonus qualitatif
   const capotScore = stats.games > 0 ? Math.max(1, 12*(stats.capots/stats.games)) : 0; 
 
   // 5. Bonus modéré pour le taux de victoire (ne doit plus dominer)
-  const winScore = stats.winRate * 0.5; // max 40 pts au lieu de 100
+  const winScore = stats.winRate * 0.5; // max 50 pts au lieu de 100
 
   // 6. Pénalité
   const penaltyMalus = Math.max(-15, -(stats.penalties / Math.max(stats.games, 1)) * 3);
@@ -1459,7 +1474,6 @@ const getTimeFrameUserRankings = async (
   timeframe: 'month' | 'week',
   group: 'all' | 'friends'
 ): Promise<PlayerRanking[]> => {
-  
   try {
     // 1. Charger les users
     const { data: users, error: userError } = await supabase
@@ -1469,7 +1483,7 @@ const getTimeFrameUserRankings = async (
     if (userError) throw userError;
     let filteredUsers = users || [];
 
-    // 2. Si groupe = "friends", filtrer
+    // 2. Filtrer les amis si besoin
     if (group === 'friends') {
       const { data: friendships, error: friendsError } = await supabase
         .from('friendships')
@@ -1484,11 +1498,12 @@ const getTimeFrameUserRankings = async (
       const friendIds = (friendships || []).map(f =>
         f.user_id === gameState.currentUser.id ? f.friend_id : f.user_id
       );
-      friendIds.push(gameState.currentUser.id); // inclure soi-même
+      friendIds.push(gameState.currentUser.id);
 
       filteredUsers = filteredUsers.filter(u => friendIds.includes(u.id));
     }
-  
+
+    // 3. Charger les matchs
     const { data: matches, error } = await supabase
       .from('match_history')
       .select('id, players, final_scores, winning_team, created_at, settings');
@@ -1496,22 +1511,29 @@ const getTimeFrameUserRankings = async (
     if (error) throw error;
     if (!matches) return [];
 
+    // 4. Filtrer par période
     let startDate: Date;
     const now = new Date();
     if (timeframe === 'week') startDate = startOfWeek(now);
     else if (timeframe === 'month') startDate = startOfMonth(now);
     else startDate = new Date(0);
 
-    const recentMatches = matches.filter(match =>
+    let recentMatches = matches.filter(match =>
       isAfter(new Date(match.created_at), startDate)
+    );
+
+    // 5. Filtrer aussi par mode & nombre de joueurs
+    recentMatches = recentMatches.filter(match =>
+      match.settings?.mode === mode &&
+      match.settings?.playerCount === playerCount
     );
 
     const playerMap: Record<string, PlayerStatsForTimeframe> = {};
 
     recentMatches.forEach(match => {
-      match.players.forEach((player: any) => {
-        
+      const targetScore = match.settings?.targetScore || 1000; // par défaut 1000
 
+      match.players.forEach((player: any) => {
         if (!playerMap[player.userId]) {
           playerMap[player.userId] = {
             userId: player.userId,
@@ -1533,34 +1555,37 @@ const getTimeFrameUserRankings = async (
         if (player.team === match.winning_team) stats.wins += 1;
 
         const teamKey = player.team === 'A' ? 'teamA' : 'teamB';
-const opponentKey = player.team === 'A' ? 'teamB' : 'teamA';
+        const opponentKey = player.team === 'A' ? 'teamB' : 'teamA';
 
-const teamPoints = match.final_scores?.[teamKey] || 0;
-const otherTeamPoints = match.final_scores?.[opponentKey] || 0;
+        const teamPoints = match.final_scores?.[teamKey] || 0;
+        const otherTeamPoints = match.final_scores?.[opponentKey] || 0;
 
-        stats.totalPoints += teamPoints;
-        stats.pointsConceded += otherTeamPoints;
+        // Normaliser les points selon targetScore
+        const normalizedPoints = (teamPoints / targetScore) * 2000;
+        const normalizedConceded = (otherTeamPoints / targetScore) * 2000;
 
-        // coinches / penalties si tu les as dans ton modèle
-        
+        stats.totalPoints += normalizedPoints;
+        stats.pointsConceded += normalizedConceded;
+
+        // coinches / penalties -> à compléter selon ton modèle
       });
     });
 
+    // 6. Générer les rankings
     const rankings: PlayerRanking[] = Object.entries(playerMap)
       .map(([userId, stats]) => {
         const userInfo = filteredUsers.find(u => u.id === userId);
 
         const winRate = stats.games > 0 ? (stats.wins / stats.games) * 100 : 0;
         const averagePoints = stats.games > 0 ? stats.totalPoints / stats.games : 0;
-        const  ratiopoint = stats.pointsConceded >0 ? stats.totalPoints / stats.pointsConceded : 1
-        const gamesWeight = Math.min(0.7 + stats.games/ 60, 1);
+        const ratiopoint =
+          stats.pointsConceded > 0 ? stats.totalPoints / stats.pointsConceded : 1;
+        const gamesWeight = Math.min(0.3+ Math.log10(stats.games+1)/2, 1);
 
-        const rankingScore =
-          Math.round(gamesWeight*(
-          winRate * 2/10 +
-          ratiopoint *10 +
-          averagePoints/100));
-          
+        const rankingScore = Math.round(
+          gamesWeight *
+            (winRate * 0.4 + ratiopoint * 10 + averagePoints / 100)
+        );
 
         return {
           userId,
@@ -1588,6 +1613,7 @@ const otherTeamPoints = match.final_scores?.[opponentKey] || 0;
     return [];
   }
 };
+
 
 
   const getUserRankings = async (mode: 'belote' | 'coinche', playerCount: 2 | 3 | 4,group: 'world' | 'friends'): Promise<PlayerRanking[]> => {

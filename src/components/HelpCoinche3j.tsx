@@ -75,12 +75,12 @@ export default function HelpCoinche3j() {
 
           <h3 className="font-semibold mt-2">➡️ Tout Atout</h3>
           <ul className="list-disc pl-6 space-y-1">
-            <li>Valet : 20</li>
-            <li>9 : 14</li>
-            <li>As : 11</li>
-            <li>10 : 10</li>
-            <li>Roi : 4</li>
-            <li>Dame : 3</li>
+            <li>Valet : 14</li>
+            <li>9 : 9</li>
+            <li>As : 6</li>
+            <li>10 : 5</li>
+            <li>Roi : 3</li>
+            <li>Dame : 1</li>
           </ul>
           <p className="italic">⚠️ Belote-Rebelote rapporte seulement <strong>5 points</strong> en Tout Atout.</p>
 

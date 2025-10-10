@@ -95,12 +95,12 @@ export default function HelpCoinche2j() {
 
             <h3 className="font-semibold mt-3">Tout Atout</h3>
             <ul className="pl-6 list-disc">
-              <li>Valet : 20</li>
-              <li>9 : 14</li>
-              <li>As : 11</li>
-              <li>10 : 10</li>
-              <li>Roi : 4</li>
-              <li>Dame : 3</li>
+              <li>Valet : 14</li>
+              <li>9 : 9</li>
+              <li>As : 6</li>
+              <li>10 : 5</li>
+              <li>Roi : 3</li>
+              <li>Dame : 1</li>
               <li>8, 7 : 0</li>
             </ul>
           </div>

@@ -106,8 +106,8 @@ export default function HelpCoinche4j() {
                   <li>9 : 9</li>
                   <li>As : 6</li>
                   <li>10 : 5</li>
-                  <li>Roi : 4</li>
-                  <li>Dame : 3</li>
+                  <li>Roi : 3</li>
+                  <li>Dame : 1</li>
                 </ul>
               </div>
               <div>
