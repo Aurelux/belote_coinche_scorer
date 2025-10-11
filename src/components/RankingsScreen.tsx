@@ -406,7 +406,7 @@ export function RankingsScreen() {
                           </div>
                           <div className="flex items-center space-x-1 text-gray-600">
                             <Target className="w-4 h-4" />
-                            <span>Moyenne: {player.averagePoints.toFixed(0)} pts/partie</span>
+                            <span>Perf: {((player.pointsScored - player.pointsConceded)/player.gamesPlayed).toFixed(0)} pts/partie</span>
                           </div>
                         </div>
                       </div>

@@ -58,7 +58,8 @@ const createEmptyGameModeStats = (): GameModeStats => ({
   successfulCoinches: 0,
   contractsTaken: 0,
   successfulContracts: 0,
-  rankingScore: 0
+  rankingScore: 0,
+  risk :0
 });
 
 const createEmptyUserStats = (): UserStats => ({
@@ -160,6 +161,7 @@ const calculateRankingScore = (stats: GameModeStats): number => {
 
   const contractSuccess = stats.contractsTaken > 0 ? (stats.successfulContracts / stats.contractsTaken) : 0;
   const activite = stats.games > 0 ? stats.contractsTaken/stats.games : 0;
+  const risk = stats.risk > 0 ? (stats.risk/120) : 0.8
  // Nouveau bloc de calcul coinche
 let actionScore = 0;
 
@@ -178,16 +180,16 @@ if (stats.coinches > 0) {
 } // max 20 pts
 
   // 4. Capots comme bonus qualitatif
-  const capotScore = stats.games > 0 ? Math.max(1, 12*(stats.capots/stats.games)) : 0; 
+  const capotScore = stats.games > 0 ? Math.max(1, 14*(stats.capots/stats.games)) : 0; 
 
   // 5. Bonus modéré pour le taux de victoire (ne doit plus dominer)
-  const winScore = stats.winRate * 0.5; // max 50 pts au lieu de 100
+  const winScore = stats.winRate * 0.6; // max 50 pts au lieu de 100
 
   // 6. Pénalité
   const penaltyMalus = Math.max(-15, -(stats.penalties / Math.max(stats.games, 1)) * 3);
 
   // Score combiné brut
-  const rawScore = winScore + ratioScore + actionScore + capotScore + penaltyMalus +activite*contractSuccess*5;
+  const rawScore = winScore + ratioScore + actionScore + capotScore + penaltyMalus +risk*(1+activite*0.8)*(1.2*contractSuccess)*5;
 
   // Appliquer l'expérience comme pondération finale
   const finalScore = (rawScore * 0.8 + Math.min(5,(stats.games * 0.1))) * experienceFactor + 10; 
@@ -1598,6 +1600,7 @@ const getTimeFrameUserRankings = async (
           averagePoints,
           totalCoinches: stats.coinches,
           pointsConceded: stats.pointsConceded,
+          pointsScored : stats.totalPoints,
           penalties: stats.penalties,
           rank: 0
         };
@@ -1666,6 +1669,7 @@ const getTimeFrameUserRankings = async (
             totalCoinches: modeStats.coinches,
             pointsConceded: modeStats.pointsConceded,
             penalties: modeStats.penalties,
+            pointsScored : modeStats.pointsScored,
             rank: 0
           };
         })

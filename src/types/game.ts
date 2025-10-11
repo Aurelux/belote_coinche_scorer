@@ -74,8 +74,21 @@ export interface GameModeStats {
   contractsTaken: number;
   successfulContracts: number;
   rankingScore: number;
+  risk : number;
 }
 
+export interface PlayerStatsForTimeframe {
+  userId: string;
+  name: string;
+  profilePicture?: string;
+  profileTitle?: string;
+  games: number;
+  wins: number;
+  totalPoints: number;
+  pointsConceded: number;
+  coinches: number;
+  penalties: number;
+}
 export interface PlayerRanking {
   userId: string;
   name: string;
