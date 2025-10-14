@@ -1,13 +1,15 @@
 import React, { createContext, useContext, useReducer, ReactNode, useEffect,useState } from 'react';
-import { PlayerStatsForTimeframe,GameState, Player, GameSettings, Hand, AppScreen, MatchHistory, User, UserStats, GameModeStats, PlayerRanking, FriendRequest, Achievement, PROFILE_TITLES, PlayerConfirmation, DEALER_ROTATION_4P } from '../types/game';
+import { PlayerTree,PlayerStatsForTimeframe,GameState, Player, GameSettings, Hand, AppScreen, MatchHistory, User, UserStats, GameModeStats, PlayerRanking, FriendRequest, Achievement, PROFILE_TITLES, PlayerConfirmation, DEALER_ROTATION_4P } from '../types/game';
 import { supabase } from '../lib/supabase';
 
 
 interface GameContextType {
   gameState: GameState;
   currentScreen: AppScreen;
+  screenParams: string;
   setCurrentScreen: (screen: AppScreen) => void;
   navigateTo: (screen: AppScreen) => void;
+  navigateTo2: (screen :AppScreen, code : string) => void;
   goBack: () => void;
   setPlayers: (players: Player[]) => void;
   setGameSettings: (settings: GameSettings) => void;
@@ -18,6 +20,7 @@ interface GameContextType {
   registerUser: (user: Omit<User, 'id' | 'createdAt' | 'stats' | 'achievements'>) => Promise<User>;
   loginUser: (email: string, accessCode: string) => Promise<User | null>;
   logoutUser: () => void;
+  deleteUser: () => void;
   searchUsers: (query: string) => Promise<User[]>;
   sendFriendRequest: (userId: string) => Promise<void>;
   acceptFriendRequest: (requestId: string) => Promise<void>;
@@ -502,7 +505,12 @@ function gameReducer(state: GameState, action: GameAction): GameState {
 export function GameProvider({ children }: { children: ReactNode }) {
   const [gameState, dispatch] = useReducer(gameReducer, initialGameState);
   const [currentScreen, setCurrentScreen] = React.useState<AppScreen>('auth');
+  const [screenParams, setScreenParams] = useState<any>({});
    const [screenHistory, setScreenHistory] = useState<AppScreen[]>([]);
+ const navigateTo2 = (screen: string, params: any = {}) => {
+  setScreenParams(params);
+  setCurrentScreen(screen);
+};
 
   const navigateTo = (screen: AppScreen) => {
     const previousScreen = screenHistory[screenHistory.length - 1]
@@ -624,7 +632,7 @@ const nextDealer = () => {
     console.log('Players set:', players);
     console.log('Registered users in game that need confirmation:', registeredUsersInGame);
     
-    if (registeredUsersInGame.length > 0) {
+    if (registeredUsersInGame.length > 0 && gameState.settings.isTournament === false) {
       // Create confirmation entries for each registered user
       const confirmations: PlayerConfirmation[] = registeredUsersInGame.map(p => ({
         playerId: p.id,
@@ -682,13 +690,58 @@ const nextDealer = () => {
   }
 
   await saveGameToSupabase();
+  if (
+  gameEnded &&
+  gameState.settings.isTournament &&
+  gameState.settings.currentTournamentId &&
+  gameState.settings.matchId // attention : matchId (pas matchid)
+) {
+  // 🧾 1️⃣ Met à jour les stats globales (table tournament_stats + history)
+  await updateTournamentStatsAndHistory(hand);
+
+  // 🧮 2️⃣ Recalcule les scores cumulés
+  const newTeamAScore = gameState.teamAScore + (hand.teamAScore || 0);
+  const newTeamBScore = gameState.teamBScore + (hand.teamBScore || 0);
+  const newTeamCScore = gameState.teamCScore + (hand.teamCScore || 0);
+
+  // 🏆 3️⃣ Détermine l’équipe gagnante
+  let winningTeam: 'A' | 'B' | 'C';
+  if (gameState.settings.playerCount === 3) {
+    const maxScore = Math.max(newTeamAScore, newTeamBScore, newTeamCScore);
+    if (newTeamAScore === maxScore) winningTeam = 'A';
+    else if (newTeamBScore === maxScore) winningTeam = 'B';
+    else winningTeam = 'C';
+  } else {
+    winningTeam = newTeamAScore > newTeamBScore ? 'A' : 'B';
+  }
+
+  // ⚙️ 4️⃣ Sépare les joueurs gagnants et perdants
+  const winners = gameState.players.filter((p) => p.team === winningTeam);
+  const losers = gameState.players.filter((p) => p.team !== winningTeam);
+
+  // 🗃️ 5️⃣ Met à jour le match dans la table tournament_matches
+  await reportMatchResult(
+    gameState.settings.matchId,
+    winners,
+    losers,
+    {
+      a: newTeamAScore,
+      b: newTeamBScore,
+      c: newTeamCScore,
+    }
+  );
+
+  console.log("✅ Tournoi mis à jour avec les résultats du match !");
+}
+
+
 };
   
   const updateStatsAfterHand = async (hand: Hand) => {
     // Check if game duration is at least 10 minutes
     if (gameState.gameStartTime) {
       const gameDuration = (new Date().getTime() - gameState.gameStartTime.getTime()) / (1000 * 60);
-      if (gameDuration < 1) {
+      if (gameDuration < 10) {
         console.log('Game too short (<10 min), not updating stats');
         return; // Don't update stats for games shorter than 10 minutes
       }
@@ -994,6 +1047,184 @@ allHands.forEach(hand => {
       console.error('Error updating player stats:', error);
     }
   };
+const updateTournamentStatsAndHistory = async (hand: Hand) => {
+  try {
+    const tournamentId = gameState.settings.currentTournamentId;
+    if (!tournamentId) {
+      console.log("pas de tournamentid");
+      return;}
+
+    console.log("🏆 Updating tournament stats and history...");
+
+    // --- Calculer scores finaux du match ---
+    const teamAScore = gameState.teamAScore + (hand.teamAScore || 0);
+    const teamBScore = gameState.teamBScore + (hand.teamBScore || 0);
+    const teamCScore = gameState.teamCScore + (hand.teamCScore || 0);
+
+    let winningTeam: 'A' | 'B' | 'C';
+    if (gameState.settings.playerCount === 3) {
+      winningTeam =
+        teamAScore >= Math.max(teamBScore, teamCScore)
+          ? 'A'
+          : teamBScore >= Math.max(teamAScore, teamCScore)
+          ? 'B'
+          : 'C';
+    } else {
+      winningTeam = teamAScore > teamBScore ? 'A' : 'B';
+    }
+
+    // --- Mettre à jour les stats individuelles dans la table tournament_stats ---
+    for (const player of gameState.players) {
+      if (!player.userId) continue;
+
+      const isWinner = player.team === winningTeam;
+
+      // On tente de récupérer la ligne existante du joueur pour ce tournoi
+      
+     // ignore "no rows found"
+
+      const stats =  {
+        tournament_id: tournamentId,
+        user_id: player.userId,
+        total_games: 0,
+        wins: 0,
+        losses: 0,
+        points_scored: 0,
+        points_conceded: 0,
+      };
+
+      const playerScore =
+        player.team === "A"
+          ? teamAScore
+          : player.team === "B"
+          ? teamBScore
+          : teamCScore;
+
+      // MAJ stats
+      stats.total_games++;
+      if (isWinner) stats.wins++;
+      else stats.losses++;
+
+      stats.points_scored += playerScore;
+      stats.points_conceded += teamAScore + teamBScore + teamCScore - playerScore;
+
+      const winRate = (stats.wins / stats.total_games) * 100;
+
+      // Sauvegarde dans Supabase
+       
+      await supabase
+          .from("tournament_stats")
+          .insert([{ ...stats, win_rate: winRate }]);
+      
+    }
+
+    // --- Ajouter un historique de match dans la table tournament_history ---
+    const tournamentMatch = {
+      id: Date.now().toString(),
+      tournament_id: tournamentId,
+      players: gameState.players.map((p) => ({
+        id: p.id,
+        name: p.name,
+        team: p.team,
+        userId: p.userId || null,
+      })),
+      final_scores: { teamA: teamAScore, teamB: teamBScore, teamC: teamCScore },
+      winning_team : winningTeam,
+      hands_played: gameState.hands.length + 1,
+      timestamp: new Date().toISOString(),
+    };
+
+    await supabase.from("tournament_history").insert([tournamentMatch]);
+
+    console.log("✅ Tournament stats and history updated.");
+  } catch (error) {
+    console.error("❌ Error updating tournament data:", error);
+  }
+};
+
+const reportMatchResult = async (
+  matchId: string,
+  winner: PlayerTree[],
+  loser: PlayerTree[],
+  scores: { a: number; b: number }
+) => {
+  // 1️⃣ Récupérer le match
+  const { data: match, error: fetchErr } = await supabase
+    .from("tournament_matches")
+    .select("*")
+    .eq("id", matchId)
+    .single();
+
+  if (fetchErr || !match) {
+    console.error("Match introuvable :", fetchErr);
+    return;
+  }
+
+  // 2️⃣ Mettre à jour le match terminé
+  const { error: updateErr } = await supabase
+    .from("tournament_matches")
+    .update({
+      status: "finished",
+      winner,
+      players: match.players.map((p: any) => ({
+        ...p,
+        isWinner: winner.some((w) => w.id === p.id),
+      })),
+    })
+    .eq("id", matchId);
+
+  if (updateErr) {
+    console.error("Erreur maj match :", updateErr);
+    return;
+  }
+
+  // 3️⃣ Trouver le match suivant
+  if (match.next_match_id) {
+    const { data: nextMatch, error: nextErr } = await supabase
+      .from("tournament_matches")
+      .select("players")
+      .eq("id", match.next_match_id)
+      .single();
+
+    if (!nextErr && nextMatch) {
+      const updatedPlayers = [...nextMatch.players, ...winner];
+      await supabase
+        .from("tournament_matches")
+        .update({ players: updatedPlayers })
+        .eq("id", match.next_match_id);
+    }
+  }
+
+  console.log("✅ Match mis à jour et progression effectuée !");
+};
+
+const deleteUser = async () => {
+  const userId = gameState?.currentUser?.id;
+
+  if (!userId) {
+    console.error("❌ Impossible de supprimer : aucun utilisateur connecté.");
+    return;
+  }
+
+  const confirmDelete = confirm(
+    "⚠️ Cette action est irréversible.\nSouhaitez-vous vraiment supprimer votre compte et toutes vos données ?"
+  );
+  if (!confirmDelete) return;
+
+  const { error } = await supabase
+    .from("users")
+    .delete()
+    .eq("id", userId);
+
+  if (error) {
+    console.error("Erreur lors de la suppression du compte :", error);
+    alert("❌ Une erreur est survenue lors de la suppression du compte.");
+    return;
+  }
+
+  alert("✅ Votre compte a bien été supprimé.");
+  logoutUser(); // utilise ta fonction existante
+};
 
   const saveMatchHistoryToSupabase = async (matchHistory: MatchHistory) => {
     try {
@@ -1814,11 +2045,13 @@ const getTimeFrameUserRankings = async (
     <GameContext.Provider value={{
       gameState,
       currentScreen,
+      screenParams,
       setCurrentScreen,
       screenHistory,
       setScreenHistory,
       goBack,
       navigateTo,
+      navigateTo2,
       updateHand,
       setPlayers,
       setGameSettings,
@@ -1829,6 +2062,7 @@ const getTimeFrameUserRankings = async (
       registerUser,
       loginUser,
       logoutUser,
+      deleteUser,
       searchUsers,
       sendFriendRequest,
       acceptFriendRequest,

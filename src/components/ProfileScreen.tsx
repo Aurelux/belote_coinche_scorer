@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Trophy, Target, Users, Award, TrendingUp, Crown, Medal, BarChart3, LogOut, UserPlus, Settings, Edit, Camera, Upload, History, TrendingDown, User } from 'lucide-react';
+import { Trash2, ArrowLeft, Trophy, Target, Users, Award, TrendingUp, Crown, Medal, BarChart3, LogOut, UserPlus, Settings, Edit, Camera, Upload, History, TrendingDown, User } from 'lucide-react';
 import { useGame } from '../context/GameContext';
 import { PROFILE_TITLES } from '../types/game';
 
@@ -13,11 +13,13 @@ export function ProfileScreen() {
   
   const [notifications, setNotifications] = useState<string[]>([]);
 
-  const { gameState, setCurrentScreen, logoutUser, updateProfileTitle, updateProfilePicture, navigateTo, goBack, loadMatchHistory, getUserSoftRankings, loadFriendRequests, loadFriends} = useGame();
+  const { gameState, deleteUser, setCurrentScreen, logoutUser, updateProfileTitle, updateProfilePicture, navigateTo, goBack, loadMatchHistory, getUserSoftRankings, loadFriendRequests, loadFriends} = useGame();
   const [showTitleSelector, setShowTitleSelector] = useState(false);
   const [updating, setUpdating] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [unlockedTitles, setUnlockedTitles] = useState<string[]>([]);
+  const [showLogoutPopup, setShowLogoutPopup] = useState(false);
+  const [showDeletePopup, setShowDeletePopup] = useState(false);
   
 
   
@@ -488,13 +490,88 @@ console.log('Pire coéquipier:', worstTeammate2);
                 <History className="w-4 h-4" />
                 <span className="hidden sm:inline">Historique</span>
               </button>
+              {/* === BOUTON PRINCIPAL === */}
+      <button
+        onClick={() => setShowLogoutPopup(true)}
+        className="flex items-center space-x-2 px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors text-sm"
+      >
+        <LogOut className="w-4 h-4" />
+        <span className="hidden sm:inline">Déconnexion</span>
+      </button>
+
+      {/* === POPUP DÉCONNEXION === */}
+      {showLogoutPopup && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-xl p-6 w-80">
+            <h2 className="text-lg font-semibold mb-3 text-gray-800">Se déconnecter ?</h2>
+            <p className="text-gray-600 mb-5 text-sm">
+              Voulez-vous vraiment vous déconnecter de votre compte ?
+            </p>
+
+            <div className="flex justify-end space-x-2">
               <button
-                onClick={logoutUser}
-                className="flex items-center space-x-2 px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors text-sm"
+                onClick={() => setShowLogoutPopup(false)}
+                className="px-3 py-1.5 text-sm rounded-md bg-gray-100 hover:bg-gray-200"
               >
-                <LogOut className="w-4 h-4" />
-                <span className="hidden sm:inline">Déconnexion</span>
+                Annuler
               </button>
+              <button
+                onClick={() => {
+                  setShowLogoutPopup(false);
+                  logoutUser();
+                }}
+                className="px-3 py-1.5 text-sm rounded-md bg-red-600 text-white hover:bg-red-700"
+              >
+                Se déconnecter
+              </button>
+            </div>
+
+            {/* Lien vers suppression */}
+            <div className="border-t mt-4 pt-3 text-center">
+              <button
+                onClick={() => {
+                  setShowLogoutPopup(false);
+                  setShowDeletePopup(true);
+                }}
+                className="text-xs text-red-500 hover:text-red-600 flex items-center justify-center space-x-1 mx-auto"
+              >
+                <Trash2 className="w-3 h-3" />
+                <span>Supprimer mon compte</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* === POPUP SUPPRESSION DE COMPTE === */}
+      {showDeletePopup && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-xl p-6 w-80">
+            <h2 className="text-lg font-semibold mb-3 text-gray-800">Supprimer le compte ?</h2>
+            <p className="text-gray-600 mb-5 text-sm">
+              Cette action est <strong>irréversible</strong>. Vos données et parties seront supprimées.
+            </p>
+
+            <div className="flex justify-end space-x-2">
+              <button
+                onClick={() => setShowDeletePopup(false)}
+                className="px-3 py-1.5 text-sm rounded-md bg-gray-100 hover:bg-gray-200"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={() => {
+                  setShowDeletePopup(false);
+                  deleteUser();
+                }}
+                className="px-3 py-1.5 text-sm rounded-md bg-red-600 text-white hover:bg-red-700"
+              >
+                Supprimer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
             </div>
           </div>
         </div>
