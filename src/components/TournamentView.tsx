@@ -641,8 +641,8 @@ if (option === "single") {
 
     // Préparer les gagnants pour le round suivant
     const nextRound = roundMatches.map((m, idx) => [
-      { name: `Winner ${m.id}` },
-      { name: `Winner ${roundMatches[idx + 1]?.id || m.id}` },
+      { name: `Winner` },
+      { name: `Winner` },
     ]);
 
     // Aplatir et ne garder qu’autant de “joueurs” que nécessaire

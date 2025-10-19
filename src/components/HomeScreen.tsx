@@ -1,6 +1,7 @@
 import React from "react";
 import { Trophy, Gamepad2, BarChart3, BookOpen, Spade } from "lucide-react";
 import { useGame } from "../context/GameContext";
+import AppIcon from '../assets/AppIcon-512@2x.png';
 
 export default function HomeScreen() {
   const { navigateTo, gameState } = useGame();
@@ -29,7 +30,7 @@ export default function HomeScreen() {
         {/* LOGO */}
         <div className="flex flex-col items-center mb-8 sm:mb-10">
           <img
-            src="/images/AppIcon-512@2x.png"
+            src={AppIcon}
             alt="Coinche Royale"
             className="w-24 h-24 sm:w-32 sm:h-32 mb-4 rounded-2xl shadow-md"
           />

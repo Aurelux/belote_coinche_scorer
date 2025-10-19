@@ -3,7 +3,7 @@ import { ArrowLeft, PlusCircle, Users, Clock } from "lucide-react";
 import { useGame } from "../context/GameContext";
 
 export default function TournamentsScreen() {
-  const { navigateTo, navigateTo2 } = useGame();
+  const { gameState,navigateTo, navigateTo2 } = useGame();
 
   const options = [
     {
@@ -66,22 +66,31 @@ export default function TournamentsScreen() {
 
         {/* BOUTONS */}
         <div className="flex flex-col space-y-4 items-center">
-  {options.map((opt) => (
+  {options.map((opt) => {
+  const isDisabled = opt.page === "createtournament" && !gameState.currentUser;
+
+  return (
     <button
       key={opt.page}
       onClick={() => {
+        if (isDisabled) return; // ne fait rien si désactivé
         if (opt.page === "tournamentHistory") {
           navigateTo2(opt.page, { code: null });
         } else {
           navigateTo(opt.page);
         }
       }}
-      className={`${opt.color} w-full text-white px-4 py-4 rounded-xl shadow-md flex justify-center items-center space-x-3 transition-colors`}
+      disabled={isDisabled}
+      className={`
+        w-full text-white px-4 py-4 rounded-xl shadow-md flex justify-center items-center space-x-3 transition-colors
+        ${isDisabled ? "bg-gray-400 cursor-not-allowed" : opt.color}
+      `}
     >
       {opt.icon}
       <span className="font-semibold text-lg">{opt.label}</span>
     </button>
-  ))}
+  );
+})}
 </div>
       </div>
     </div>
