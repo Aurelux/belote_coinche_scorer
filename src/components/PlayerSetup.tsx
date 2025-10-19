@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { HelpCircle,Users, ArrowRight, Search, UserPlus, X } from 'lucide-react';
+import { HelpCircle,Users, ArrowRight, Search, UserPlus, X, ArrowLeft} from 'lucide-react';
 import { useGame } from '../context/GameContext';
 import { PlayerConfirmationModal } from './PlayerConfirmationModal';
 import { Player } from '../types/game';
@@ -26,6 +26,7 @@ export function PlayerSetup() {
   }, [gameState.currentUser]);
 
   const handleSubmit = (e: React.FormEvent) => {
+    gameState.settings.isTournament=false;
     e.preventDefault();
     
     const activeInputs = playerInputs.slice(0, playerCount);
@@ -158,37 +159,47 @@ const debouncedSearch = debounce(async (index: number, value: string) => {
   const teamStructure = getTeamStructure();
 
   return (
-    <div className="min-h-screen pt-safe pb-safe flex items-center justify-center p-4"
-     style={{
-       backgroundColor: '#0b3d0b', // vert très foncé
-       backgroundImage: `
-         radial-gradient(circle, rgba(0,0,0,0.1) 1px, transparent 1px),
-         radial-gradient(circle, rgba(0,0,0,0.1) 1px, transparent 1px)
-       `,
-       backgroundPosition: '0 0, 10px 10px',
-       backgroundSize: '20px 20px'
-     }}
->
+    <div
+      className="min-h-screen w-full flex items-center justify-center px-4 py-safe bg-green-950"
+      style={{
+        backgroundImage: `
+          radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px),
+          radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px)
+        `,
+        backgroundPosition: "0 0, 10px 10px",
+        backgroundSize: "20px 20px",
+      }}
+    >
       <div
   className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-3xl relative left-1/2 transform -translate-x-1/2" style={{ top: 'calc(1.5rem + env(safe-area-inset-top))' }}
 >
-<button
-  onClick={() => navigateTo("help")}
-  className="
-    w-10 h-10 
-    bg-white 
-    border-2 border-green-600 
-    text-green-600 
-    flex items-center justify-center 
-    rounded-lg 
-    shadow-md 
-    hover:shadow-lg 
-    transition-all duration-200 
-    hover:scale-110
-  "
->
-  <HelpCircle className="w-6 h-6" />
-</button>
+ <div className="flex items-center gap-2">
+  <button
+    onClick={() => navigateTo('home')}
+    className="p-2 text-green-700 hover:text-green-900 hover:bg-green-100 rounded-lg transition-colors"
+  >
+    <ArrowLeft className="w-6 h-6" />
+  </button>
+
+  <button
+    onClick={() => navigateTo("help")}
+    className="
+      w-10 h-10 
+      bg-white 
+      border-2 border-green-600 
+      text-green-600 
+      flex items-center justify-center 
+      rounded-lg 
+      shadow-md 
+      hover:shadow-lg 
+      transition-all duration-200 
+      hover:scale-110
+    "
+  >
+    <HelpCircle className="w-6 h-6" />
+  </button>
+</div>
+
         
         <div className="text-center mb-8">
           <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"

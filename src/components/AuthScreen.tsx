@@ -4,7 +4,7 @@ import { useGame } from '../context/GameContext';
 import { PROFILE_TITLES } from '../types/game';
 
 export function AuthScreen() {
-  const { registerUser, loginUser, setCurrentScreen, navigateTo, goBack, updateProfilePicture } = useGame();
+  const { registerUser, loginUser, setCurrentScreen, navigateTo, goBack, updateProfilePicture, gameState, setGameState } = useGame();
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
@@ -18,7 +18,14 @@ export function AuthScreen() {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+const letsInvite = () => {
+  setGameState({
+      ...gameState,
+      currentUser: undefined,
+    });
 
+  navigateTo("home");
+};
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -29,7 +36,7 @@ export function AuthScreen() {
         // Login
         const user = await loginUser(formData.email, formData.accessCode);
         if (user) {
-          setCurrentScreen('setup');
+          setCurrentScreen('home');
         } else {
           setError('Email ou code d\'accès incorrect');
         }
@@ -59,7 +66,7 @@ export function AuthScreen() {
           friends: [],
           achievements: []
         });
-        navigateTo('setup');
+        navigateTo('home');
       }
     } catch (err: any) {
       setError(err.message || 'Erreur lors de la connexion');
@@ -86,17 +93,17 @@ export function AuthScreen() {
   const defaultTitles = PROFILE_TITLES.filter(title => !title.requirement);
 
   return (
-    <div className="min-h-screen pt-safe pb-safe flex items-center justify-center p-4 touch-manipulation"
-     style={{
-       backgroundColor: '#0b3d0b', // vert très foncé
-       backgroundImage: `
-         radial-gradient(circle, rgba(0,0,0,0.1) 1px, transparent 1px),
-         radial-gradient(circle, rgba(0,0,0,0.1) 1px, transparent 1px)
-       `,
-       backgroundPosition: '0 0, 10px 10px',
-       backgroundSize: '20px 20px'
-     }}
->
+    <div
+      className="min-h-screen w-full flex items-center justify-center px-4 py-safe bg-green-950"
+      style={{
+        backgroundImage: `
+          radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px),
+          radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px)
+        `,
+        backgroundPosition: "0 0, 10px 10px",
+        backgroundSize: "20px 20px",
+      }}
+    >
     
       <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
         <div className="text-center mb-8">
@@ -270,47 +277,60 @@ export function AuthScreen() {
           </button>
         </form>
 
-        {/* Toggle Login/Register */}
-        <div className="mt-6 text-center">
-          <button
-            onClick={() => {
-              setIsLogin(!isLogin);
-              setError('');
-              setFormData({
-                displayName: '',
-                email: '',
-                accessCode: '',
-                confirmAccessCode: '',
-                profilePicture: '',
-                profileTitle: 'player'
-              });
-            }}
-            className="text-green-600 hover:text-green-700 font-medium"
-          >
-            {isLogin ? "Pas encore de compte ? S'inscrire" : "Déjà un compte ? Se connecter"}
-          </button>
-        </div>
+        {/* Separator */}
+<hr className="my-10 border-t border-green-800 opacity-60" />
 
-        {/* Guest Mode */}
-        <div className="mt-4 text-center">
-          <button
-            onClick={() => navigateTo('setup')}
-            className="text-gray-600 hover:text-gray-700 text-sm"
-          >
-            Continuer en mode invité
-          </button>
-        </div>
+{/* Toggle Login/Register */}
+<div className="text-center space-y-3">
+  <h3 className="text-lg font-semibold text-gray-500">
+    {isLogin ? "Pas encore de compte ?" : "Déjà un compte ?"}
+  </h3>
+  <button
+    onClick={() => {
+      setIsLogin(!isLogin);
+      setError('');
+      setFormData({
+        displayName: '',
+        email: '',
+        accessCode: '',
+        confirmAccessCode: '',
+        profilePicture: '',
+        profileTitle: 'player'
+      });
+    }}
+    className="bg-green-700 hover:bg-green-600 text-white px-5 py-3 rounded-xl text-base font-medium shadow-md transition-all duration-200"
+  >
+    {isLogin ? "Créer un compte" : "Se connecter"}
+  </button>
+  <p className="text-gray-400 text-sm italic">
+  (Suis tes progrès, rejoins le classement mondial et organise des tournois !)
+</p>
+
+</div>
+
+{/* Separator */}
+<hr className="my-10 border-t border-green-800 opacity-60" />
+
+{/* Guest Mode */}
+<div className="text-center space-y-3">
+  <h3 className="text-lg font-semibold text-gray-500">
+    Tu veux jouer sans compte ?
+  </h3>
+  <button
+    onClick={letsInvite}
+    className="bg-green-700 hover:bg-green-600 text-white px-5 py-3 rounded-xl text-base font-medium shadow-md transition-all duration-200"
+  >
+    Continuer en mode invité
+  </button>
+  <p className="text-gray-400 text-sm italic">
+    (Tu pourras rejoindre des tournois et compter des parties)
+  </p>
+</div>
+
+
 
         {/* Profile Button for Logged Users */}
-        <div className="mt-4 text-center">
-          <button
-            onClick={() => navigateTo('profile')}
-            className="flex items-center space-x-2 mx-auto text-green-600 hover:text-green-700 text-sm"
-          >
-            <User className="w-4 h-4" />
-            <span>Voir mon profil</span>
-          </button>
-        </div>
+        
       </div>
     </div>
   );

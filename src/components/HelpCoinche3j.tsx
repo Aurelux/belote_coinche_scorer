@@ -6,16 +6,17 @@ export default function HelpCoinche3j() {
   const { navigateTo, goBack } = useGame();
 
   return (
-<div className="min-h-screen pt-safe pb-safe flex items-center justify-center p-4"
-     style={{
-       backgroundColor: '#0b3d0b', // vert très foncé
-       backgroundImage: `
-         radial-gradient(circle, rgba(0,0,0,0.1) 1px, transparent 1px),
-         radial-gradient(circle, rgba(0,0,0,0.1) 1px, transparent 1px)
-       `,
-       backgroundPosition: '0 0, 10px 10px',
-       backgroundSize: '20px 20px'
-     }}>      
+<div
+      className="min-h-screen w-full flex items-center justify-center px-4 py-safe bg-green-950"
+      style={{
+        backgroundImage: `
+          radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px),
+          radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px)
+        `,
+        backgroundPosition: "0 0, 10px 10px",
+        backgroundSize: "20px 20px",
+      }}
+    >      
       <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-3xl relative left-1/2 transform -translate-x-1/2" style={{ top: 'calc(1.5rem + env(safe-area-inset-top))' }}>
 
         {/* Header */}

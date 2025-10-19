@@ -5,6 +5,8 @@ import { supabase } from '../lib/supabase';
 
 interface GameContextType {
   gameState: GameState;
+  
+setGameState: (newState: Partial<GameState>) => void;
   currentScreen: AppScreen;
   screenParams: string;
   setCurrentScreen: (screen: AppScreen) => void;
@@ -17,12 +19,14 @@ interface GameContextType {
   resetGame: () => void;
   startNewGame: () => void;
   startRematch: () => void;
+  reportMatchResult: (matchId: string, winner: PlayerTree[], loser: PlayerTree[], scores: { a: number; b: number; }) => Promise<void>;
   registerUser: (user: Omit<User, 'id' | 'createdAt' | 'stats' | 'achievements'>) => Promise<User>;
   loginUser: (email: string, accessCode: string) => Promise<User | null>;
   logoutUser: () => void;
   deleteUser: () => void;
   searchUsers: (query: string) => Promise<User[]>;
   sendFriendRequest: (userId: string) => Promise<void>;
+  markTournamentAsFinished: (tournamentId: string) => Promise<void>;
   acceptFriendRequest: (requestId: string) => Promise<void>;
   declineFriendRequest: (requestId: string) => Promise<void>;
   loadFriends: () => Promise<void>;
@@ -505,18 +509,27 @@ function gameReducer(state: GameState, action: GameAction): GameState {
 export function GameProvider({ children }: { children: ReactNode }) {
   const [gameState, dispatch] = useReducer(gameReducer, initialGameState);
   const [currentScreen, setCurrentScreen] = React.useState<AppScreen>('auth');
-  const [screenParams, setScreenParams] = useState<any>({});
+  const [screenParams, setScreenParams] = useState<any>(null);
    const [screenHistory, setScreenHistory] = useState<AppScreen[]>([]);
- const navigateTo2 = (screen: string, params: any = {}) => {
+ const navigateTo2 = (screen: string, params: any = null) => {
   setScreenParams(params);
   setCurrentScreen(screen);
 };
+
+const setGameState = (newState) => {
+    dispatch({ type: "SET_GAME_STATE", payload: newState });
+  };
 
   const navigateTo = (screen: AppScreen) => {
     const previousScreen = screenHistory[screenHistory.length - 1]
     console.log('➡️ Previous screen:', previousScreen);
   console.log('➡️ Current screen:', currentScreen);
   console.log('➡️ Screen:', screen);
+  if (currentScreen === 'rankings' && previousScreen === 'home'){
+      setScreenHistory((prev) => [...prev, currentScreen]);
+      setCurrentScreen(previousScreen);
+      return
+    };
     if (currentScreen === 'user-profile' && previousScreen === 'rankings'){
       setScreenHistory((prev) => [...prev, currentScreen]);
       setCurrentScreen(previousScreen);
@@ -557,8 +570,16 @@ const nextDealer = () => {
     history.pop(); // remove current screen
 
     console.log('🔙 Full history before goBack:', prevHistory);
+
     console.log('📜 History after pop:', history);
     console.log(currentScreen.length);
+    if (currentScreen === 'help'){
+      console.log('coucocu')
+      const previous = prevHistory[history.length] || 'setup';
+      
+      setCurrentScreen(previous)
+      return []
+    }
     if (currentScreen.length>10){
       const previous = prevHistory[history.length] || 'setup';
       console.log('directionnn', previous);
@@ -580,7 +601,7 @@ const nextDealer = () => {
     }
     if (currentScreen === 'profile') {
       const lastPlayableScreen = [...prevHistory].reverse().find(
-        (screen) => screen === 'game' || screen === 'setup'
+        (screen) => screen === 'game' || screen === 'setup' ||screen ==='home' || screen === "tournamentview" || screen === "tournoi" || screen === "jointournoi"
       );
 
       console.log('🎯 Last playable screen (game/setup):', lastPlayableScreen);
@@ -616,7 +637,7 @@ const nextDealer = () => {
     const tryAutoLogin = async () => {
       const success = await autoLogin();
       if (success) {
-        navigateTo('setup');
+        navigateTo('home');
       }
     };
     tryAutoLogin();
@@ -720,14 +741,14 @@ const nextDealer = () => {
   const losers = gameState.players.filter((p) => p.team !== winningTeam);
 
   // 🗃️ 5️⃣ Met à jour le match dans la table tournament_matches
-  await reportMatchResult(
+  console.log(gameState.settings.matchId)
+  reportMatchResult(
     gameState.settings.matchId,
     winners,
     losers,
     {
       a: newTeamAScore,
       b: newTeamBScore,
-      c: newTeamCScore,
     }
   );
 
@@ -1047,43 +1068,314 @@ allHands.forEach(hand => {
       console.error('Error updating player stats:', error);
     }
   };
+const markTournamentAsFinished = async (tournamentId: string) => {
+
+  
+  // 1️⃣ Récupération du tournoi
+  const { data: tournament, error: tournamentError } = await supabase
+    .from("tournaments")
+    .select("*")
+    .eq("id", tournamentId)
+    .single();
+
+  if (tournamentError || !tournament) {
+    console.error("Erreur récupération tournoi :", tournamentError);
+    return;
+  }
+
+  // 2️⃣ Récupération des stats associées
+  const { data: stats, error: statsError } = await supabase
+    .from("tournament_stats")
+    .select("*")
+    .eq("tournament_id", tournamentId);
+
+  if (statsError || !stats) {
+    console.error("Erreur récupération stats :", statsError);
+    return;
+  }
+
+  // 3️⃣ Récupération des infos joueurs + équipes
+  const players = tournament.players
+
+  // 4️⃣ Fusion joueur / stats
+  const merged = stats.map((s) => {
+    const player = players.find((p) => p.id === s.user_id);
+    return {
+      ...s,
+      team: player?.team ?? "inconnue",
+      display_name: player?.name ?? "Inconnu",
+    };
+  });
+
+  // 5️⃣ Regroupement par équipe
+  const teamsMap: Record<
+    string,
+    {
+      team: string;
+      members: string[];
+      total_scored: number;
+      total_conceded: number;
+      wins: number;
+      losses: number;
+    }
+  > = {};
+
+  merged.forEach((p) => {
+    if (!teamsMap[p.team]) {
+      teamsMap[p.team] = {
+        team: p.team,
+        members: [],
+        total_scored: 0,
+        total_conceded: 0,
+        wins: 0,
+        losses: 0,
+      };
+    }
+
+    teamsMap[p.team].members.push(p.display_name);
+    teamsMap[p.team].total_scored += p.points_scored ?? 0;
+    teamsMap[p.team].total_conceded += p.points_conceded ?? 0;
+    teamsMap[p.team].wins += p.wins ?? 0;
+    teamsMap[p.team].losses += p.losses ?? 0;
+  });
+
+  const teams = Object.values(teamsMap);
+
+  // 6️⃣ Calcul du score d’équipe
+  const computeTeamScore = (t: typeof teams[0]) => {
+    const diff = t.total_scored - t.total_conceded;
+    return t.wins * 3 + diff * 0.01;
+  };
+
+  // 7️⃣ Tri et top 3
+  const sortedTeams = teams
+    .map((t) => ({
+      ...t,
+      score: computeTeamScore(t),
+    }))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 3);
+
+  // 8️⃣ Format final du top 3
+  const top3 = sortedTeams.map((t) => {
+  
+
+  const shortNames = t.members
+    .map((m) => m.slice(0, 5))
+    .join("&");
+
+  return {
+    team: t.team,
+    
+    name: shortNames,
+    score: t.score,
+  };
+});
+
+  // 9️⃣ Génération de l’ID aléatoire
+  const randomId =
+    tournament.join_code + "_" + Math.random().toString(36).substring(2, 10);
+
+  // 🔟 Insertion dans l’historique
+  const { error: insertError } = await supabase.from("tournament_history").insert({
+    id: randomId,
+    tournament_id: tournamentId,
+    name: tournament.name,
+    mode: tournament.mode,
+    total_joueurs: tournament.total_players,
+    options: tournament.options,
+    
+    top3, // 🟢 top 3 équipes
+  });
+
+  if (insertError) {
+    console.error("Erreur insertion historique :", insertError);
+  } else {
+    console.log("✅ Tournoi ajouté à l'historique avec succès !");
+  }
+
+};
+
+
 const updateTournamentStatsAndHistory = async (hand: Hand) => {
   try {
     const tournamentId = gameState.settings.currentTournamentId;
     if (!tournamentId) {
-      console.log("pas de tournamentid");
-      return;}
+      console.log("⛔ Aucun tournoi en cours.");
+      return;
+    }
 
-    console.log("🏆 Updating tournament stats and history...");
+    console.log("🏆 Mise à jour des statistiques du tournoi...");
 
-    // --- Calculer scores finaux du match ---
+    // --- Calcul des scores totaux à la fin de la manche ---
     const teamAScore = gameState.teamAScore + (hand.teamAScore || 0);
     const teamBScore = gameState.teamBScore + (hand.teamBScore || 0);
     const teamCScore = gameState.teamCScore + (hand.teamCScore || 0);
 
-    let winningTeam: 'A' | 'B' | 'C';
-    if (gameState.settings.playerCount === 3) {
-      winningTeam =
-        teamAScore >= Math.max(teamBScore, teamCScore)
-          ? 'A'
+    const winningTeam =
+      gameState.settings.playerCount === 3
+        ? teamAScore >= Math.max(teamBScore, teamCScore)
+          ? "A"
           : teamBScore >= Math.max(teamAScore, teamCScore)
-          ? 'B'
-          : 'C';
-    } else {
-      winningTeam = teamAScore > teamBScore ? 'A' : 'B';
-    }
-
-    // --- Mettre à jour les stats individuelles dans la table tournament_stats ---
+          ? "B"
+          : "C"
+        : teamAScore > teamBScore
+        ? "A"
+        : "B";
+    // --- Récupération des stats à calculer pour chaque joueur ---
+    
     for (const player of gameState.players) {
-      if (!player.userId) continue;
+      if (!player.id) continue;
 
       const isWinner = player.team === winningTeam;
+      let pointsScored = 0;
+      let pointsConceded = 0;
+      let coinches = 0;
+      let successfulCoinches = 0;
+      let contractsTaken = 0;
+      let successfulContracts = 0
+      let capots = 0;
+      let totalBidValue = 0;
 
-      // On tente de récupérer la ligne existante du joueur pour ce tournoi
+      const getTeamScore = (h: Hand, team: 'A' | 'B' | 'C') => {
+        return team === 'A' ? h.teamAScore || 0 :
+               team === 'B' ? h.teamBScore || 0 :
+                              h.teamCScore || 0;
+      };
       
-     // ignore "no rows found"
+      const is3Players = gameState.settings.playerCount === 3;
+const is2Players = gameState.settings.playerCount === 2;
+      // --- Analyser toutes les manches jouées dans le tournoi ---
+      for (const handd of [...gameState.hands, hand]) {
+        
+  const takerTeam = gameState.players.find(p => p.id === handd.taker)?.team;
+  const coincherTeam = gameState.players.find(p => p.id === handd.coincher)?.team;
+  const surcoincherTeam = gameState.players.find(p => p.id === handd.surcoincher)?.team;
 
-      const stats =  {
+  const playerScore = getTeamScore(handd, player.team);
+
+  // 🔹 CONTRATS RÉUSSIS (non coinchés / surcoinchés)
+  if (handd.contractFulfilled && !handd.coincher && !handd.surcoincher) {
+    if (player.team === takerTeam && player.id === handd.taker) {
+      pointsScored += playerScore;
+    } if (player.team === takerTeam && !(player.id === handd.taker)){
+      pointsScored +=0
+    }
+    if (!(player.team === takerTeam)){
+      pointsScored += is3Players ? playerScore : is2Players ? playerScore : playerScore / 2;
+    }
+  }
+
+  // 🔹 CONTRATS PERDUS (non coinchés / surcoinchés)
+  if (handd.taker && !handd.contractFulfilled && !handd.coincher && !handd.surcoincher) {
+    if (player.team === takerTeam && player.id === handd.taker) {
+      if (is3Players) {
+        pointsConceded += 240; // score total concédé
+      } else {
+        const opponentTeam = takerTeam === 'A' ? 'B' : 'A';
+        const oppScore = getTeamScore(handd, opponentTeam);
+        pointsConceded += oppScore;
+      }
+    } else {
+      if (!(player.team === takerTeam) ) {
+        
+      pointsScored += is3Players ? playerScore :is2Players ? playerScore : playerScore / 2;
+      }
+    }
+  }
+
+  // 🔹 COINCHE RÉUSSIE
+  if (handd.coincher && handd.isCoincheSuccessful && !handd.surcoincher) {
+    if (player.id === handd.coincher) {
+      pointsScored += getTeamScore(handd, coincherTeam);
+    } else if (player.team === takerTeam && player.id === handd.taker) {
+      pointsConceded += getTeamScore(handd, coincherTeam);
+    }
+  }
+
+  // 🔹 SURCOINCHE RÉUSSIE
+  if (handd.surcoincher && handd.isSurcoincheSuccessful) {
+    if (player.id === handd.surcoincher) {
+      pointsScored += getTeamScore(handd, surcoincherTeam);
+    } else if (player.team === coincherTeam && player.id === handd.coincher) {
+      pointsConceded += getTeamScore(handd, surcoincherTeam);
+    }
+  }
+
+  // 🔹 COINCHE PERDUE
+  if (handd.coincher && !handd.isCoincheSuccessful && !handd.surcoincher) {
+    if (player.id === handd.coincher) {
+      const takerScore = getTeamScore(handd, takerTeam);
+      
+      pointsConceded += takerScore;
+    }
+    else {
+      if (player.id === handd.taker){
+        pointsScored += getTeamScore(handd, takerTeam)
+      }
+    }
+  }
+
+  // 🔹 SURCOINCHE PERDUE
+  if (handd.surcoincher && !handd.isSurcoincheSuccessful) {
+    if (player.id === handd.surcoincher) {
+      const coincherScore = getTeamScore(handd, coincherTeam);
+      
+      pointsConceded += coincherScore;
+    }
+    else {
+      if (player.id === handd.coincher){
+        pointsScored += getTeamScore(handd, coincherTeam)
+      }
+    }
+  }
+  console.log(player.name, pointsConceded, pointsScored)
+
+        // Points scored when taking and succeeding contracts
+        
+
+        
+        // Coinche stats
+        if (handd.coincher === player.id) {
+          coinches++;
+          if (handd.isCoincheSuccessful) {
+            successfulCoinches++;
+          }
+        }
+        
+        // Contract stats
+        if (handd.taker === player.id) {
+          contractsTaken++;
+          if (handd.bid) {
+            totalBidValue += handd.bid.value;
+          }
+          if (handd.contractFulfilled) {
+            successfulContracts++;
+          }
+        }
+        
+        // Capots
+        if (handd.isCapot && handd.winningTeam === player.team) {
+          capots++;
+        }
+        
+      }
+      // --- Récupérer les stats actuelles dans la table tournament_stats ---
+      if(player.userId){
+      const { data: existingStats, error: selectError } = await supabase
+        .from("tournament_stats")
+        .select("*")
+        .eq("tournament_id", tournamentId)
+        .eq("user_id", player.userId)
+        .single();
+
+      if (selectError && selectError.code !== "PGRST116") {
+        // "PGRST116" = pas de ligne trouvée => normal
+        throw selectError;
+      }
+
+      // --- Construire les nouvelles stats cumulées ---
+      const baseStats = existingStats || {
         tournament_id: tournamentId,
         user_id: player.userId,
         total_games: 0,
@@ -1091,56 +1383,91 @@ const updateTournamentStatsAndHistory = async (hand: Hand) => {
         losses: 0,
         points_scored: 0,
         points_conceded: 0,
+        total_coinches: 0,
+        successful_coinches: 0,
+        capots: 0,
+        successful_contracts:0,
+        contractsTaken:0,
+        
       };
 
-      const playerScore =
-        player.team === "A"
-          ? teamAScore
-          : player.team === "B"
-          ? teamBScore
-          : teamCScore;
+      baseStats.total_games++;
+      if (isWinner) baseStats.wins++;
+      else baseStats.losses++;
 
-      // MAJ stats
-      stats.total_games++;
-      if (isWinner) stats.wins++;
-      else stats.losses++;
-
-      stats.points_scored += playerScore;
-      stats.points_conceded += teamAScore + teamBScore + teamCScore - playerScore;
-
-      const winRate = (stats.wins / stats.total_games) * 100;
-
-      // Sauvegarde dans Supabase
-       
-      await supabase
-          .from("tournament_stats")
-          .insert([{ ...stats, win_rate: winRate }]);
+      baseStats.points_scored += pointsScored;
+      baseStats.points_conceded += pointsConceded;
+      baseStats.total_coinches += coinches;
+      baseStats.successful_coinches += successfulCoinches;
+      baseStats.capots += capots;
+      baseStats.win_rate = (baseStats.wins / baseStats.total_games) * 100;
+      baseStats.contractsTaken +=contractsTaken;
+      baseStats.successful_contracts +=successfulContracts;
+      // --- Upsert propre (insertion ou mise à jour selon l'existence) ---
       
+
+if (existingStats) {
+  await supabase
+    .from("tournament_stats")
+    .update({ ...baseStats, win_rate: baseStats.win_rate })
+    .eq("tournament_id", tournamentId)
+    .eq("user_id", player.userId);
+} else {
+  await supabase
+    .from("tournament_stats")
+    .insert([{ ...baseStats, win_rate: baseStats.win_rate }]);
+}
+    }else{
+      const baseStats = {
+        tournament_id: tournamentId,
+        
+        total_games: 0,
+        wins: 0,
+        losses: 0,
+        points_scored: 0,
+        points_conceded: 0,
+        total_coinches: 0,
+        successful_coinches: 0,
+        capots: 0,
+        successful_contracts:0,
+        contractsTaken:0,
+        
+      };
+
+      baseStats.total_games++;
+      if (isWinner) baseStats.wins++;
+      else baseStats.losses++;
+
+      baseStats.points_scored += pointsScored;
+      baseStats.points_conceded += pointsConceded;
+      baseStats.total_coinches += coinches;
+      baseStats.successful_coinches += successfulCoinches;
+      baseStats.capots += capots;
+      baseStats.win_rate = (baseStats.wins / baseStats.total_games) * 100;
+      baseStats.contractsTaken +=contractsTaken;
+      baseStats.successful_contracts +=successfulContracts;
+      // --- Upsert propre (insertion ou mise à jour selon l'existence) ---
+      
+
+
+  await supabase
+    .from("tournament_stats")
+    .update({ ...baseStats, win_rate: baseStats.win_rate })
+    .eq("tournament_id", tournamentId)
+    .eq("name_user", player.name);
     }
 
-    // --- Ajouter un historique de match dans la table tournament_history ---
-    const tournamentMatch = {
-      id: Date.now().toString(),
-      tournament_id: tournamentId,
-      players: gameState.players.map((p) => ({
-        id: p.id,
-        name: p.name,
-        team: p.team,
-        userId: p.userId || null,
-      })),
-      final_scores: { teamA: teamAScore, teamB: teamBScore, teamC: teamCScore },
-      winning_team : winningTeam,
-      hands_played: gameState.hands.length + 1,
-      timestamp: new Date().toISOString(),
-    };
+    
+  }
 
-    await supabase.from("tournament_history").insert([tournamentMatch]);
+    
 
-    console.log("✅ Tournament stats and history updated.");
+    console.log("✅ Tournament stats and history updated successfully.");
   } catch (error) {
     console.error("❌ Error updating tournament data:", error);
   }
 };
+
 
 const reportMatchResult = async (
   matchId: string,
@@ -1149,6 +1476,7 @@ const reportMatchResult = async (
   scores: { a: number; b: number }
 ) => {
   // 1️⃣ Récupérer le match
+  
   const { data: match, error: fetchErr } = await supabase
     .from("tournament_matches")
     .select("*")
@@ -1162,40 +1490,234 @@ const reportMatchResult = async (
 
   // 2️⃣ Mettre à jour le match terminé
   const { error: updateErr } = await supabase
-    .from("tournament_matches")
-    .update({
-      status: "finished",
-      winner,
-      players: match.players.map((p: any) => ({
-        ...p,
-        isWinner: winner.some((w) => w.id === p.id),
-      })),
-    })
-    .eq("id", matchId);
+  .from("tournament_matches")
+  .update({
+    status: "finished",
+    joueurs_a: match.joueurs_a,
+    joueurs_b: match.joueurs_b,
+    score_a: scores.a ?? 0,
+    score_b: scores.b ?? 0,
+  })
+  .eq("id", matchId);
 
+  const tournamentOptions = match.options
   if (updateErr) {
     console.error("Erreur maj match :", updateErr);
     return;
   }
 
-  // 3️⃣ Trouver le match suivant
-  if (match.next_match_id) {
-    const { data: nextMatch, error: nextErr } = await supabase
-      .from("tournament_matches")
-      .select("players")
-      .eq("id", match.next_match_id)
-      .single();
-
-    if (!nextErr && nextMatch) {
-      const updatedPlayers = [...nextMatch.players, ...winner];
-      await supabase
-        .from("tournament_matches")
-        .update({ players: updatedPlayers })
-        .eq("id", match.next_match_id);
+  // 🧭 Si tournoi de type "swiss" → fin ici
+    if (tournamentOptions === "swiss") {
+      console.log("Format suisse : aucune progression à effectuer.");
+      return;
     }
+
+    // 🧩 Si le match a un ou plusieurs next_match_id
+    if (!match.next_match_id) {
+      console.log("🚫 Aucun match suivant, fin de branche.");
+      return;
+    }
+
+    // 🔁 Gestion selon le type de tournoi
+    if (tournamentOptions === "single") {
+      // next_match_id est unique
+      const { data: nextMatch, error: nextErr } = await supabase
+        .from("tournament_matches")
+        .select("id, joueurs_a, joueurs_b")
+        .eq("id", match.next_match_id)
+        .single();
+
+      if (nextErr) {
+        console.warn("⚠️ Aucun match suivant trouvé (simple).");
+        return;
+      }
+
+      // Ajout des gagnants dans la première équipe libre
+      if (!nextErr && nextMatch) {
+    // 🏆 Déterminer les gagnants
+    const winners =
+      (scores.a ?? 0) > (scores.b ?? 0)
+        ? match.joueurs_a
+        : match.joueurs_b;
+
+      if (winners.length > 0) {
+  // Vérifie si les gagnants sont issus de joueurs_a ou joueurs_b
+
+  const updateField = (scores.a ?? 0) > (scores.b ?? 0) ? "joueurs_a" : "joueurs_b";
+
+  // 🔹 On récupère le prochain match pour vérifier son contenu actuel
+  
+
+  
+
+  // 🔍 Vérifie si le champ qu’on veut remplir est déjà occupé
+  const targetField = nextMatch?.[updateField] || [];
+  console.log(targetField)
+  let finalField = updateField;
+
+  if (targetField.some((p) => p?.team)) {
+    // ⚠️ Si ce champ est déjà rempli, on inverse
+    finalField = updateField === "joueurs_a" ? "joueurs_b" : "joueurs_a";
+    console.warn(
+      `⚠️ ${updateField} déjà rempli dans le prochain match (${match.next_match_id}), on met à jour ${finalField} à la place.`
+    );
   }
 
-  console.log("✅ Match mis à jour et progression effectuée !");
+  // 🧩 Mise à jour finale
+  const { error: updateErr } = await supabase
+    .from("tournament_matches")
+    .update({ [finalField]: winners })
+    .eq("id", match.next_match_id);
+
+  if (updateErr) {
+    console.error("❌ Erreur mise à jour du prochain match :", updateErr);
+  } else {
+    console.log(`✅ Gagnants transférés dans ${finalField} du match ${match.next_match_id}`);
+  }
+}
+
+  }
+    }
+
+    if (tournamentOptions === "double") {
+      let winnerNextId: string | null = null;
+let loserNextId: string | null = null;
+      // next_match_id est un tableau : [upper, lower]
+      if (match.next_match_id) {
+  const [winnerPart, loserPart] = match.next_match_id.split("---");
+  
+  winnerNextId = winnerPart || null;
+  loserNextId = loserPart || null;
+}
+console.log(winnerNextId,loserNextId)
+
+      if (winnerNextId) {
+  // Tentative de récupération du match lié
+  let { data: upperMatch, error } = await supabase
+    .from("tournament_matches")
+    .select("id, joueurs_a, joueurs_b")
+    .eq("id", winnerNextId)
+    .single();
+
+  // Si non trouvé, on essaie un fallback avec M+1
+  if (!upperMatch) {
+    const matchRegex = /R(\d+)-M(\d+)-(.*)/;
+    const m = winnerNextId.match(matchRegex);
+
+    if (m) {
+      const roundPart = parseInt(m[1]);
+      const matchNum = parseInt(m[2]);
+      const suffix = m[3];
+
+      // Essaye avec le match suivant (M+1)
+      const altId = `R${roundPart + 1}-M${matchNum}-${suffix}`;
+      const { data: altMatch } = await supabase
+        .from("tournament_matches")
+        .select("id, joueurs_a, joueurs_b")
+        .eq("id", altId)
+        .single();
+
+      if (altMatch) {
+        console.warn(
+          `⚠️ Correction d'ID de match : ${winnerNextId} → ${altId}`
+        );
+        upperMatch = altMatch;
+        winnerNextId = altId;
+      }
+    }
+  }
+        if (upperMatch) {
+          const winners =
+      (scores.a ?? 0) > (scores.b ?? 0)
+        ? match.joueurs_a
+        : match.joueurs_b;
+        if (winners.length > 0) {
+  // Vérifie si les gagnants sont issus de joueurs_a ou joueurs_b
+ 
+  const updateField = (scores.a ?? 0) > (scores.b ?? 0) ? "joueurs_a" : "joueurs_b";
+
+  // 🔹 On récupère le prochain match pour vérifier son contenu actuel
+  
+
+  
+
+  // 🔍 Vérifie si le champ qu’on veut remplir est déjà occupé
+  const targetField = upperMatch?.[updateField] || [];
+  console.log(targetField)
+  let finalField = updateField;
+
+  if (targetField.some((p) => p?.team)) {
+    // ⚠️ Si ce champ est déjà rempli, on inverse
+    finalField = updateField === "joueurs_a" ? "joueurs_b" : "joueurs_a";
+    console.warn(
+      `⚠️ ${updateField} déjà rempli dans le prochain match (${winnerNextId}), on met à jour ${finalField} à la place.`
+    );
+  }
+
+  // 🧩 Mise à jour finale
+  const { error: updateErr } = await supabase
+    .from("tournament_matches")
+    .update({ [finalField]: winners })
+    .eq("id", winnerNextId);
+
+  if (updateErr) {
+    console.error("❌ Erreur mise à jour du prochain match :", updateErr);
+  } else {
+    console.log(`✅ Gagnants transférés dans ${finalField} du match ${winnerNextId}`);
+  }
+        }
+      }}
+
+      if (loserNextId) {
+        const { data: lowerMatch } = await supabase
+          .from("tournament_matches")
+          .select("id, joueurs_a, joueurs_b")
+          .eq("id", loserNextId)
+          .single();
+
+        if (lowerMatch) {const winners =
+      (scores.a ?? 0) > (scores.b ?? 0)
+        ? match.joueurs_b
+        : match.joueurs_a;
+          if (winners.length > 0) {
+  // Vérifie si les gagnants sont issus de joueurs_a ou joueurs_b
+  
+  const updateField = (scores.a ?? 0) > (scores.b ?? 0) ? "joueurs_a" : "joueurs_b";
+
+  // 🔹 On récupère le prochain match pour vérifier son contenu actuel
+  
+
+  
+
+  // 🔍 Vérifie si le champ qu’on veut remplir est déjà occupé
+  const targetField = lowerMatch?.[updateField] || [];
+  console.log(targetField)
+  let finalField = updateField;
+
+  if (targetField.some((p) => p?.team)) {
+    // ⚠️ Si ce champ est déjà rempli, on inverse
+    finalField = updateField === "joueurs_a" ? "joueurs_b" : "joueurs_a";
+    console.warn(
+      `⚠️ ${updateField} déjà rempli dans le prochain match (${loserNextId}), on met à jour ${finalField} à la place.`
+    );
+  }
+
+  // 🧩 Mise à jour finale
+  const { error: updateErr } = await supabase
+    .from("tournament_matches")
+    .update({ [finalField]: winners })
+    .eq("id", loserNextId);
+
+  if (updateErr) {
+    console.error("❌ Erreur mise à jour du prochain match :", updateErr);
+  } else {
+    console.log(`✅ Gagnants transférés dans ${finalField} du match ${loserNextId}`);
+  }
+        }
+      }
+    }
+  }
+  
 };
 
 const deleteUser = async () => {
@@ -1750,21 +2272,22 @@ const getTimeFrameUserRankings = async (
     if (timeframe === 'week') startDate = startOfWeek(now);
     else if (timeframe === 'month') startDate = startOfMonth(now);
     else startDate = new Date(0);
-
+    console.log(startDate)
     let recentMatches = matches.filter(match =>
       isAfter(new Date(match.created_at), startDate)
     );
-
+    console.log(recentMatches)
     // 5. Filtrer aussi par mode & nombre de joueurs
     recentMatches = recentMatches.filter(match =>
-      match.settings?.mode === mode &&
-      match.settings?.playerCount === playerCount
+      match.settings.mode === mode &&
+      match.settings.playerCount === playerCount
     );
 
     const playerMap: Record<string, PlayerStatsForTimeframe> = {};
+    const reversedMatches = [...recentMatches].reverse();
 
-    recentMatches.forEach(match => {
-      const targetScore = match.settings?.targetScore || 1000; // par défaut 1000
+    reversedMatches.forEach(match => {
+      const targetScore = match.settings.targetScore || 1000; // par défaut 1000
 
       match.players.forEach((player: any) => {
         if (!playerMap[player.userId]) {
@@ -1836,7 +2359,7 @@ const getTimeFrameUserRankings = async (
           rank: 0
         };
       })
-      .filter(r => r.gamesPlayed >= 2)
+      .filter(r => r.gamesPlayed >= 1)
       .sort((a, b) => b.rankingScore - a.rankingScore)
       .map((ranking, index) => ({ ...ranking, rank: index + 1 }));
 
@@ -2055,6 +2578,7 @@ const getTimeFrameUserRankings = async (
       updateHand,
       setPlayers,
       setGameSettings,
+      markTournamentAsFinished,
       addHand,
       resetGame,
       startNewGame,
@@ -2075,6 +2599,7 @@ const getTimeFrameUserRankings = async (
       getTimeFrameUserRankings,
       updateUserStats,
       setSelectedUser,
+      setGameState,
       updateProfileTitle,
       updateProfilePicture,
       checkAchievements,
@@ -2085,7 +2610,8 @@ const getTimeFrameUserRankings = async (
       saveGameToSupabase,
       loadMatchHistory,
       setDealer,
-      nextDealer
+      nextDealer,
+      reportMatchResult
     }}>
       {children}
     </GameContext.Provider>

@@ -17,18 +17,27 @@ import HelpBelote4j from './components/HelpBelote4j';
 import HelpBelote3j from './components/HelpBelote3j';
 import HelpCoinche2j from './components/HelpCoinche2j';
 import HelpCoinche3j from './components/HelpCoinche3j';
+import HomeScreen from './components/HomeScreen';
 import HelpCoinche4j from './components/HelpCoinche4j';
 import { User } from 'lucide-react';
+import TournamentsScreen from './components/TournamentScreen';
+
+import CreateTournament from './components/CreateTournament';
+import JoinTournament from './components/JoinTournament';
+import TournamentView from './components/TournamentView';
+import TournamentAssignTeams from './components/TournamentAssignTeams';
+import TournamentStats from './components/TournamentStats';
+import TournamentHistory from './components/TournamentHistory';
 
 function ProfileButton() {
   const { gameState, navigateTo } = useGame();
   
-  if (!gameState.currentUser) return null;
+  if (!gameState.currentUser || gameState.currentUser.id.startsWith('det')) return null;
 
   return (
     <button
       onClick={() => navigateTo('profile')}
-      className="fixed top-4 right-4 z-40 p-3 bg-white rounded-full shadow-lg hover:shadow-xl transition-all duration-200 border-2 border-green-100 hover:border-green-300"
+      className="fixed top-4 right-4 z-40 p-3 bg-white rounded-full shadow-lg hover:shadow-xl transition-all duration-200 border-2 border-green-600 hover:border-green-800"
       style={{ top: 'calc(2.5rem + env(safe-area-inset-top))' }}
       title="Mon profil"
     >
@@ -46,7 +55,7 @@ function ProfileButton() {
 }
 
 function AppContent() {
-  const { currentScreen } = useGame();
+  const { currentScreen, screenParams} = useGame();
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -84,6 +93,8 @@ function AppContent() {
             return <UserProfileScreen />;
           case 'rankings':
             return <RankingsScreen />;
+          case 'home': 
+            return <HomeScreen />;
           case 'friends':
             return <FriendsScreen />;
           case 'help':
@@ -100,6 +111,20 @@ function AppContent() {
             return <HelpCoinche3j />;
           case 'helpCoinche4j':
             return <HelpCoinche4j />;
+          case 'tournoi':
+            return <TournamentsScreen />;
+          case 'createtournament':
+            return <CreateTournament />;
+          case 'jointournoi':
+            return <JoinTournament />;
+          case 'tournamentview':
+            return <TournamentView code={screenParams.code} />;
+          case 'tournamentAssignTeams':
+            return <TournamentAssignTeams code={screenParams.code} />;
+            case 'tournamentStats':
+            return <TournamentStats tournamentId={screenParams.code} />;
+          case 'tournamentHistory':
+            return <TournamentHistory code={screenParams.code} />;
           default:
             return <AuthScreen />;
         }

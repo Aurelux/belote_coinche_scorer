@@ -10,7 +10,7 @@ import { PenaltyModal } from './PenaltyModal';
 import DealerSelector from "../components/DealerSelector";
 
 export function GameBoard() {
-  const { gameState, setCurrentScreen, startNewGame, resetGame, startRematch, applyPenaltyToPlayer, navigateTo, goBack, nextDealer, setDealer} = useGame();
+  const { gameState, setCurrentScreen, startNewGame, resetGame, startRematch,navigateTo2, applyPenaltyToPlayer, navigateTo, goBack, nextDealer, setDealer} = useGame();
   const [editedHand, setEditedHand] = useState<Hand | null>(null);
   const [showScoreEntry, setShowScoreEntry] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
@@ -164,22 +164,23 @@ export function GameBoard() {
 
   return (
     <>
-      <div className="min-h-screen flex items-center justify-center p-4"
-     style={{
-       backgroundColor: '#0b3d0b', // vert très foncé
-       backgroundImage: `
-         radial-gradient(circle, rgba(0,0,0,0.1) 1px, transparent 1px),
-         radial-gradient(circle, rgba(0,0,0,0.1) 1px, transparent 1px)
-       `,
-       backgroundPosition: '0 0, 10px 10px',
-       backgroundSize: '20px 20px'
-     }}
->
+      <div
+      className="min-h-screen w-full flex items-center justify-center px-4 py-safe bg-green-950"
+      style={{
+        backgroundImage: `
+          radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px),
+          radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px)
+        `,
+        backgroundPosition: "0 0, 10px 10px",
+        backgroundSize: "20px 20px",
+      }}
+    >
 
         <div className="w-full mx-auto px-[env(safe-area-inset-left)] pr-[env(safe-area-inset-right)] relative" style={{ top: 'calc(1.5rem + env(safe-area-inset-top))' }}>
           {/* Header */}
           <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 mb-4 sm:mb-6">
             <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:justify-between sm:items-center">
+
               <div className="flex items-center space-x-4">
                 <button
       onClick={() => setShowExitGameModal(true)} // ouvre directement le modal
@@ -214,6 +215,7 @@ export function GameBoard() {
         </div>
       </div>
     )}
+    
                 <div>
                   <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
                     {gameState.settings.mode === 'belote' ? 'Belote' : 'Coinche'}
@@ -222,8 +224,11 @@ export function GameBoard() {
                   <p className="text-sm sm:text-base text-gray-600">
                     {gameState.settings.playerCount} joueurs • Objectif: {gameState.settings.targetScore} points
                   </p>
+                  
                 </div>
+                
               </div>
+              
               
              <div className="flex flex-wrap justify-between items-center gap-4">
   {/* Groupe gauche */}
@@ -294,6 +299,29 @@ className="flex items-center space-x-2 px-4 py-3 text-base sm:px-3 sm:py-2 sm:te
 
   
 </div>
+              {gameState.settings.isTournament && (() => {
+  const matchId = "T-" + gameState.settings.matchId || "";
+  console.log(matchId)
+  const codeTournoi = gameState.settings.codeTournoi || "";
+
+  // 🔍 Extraction du round et du match à partir du matchId
+  const matchIdRegex = /-R(\d+)-M(\d+)-/;
+  const matchParts = matchId.match(matchIdRegex);
+  console.log(matchParts)
+  const roundNumber = matchParts ? parseInt(matchParts[1]) : null;
+  const matchNumber = matchParts ? parseInt(matchParts[2]) + 1 : null;
+
+  return (
+    <div className="mt-2 border border-green-300 bg-green-50 text-green-900 text-sm sm:text-base rounded-xl px-3 py-2 shadow-sm">
+      <p className="font-medium">
+        🏆Match de Tournoi: Round {roundNumber ?? "?"}, Match {matchNumber ?? "?"}
+      </p>
+      <p className="text-xs sm:text-sm text-green-800">
+        Code tournoi : <span className="font-semibold">{codeTournoi}</span>
+      </p>
+    </div>
+  );
+})()}
 
             </div>
           </div>
@@ -318,6 +346,7 @@ className="flex items-center space-x-2 px-4 py-3 text-base sm:px-3 sm:py-2 sm:te
                 Score final: {gameState.teamAScore} - {gameState.teamBScore}
                 {gameState.settings.playerCount === 3 && ` - ${gameState.teamCScore}`}
               </p>
+              {!gameState.settings.isTournament  && (
               <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
                 <button
                   onClick={startRematch}
@@ -338,7 +367,19 @@ className="flex items-center space-x-2 px-4 py-3 text-base sm:px-3 sm:py-2 sm:te
                 >
                   Statistiques
                 </button>
+                </div>
+              )}
+                {gameState.settings.isTournament  && (
+                  <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
+        <button
+          onClick={() => navigateTo2('tournamentview', { code: gameState.settings.codeTournoi })}
+          className="px-4 sm:px-6 py-2 sm:py-3 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors text-sm sm:text-base"
+        >
+          Voir l'arbre du tournoi
+        </button>
+      
               </div>
+              )}
             </div>
           ) : (
             <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 mb-4 sm:mb-6">

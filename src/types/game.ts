@@ -11,14 +11,14 @@ export interface Player {
 export interface User {
   id: string;
   displayName: string;
-  email: string;
+  email?: string;
   profilePicture?: string;
-  accessCode: string;
-  profileTitle: string;
-  friends: string[];
-  createdAt: Date;
-  stats: UserStats;
-  achievements: Achievement[];
+  accessCode?: string;
+  profileTitle?: string;
+  friends?: string[];
+  createdAt?: Date;
+  stats?: UserStats;
+  achievements?: Achievement[];
   lastLoginAt?: Date;
 }
 
@@ -58,6 +58,24 @@ export interface UserStats {
   coinche4P: GameModeStats;
 }
 
+export interface PlayerTree {
+  id?: string;
+  name: string;
+  profile_picture?: string;
+  team?: string;
+}
+
+export interface MatchNode {
+  id: string;
+  round: number;
+  players: Player[];
+  children: MatchNode[];
+  score?: [number, number];
+  status: "pending" | "finished";
+  format?: string; // BO1, BO3...
+  nextMatchId? : string;
+  
+}
 export interface GameModeStats {
   games: number;
   wins: number;
@@ -109,7 +127,11 @@ export interface GameSettings {
   playerCount: 2 | 3 | 4;
   withAnnouncements: boolean;
   targetScore: number;
-  isOnline: boolean;
+  isTournament: boolean;
+  currentTournamentId: string;
+  matchId : string;
+  tournamentOptions : string;
+  codeTournoi : string;
 }
 
 export interface Bid {
@@ -234,29 +256,30 @@ export const PROFILE_TITLES = [
   { id: 'coinche_ace', title: 'As de la Coinche', description: '50 coinches réussies', color: 'text-purple-600', requirement: 'successfulCoinches', threshold: 50 },
   { id: 'coinche_master', title: 'Maître de la Coinche', description: '100 coinches réussies', color: 'text-gradient-to-r from-purple-600 to-pink-600', requirement: 'successfulCoinches', threshold: 100 },
   
-  { id: 'veteran', title: 'Vétéran', description: '100 parties jouées', color: 'text-emerald-600', requirement: 'totalGames', threshold: 100 },
-  { id: 'champion', title: 'Champion', description: '250 victoires', color: 'text-amber-600', requirement: 'totalWins', threshold: 250 },
-  { id: 'legend', title: 'Légende', description: '500 parties jouées', color: 'text-gradient-to-r from-yellow-500 to-red-500', requirement: 'totalGames', threshold: 500 },
-  { id: 'immortal', title: 'Immortel', description: '1000 parties jouées', color: 'text-gradient-to-r from-purple-500 to-pink-500', requirement: 'totalGames', threshold: 1000 },
+  { id: 'veteran', title: 'Vétéran', description: '50 parties jouées', color: 'text-emerald-600', requirement: 'totalGames', threshold: 50 },
+  { id: 'champion', title: 'Champion', description: '100 victoires', color: 'text-amber-600', requirement: 'totalWins', threshold: 100 },
+  { id: 'legend', title: 'Légende', description: '150 parties jouées', color: 'text-gradient-to-r from-yellow-500 to-red-500', requirement: 'totalGames', threshold: 150 },
+  { id: 'immortal', title: 'Immortel', description: '300 parties jouées', color: 'text-gradient-to-r from-purple-500 to-pink-500', requirement: 'totalGames', threshold: 300 },
   
   { id: 'scorer', title: 'Marqueur', description: '10000 points marqués', color: 'text-teal-600', requirement: 'totalPointsScored', threshold: 10000 },
   { id: 'high_scorer', title: 'Grand Marqueur', description: '25000 points marqués', color: 'text-cyan-600', requirement: 'totalPointsScored', threshold: 25000 },
   { id: 'point_master', title: 'Maître des Points', description: '50000 points marqués', color: 'text-gradient-to-r from-blue-500 to-teal-500', requirement: 'totalPointsScored', threshold: 50000 },
-  
+  { id: 'point_god', title: 'Accro des points', description: '150000 points marqués', color: 'text-violet-500', requirement: 'totalPointsScored', threshold: 150000 },
+
   { id: 'belote_specialist', title: 'Spécialiste Belote', description: '50 Belote-Rebelote', color: 'text-rose-600', requirement: 'beloteRebelotes', threshold: 50 },
   { id: 'contract_master', title: 'Maître des Contrats', description: '100 contrats réussis', color: 'text-violet-600', requirement: 'successfulContracts', threshold: 100 },
+  { id: 'contract_god', title: 'Dieu des Contrats', description: '300 contrats réussis', color: 'text-red-600', requirement: 'successfulContracts', threshold: 300 },
+  { id: 'winrate_deb', title: 'Chaîne de Feu', description: '3 victoires de suites', color: 'text-bronze-600', requirement: 'winStreak', threshold: 3 },
+  { id: 'winrate_spe', title: 'Séreal Winner', description: '5 victoires de suites', color: 'text-platinium-600', requirement: 'winStreak', threshold: 5 },
+  { id: 'winrate_champ', title: 'Inarrêtable', description: '8 victoires de suites', color: 'text-silver-600', requirement: 'winStreak', threshold: 8 },
+  { id: 'winrate_legend', title: 'Écrasante Domination', description: '10 victoires de suites', color: 'text-gold-600', requirement: 'winStreak', threshold: 20 },
+  { id: 'winrate_divine', title: 'Légende Vivante', description: '15 victoires de suites', color: 'text-emerald-600', requirement: 'winStreak', threshold: 15 },
 
-  { id: 'winrate_deb', title: 'Chaîne de Feu', description: '5 victoires de suites', color: 'text-bronze-600', requirement: 'winStreak', threshold: 5 },
-  { id: 'winrate_spe', title: 'Séreal Winner', description: '10 victoires de suites', color: 'text-platinium-600', requirement: 'winStreak', threshold: 10 },
-  { id: 'winrate_champ', title: 'Inarrêtable', description: '15 victoires de suites', color: 'text-silver-600', requirement: 'winStreak', threshold: 15 },
-  { id: 'winrate_legend', title: 'Écrasante Domination', description: '20 victoires de suites', color: 'text-gold-600', requirement: 'winStreak', threshold: 20 },
-  { id: 'winrate_divine', title: 'Légende Vivante', description: '30 victoires de suites', color: 'text-emerald-600', requirement: 'winStreak', threshold: 30 },
-
-  { id: 'lossrate_oops', title: 'Poissard', description: '5 défaites de suites', color: 'text-gray-600', requirement: 'lossStreak', threshold: 5 },
+  { id: 'lossrate_oops', title: 'Poissard', description: '3 défaites de suites', color: 'text-gray-600', requirement: 'lossStreak', threshold: 3 },
   { id: 'lossrate_clown', title: 'Pompe à vélo', description: '10 défaites de suites', color: 'text-amber-600', requirement: 'lossStreak', threshold: 10 },
-  { id: 'lossrate_ghost', title: 'Fantôme du Jeu', description: '15 défaites de suites', color: 'text-bluegray-600', requirement: 'lossStreak', threshold: 15 },
-  { id: 'lossrate_punchbag', title: 'Sac de Frappe', description: '20 défaites de suites', color: 'text-red-600', requirement: 'lossStreak', threshold: 20 },
-  { id: 'lossrate_downfall', title: 'Descente aux Enfers', description: '30 défaites de suites', color: 'text-black-600', requirement: 'lossStreak', threshold: 30 },
+  { id: 'lossrate_ghost', title: 'Fantôme du Jeu', description: '5 défaites de suites', color: 'text-bluegray-600', requirement: 'lossStreak', threshold: 5 },
+  { id: 'lossrate_punchbag', title: 'Sac de Frappe', description: '8 défaites de suites', color: 'text-red-600', requirement: 'lossStreak', threshold:8 },
+  { id: 'lossrate_downfall', title: 'Descente aux Enfers', description: '15 défaites de suites', color: 'text-black-600', requirement: 'lossStreak', threshold: 15},
   // Win rate based titles
 
   { id: 'pastis', title: 'Tournée de Pastis', description: "Faire un score qu'avec des 5/1", color: 'text-yellow-600', requirement: 'isPastis', threshold: 1 },
@@ -302,7 +325,7 @@ export const PROFILE_TITLES = [
   description: 'Une moyenne de pari supérieure à 105', 
   color: 'text-indigo-600', 
   requirement: 'risk', 
-  threshold: 105 
+  threshold: 110 
 },
 { 
   id: 'risk_gold', 
@@ -310,7 +333,7 @@ export const PROFILE_TITLES = [
   description: 'Une moyenne de pari supérieure à 120', 
   color: 'text-purple-600', 
   requirement: 'risk', 
-  threshold: 115 
+  threshold: 120 
 }
 ,
   

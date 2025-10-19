@@ -116,17 +116,17 @@ export function RankingsScreen() {
   const currentUserRank = getCurrentUserRank();
 
   return (
-    <div className="min-h-screen pt-safe pb-safe flex items-center justify-center p-4"
-     style={{
-       backgroundColor: '#0b3d0b', // vert très foncé
-       backgroundImage: `
-         radial-gradient(circle, rgba(0,0,0,0.1) 1px, transparent 1px),
-         radial-gradient(circle, rgba(0,0,0,0.1) 1px, transparent 1px)
-       `,
-       backgroundPosition: '0 0, 10px 10px',
-       backgroundSize: '20px 20px'
-     }}
->
+    <div
+      className="min-h-screen w-full flex items-center justify-center px-4 py-safe bg-green-950"
+      style={{
+        backgroundImage: `
+          radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px),
+          radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px)
+        `,
+        backgroundPosition: "0 0, 10px 10px",
+        backgroundSize: "20px 20px",
+      }}
+    >
       <div className="max-w-4xl mx-auto relative" style={{ top: 'calc(1.5rem + env(safe-area-inset-top))' }}>
         {/* Header */}
         <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 mb-4 sm:mb-6">
@@ -463,7 +463,7 @@ export function RankingsScreen() {
               <li><strong>Malus pénalités</strong> (max -10 points) : Pénalités reçues</li>
             </ul>
             <p className="text-xs text-gray-500 mt-3">
-              * Certaines parties peuvent etre annulées et non comptailisés (algo d'anti-triche).
+              * Certaines parties peuvent etre annulées et non comptabilisées (algo d'anti-triche).
             </p>
           </div>
         </div>

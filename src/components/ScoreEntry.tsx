@@ -948,7 +948,11 @@ return () => clearTimeout(handler);
   type="number"
   value={isCapot ? (teamScores[team] || '') : (teamScores[team] || '')}
   onChange={(e) => {
-    const value = parseInt(e.target.value); // <-- laisse la chaîne
+    const value = parseInt(e.target.value);
+    if (isNaN(value) || value < 0 || value >162) {
+      setTeamScores(prev => ({ ...prev, [team]: 0 }));
+      return;
+    } // <-- laisse la chaîne
     setTeamScores(prev => ({ ...prev, [team]: value }));
     setLastChangedTeam(team as 'A' | 'B' | 'C');
     setIsCapot(false);
