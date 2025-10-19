@@ -320,25 +320,33 @@ const teamOptions = [
 
         {/* JOUEURS PAR MATCH */}
         <div>
-          <p className="font-semibold text-green-900 mb-1">
-            Joueurs par partie
-          </p>
-          <div className="flex justify-around">
-            {[2, 3, 4].map(n => (
-              <button
-                key={n}
-                onClick={() => setPlayersPerMatch(n)}
-                className={`flex-1 mx-1 py-2 rounded-xl font-bold transition-all ${
-                  playersPerMatch === n
-                    ? "bg-green-600 text-white shadow-md"
-                    : "bg-green-100 text-green-800"
-                }`}
-              >
-                {n}
-              </button>
-            ))}
-          </div>
+  <p className="font-semibold text-green-900 mb-1">Joueurs par partie</p>
+  <div className="flex justify-around">
+    {[2, 3, 4].map((n) => {
+      const isDisabled = n < 4; // ici on grise 2 et 3
+      return (
+        <div key={n} className="flex-1 mx-1 flex flex-col items-center">
+          <button
+            onClick={() => !isDisabled && setPlayersPerMatch(n)}
+            disabled={isDisabled}
+            className={`w-full py-2 rounded-xl font-bold transition-all
+              ${playersPerMatch === n ? "bg-green-600 text-white shadow-md" : ""}
+              ${isDisabled && playersPerMatch !== n ? "bg-gray-300 text-gray-500 cursor-not-allowed" : "bg-green-100 text-green-800"}
+            `}
+          >
+            {n}
+          </button>
+          {isDisabled && (
+            <span className="text-sm text-gray-500 mt-1">
+              Prochainement
+            </span>
+          )}
         </div>
+      );
+    })}
+  </div>
+</div>
+
 
         {/* TOTAL JOUEURS */}
         <div>
