@@ -305,8 +305,18 @@ else console.log("userData:", userData);
 
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-green-900 text-white">
-      <div className="max-w-md w-full bg-white/90 text-green-900 rounded-xl p-6 space-y-4">
+    <div
+      className="min-h-screen w-full flex items-center justify-center px-4 py-safe bg-green-950"
+      style={{
+        backgroundImage: `
+          radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px),
+          radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px)
+        `,
+        backgroundPosition: "0 0, 10px 10px",
+        backgroundSize: "20px 20px",
+      }}
+    >
+      <div className="max-w-md w-full bg-white/90 text-green-900 rounded-xl p-6 space-y-4 mt-10 mb-3">
         <div className="flex items-center mb-4">
           <button onClick={() => navigateTo("createtournament")} className="p-2 text-green-700 hover:bg-green-100 rounded-lg">
             <ArrowLeft className="w-6 h-6" />

@@ -590,7 +590,7 @@ const nextDealer = () => {
       else{setCurrentScreen('game')
         
       }
-      return []
+      return history
     }
     
     

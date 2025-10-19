@@ -276,9 +276,9 @@ export const PROFILE_TITLES = [
   { id: 'winrate_divine', title: 'Légende Vivante', description: '15 victoires de suites', color: 'text-emerald-600', requirement: 'winStreak', threshold: 15 },
 
   { id: 'lossrate_oops', title: 'Poissard', description: '3 défaites de suites', color: 'text-gray-600', requirement: 'lossStreak', threshold: 3 },
-  { id: 'lossrate_clown', title: 'Pompe à vélo', description: '10 défaites de suites', color: 'text-amber-600', requirement: 'lossStreak', threshold: 10 },
   { id: 'lossrate_ghost', title: 'Fantôme du Jeu', description: '5 défaites de suites', color: 'text-bluegray-600', requirement: 'lossStreak', threshold: 5 },
   { id: 'lossrate_punchbag', title: 'Sac de Frappe', description: '8 défaites de suites', color: 'text-red-600', requirement: 'lossStreak', threshold:8 },
+  { id: 'lossrate_clown', title: 'Pompe à vélo', description: '10 défaites de suites', color: 'text-amber-600', requirement: 'lossStreak', threshold: 10 },
   { id: 'lossrate_downfall', title: 'Descente aux Enfers', description: '15 défaites de suites', color: 'text-black-600', requirement: 'lossStreak', threshold: 15},
   // Win rate based titles
 

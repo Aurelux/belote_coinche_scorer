@@ -105,8 +105,10 @@ const letsInvite = () => {
       }}
     >
     
-      <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
-        <div className="text-center mb-8">
+<div
+  className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md overflow-y-auto mt-14 mb-4"
+  
+>        <div className="text-center mb-8">
           <div className="bg-gradient-to-r from-green-800 to-green-900 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
             <Users className="w-8 h-8 text-white" />
           </div>

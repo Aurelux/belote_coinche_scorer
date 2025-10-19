@@ -309,7 +309,7 @@ if (loading)
         backgroundSize: "20px 20px",
       }}
     >
-      <div className=" w-full max-w-5xl space-y-6">
+      <div className=" w-full max-w-5xl space-y-6 mb-10 mt-2">
         {/* Header */}
         <div 
   className="max-w-7xl mx-auto relative" 

@@ -29,7 +29,7 @@ export default function HomeScreen() {
         {/* LOGO */}
         <div className="flex flex-col items-center mb-8 sm:mb-10">
           <img
-            src="../ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png"
+            src="/images/AppIcon-512@2x.png"
             alt="Coinche Royale"
             className="w-24 h-24 sm:w-32 sm:h-32 mb-4 rounded-2xl shadow-md"
           />

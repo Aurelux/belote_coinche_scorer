@@ -14,17 +14,24 @@ export default function HelpScreen() {
   ];
 
   return (
-<div
-      className="min-h-screen w-full flex items-center justify-center px-4 py-safe bg-green-950"
-      style={{
-        backgroundImage: `
+<div className="min-h-screen pt-safe pb-safe flex items-center justify-center p-4"
+
+     style={{
+
+       backgroundColor: '#042204', // vert très foncé
+
+       backgroundImage: `
           radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px),
           radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px)
         `,
-        backgroundPosition: "0 0, 10px 10px",
-        backgroundSize: "20px 20px",
-      }}
-    >      <div className="max-w-md w-full bg-white/90 backdrop-blur-md rounded-2xl shadow-xl p-6 flex flex-col">
+
+       backgroundPosition: '0 0, 10px 10px',
+
+       backgroundSize: '20px 20px'
+
+     }}
+
+>      <div className="max-w-md w-full bg-white/90 backdrop-blur-md rounded-2xl shadow-xl p-6 flex flex-col">
         
         {/* Header */}
         <div className="flex items-center mb-6">

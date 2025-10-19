@@ -1673,7 +1673,7 @@ console.log(existingMatches)
         </div>
       )}
 
-      <div className="max-w-3xl w-full bg-white/90 text-green-900 rounded-xl p-6 space-y-6" style={{ top: 'calc(1.5rem + env(safe-area-inset-top))' }}>
+      <div className="max-w-3xl w-full bg-white/90 text-green-900 rounded-xl p-6 space-y-6 mt-10 mb-2" style={{ top: 'calc(1.5rem + env(safe-area-inset-top))' }}>
         {/* Header */}
         <div className="flex items-center">
           
@@ -2553,7 +2553,7 @@ const matchToPlay = Array.from(roundsMap.values()).flat();
 )}
 
 {showScorePopup && selectedMatch && (
-  <div className="fixed inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm z-50 animate-fadeIn">
+  <div className="fixed inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm z-50 animate-fadeIn overflow-hidden">
     <div className="bg-white rounded-2xl p-6 w-11/12 max-w-sm shadow-2xl">
       <h2 className="text-xl font-bold text-center mb-6 text-gray-800">
         Entrer les scores
@@ -2631,8 +2631,7 @@ const matchToPlay = Array.from(roundsMap.values()).flat();
   {/* ⚡ Popup Forfait */}
 
   {showForfeitPopup && selectedMatch && (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 px-4">
-      <div className="bg-white rounded-2xl p-6 w-full max-w-sm text-center shadow-lg">
+<div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/50 backdrop-blur-sm overflow-hidden">      <div className="bg-white rounded-2xl p-6 w-full max-w-sm text-center shadow-lg">
         <h2 className="text-lg font-bold text-red-700 mb-3">Déclarer un forfait</h2>
         <p className="text-gray-700 text-sm mb-5">Quelle équipe déclare forfait ?</p>
 
@@ -2995,7 +2994,7 @@ const matchToPlay = Array.from(roundsMap.values()).flat();
 </div>
 
 {showScorePopup && selectedMatch && (
-  <div className="fixed inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm z-50 animate-fadeIn">
+  <div className="fixed inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm z-50 animate-fadeIn overflow-hidden">
     <div className="bg-white rounded-2xl p-6 w-11/12 max-w-sm shadow-2xl">
       <h2 className="text-xl font-bold text-center mb-6 text-gray-800">
         Modifier les scores du match
@@ -3072,8 +3071,7 @@ const matchToPlay = Array.from(roundsMap.values()).flat();
 
 {/* 🪟 Popup forfait */}
 {showForfeitPopup && selectedMatch && (
-  <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 px-4">
-    <div className="bg-white rounded-2xl p-6 w-full max-w-sm text-center shadow-lg">
+<div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-black/50 backdrop-blur-sm overflow-hidden">    <div className="bg-white rounded-2xl p-6 w-full max-w-sm text-center shadow-lg">
       <h2 className="text-lg font-bold text-red-700 mb-3">Déclarer un forfait</h2>
       <p className="text-gray-700 text-sm mb-5">
         Quelle équipe déclare forfait ?

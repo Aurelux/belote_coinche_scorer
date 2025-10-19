@@ -154,22 +154,29 @@ const teamOptions = [
       : [8, 16, 24].filter(n => n % playersPerMatch === 0);
 
   return (
-    <div
-      className="min-h-screen w-full flex items-center justify-center px-4 py-safe bg-green-950"
-      style={{
-        backgroundImage: `
+    <div className="min-h-screen pt-safe pb-safe flex items-center justify-center p-4"
+
+     style={{
+
+       backgroundColor: '#042204', // vert très foncé
+
+       backgroundImage: `
           radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px),
           radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px)
         `,
-        backgroundPosition: "0 0, 10px 10px",
-        backgroundSize: "20px 20px",
-      }}
-    >
+
+       backgroundPosition: '0 0, 10px 10px',
+
+       backgroundSize: '20px 20px'
+
+     }}
+
+>
       <motion.div
-        initial={{ opacity: 0, y: 25 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="max-w-md w-full bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl p-6 flex flex-col space-y-5"
-      >
+  initial={{ opacity: 0, y: 25 }}
+  animate={{ opacity: 1, y: 0 }}
+  className="max-w-md w-full bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl p-6 flex flex-col space-y-5 mt-6"
+>
         {/* HEADER */}
         <div className="flex items-center justify-between">
           <button
@@ -371,26 +378,7 @@ const teamOptions = [
         
 
         {/* CHECKBOX */}
-        <div><p className="font-semibold text-green-900 mb-1">
-            Selection des équipes
-          </p>
-        <div className="flex justify-around">
-          
-    {teamOptions.map(({ label, value }) => (
-      <button
-        key={value ? "random" : "manual"}
-        onClick={() => setRandomTeams(value)}
-        className={`flex-1 mx-1 py-2 rounded-xl font-bold transition-all ${
-          randomTeams === value
-            ? "bg-green-600 text-white shadow-md"
-            : "bg-green-100 text-green-800"
-        }`}
-      >
-        {label}
-      </button>
-    ))}
-  </div>
-  </div>
+        
         {/* JOUEURS */}
         <div className="mt-2">
           <p className="font-semibold text-green-900 mb-1">Joueurs</p>
@@ -450,6 +438,27 @@ const teamOptions = [
             ))}
           </div>
         </div>
+
+        <div><p className="font-semibold text-green-900 mb-1">
+            Selection des équipes
+          </p>
+        <div className="flex justify-around">
+          
+    {teamOptions.map(({ label, value }) => (
+      <button
+        key={value ? "random" : "manual"}
+        onClick={() => setRandomTeams(value)}
+        className={`flex-1 mx-1 py-2 rounded-xl font-bold transition-all ${
+          randomTeams === value
+            ? "bg-green-600 text-white shadow-md"
+            : "bg-green-100 text-green-800"
+        }`}
+      >
+        {label}
+      </button>
+    ))}
+  </div>
+  </div>
 
         {/* BUTTON */}
         <motion.button
