@@ -75,7 +75,7 @@ const [beloteModalTeam, setBeloteModalTeam] = useState<null | 'A' | 'B'>(null);
     setBeloteCounts({ A: 0, B: 0, C: 0 }); // tu peux adapter si les valeurs sont stockées
   }
 }, [editedHand]);
-  console.log("editedHand in handleSubmit", editedHand);
+  
   // Auto-calculate opposing scores
   useEffect(() => {
      const handler = setTimeout(() => {

@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Users, Mail, Lock, Camera, UserPlus, LogIn, Eye, EyeOff, User } from 'lucide-react';
 import { useGame } from '../context/GameContext';
 import { PROFILE_TITLES } from '../types/game';
+import { supabase } from "../lib/supabase";
 
 export function AuthScreen() {
   const { registerUser, loginUser, setCurrentScreen, navigateTo, goBack, updateProfilePicture, gameState, setGameState } = useGame();
@@ -18,6 +19,41 @@ export function AuthScreen() {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+// adapte le chemin selon ton projet
+
+
+  const [displayNames, setDisplayNames] = useState<string[]>([]);
+
+
+  
+
+  useEffect(() => {
+    const fetchDisplayNames = async () => {
+      
+      
+      setError(null);
+      const { data, error } = await supabase
+        .from("users")
+        .select("display_name");
+
+      if (error) {
+        console.error("Erreur de récupération :", error.message);
+        setError(error.message);
+      } else if (data) {
+        setDisplayNames(data.map((u) => u.display_name));
+      }
+
+      setLoading(false);
+    };
+
+    fetchDisplayNames();
+  }, []);
+
+
+
+
+
+  
 const letsInvite = () => {
   setGameState({
       ...gameState,
@@ -56,6 +92,12 @@ const letsInvite = () => {
           setError('Le nom d\'affichage est requis');
           return;
         }
+
+        if (displayNames.some(name => name.toLowerCase() === formData.displayName.toLowerCase())) {
+  setError('Nom déjà pris, choisissez-en un autre !');
+  return;
+}
+
 
         await registerUser({
           displayName: formData.displayName.trim(),

@@ -311,7 +311,7 @@ function gameReducer(state: GameState, action: GameAction): GameState {
     teamAScore: newTeamAScore,
     teamBScore: newTeamBScore,
     teamCScore: newTeamCScore,
-    currentDealer: getNextDealerIndex(state.currentDealer, state.players.length),
+    
     gameEnded,
     winningTeam
   };
@@ -525,12 +525,12 @@ const setGameState = (newState) => {
     console.log('➡️ Previous screen:', previousScreen);
   console.log('➡️ Current screen:', currentScreen);
   console.log('➡️ Screen:', screen);
-  if (currentScreen === 'rankings' && previousScreen === 'home'){
+  if (currentScreen === 'rankings' && previousScreen === 'home' && !(screen === 'user-profile')){
       setScreenHistory((prev) => [...prev, currentScreen]);
       setCurrentScreen(previousScreen);
       return
     };
-    if (currentScreen === 'user-profile' && previousScreen === 'rankings'){
+    if (currentScreen === 'user-profile' && previousScreen === 'rankings' ){
       setScreenHistory((prev) => [...prev, currentScreen]);
       setCurrentScreen(previousScreen);
     };
@@ -741,7 +741,7 @@ const nextDealer = () => {
   const losers = gameState.players.filter((p) => p.team !== winningTeam);
 
   // 🗃️ 5️⃣ Met à jour le match dans la table tournament_matches
-  console.log(gameState.settings.matchId)
+  console.log('test:',gameState.settings.matchId)
   reportMatchResult(
     gameState.settings.matchId,
     winners,

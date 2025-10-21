@@ -22,6 +22,7 @@ import HelpCoinche4j from './components/HelpCoinche4j';
 import { User } from 'lucide-react';
 import TournamentsScreen from './components/TournamentScreen';
 
+
 import CreateTournament from './components/CreateTournament';
 import JoinTournament from './components/JoinTournament';
 import TournamentView from './components/TournamentView';
@@ -135,9 +136,14 @@ function AppContent() {
 
 function App() {
   return (
-    <GameProvider>
-      <AppContent />
-    </GameProvider>
+    
+      <GameProvider>
+        
+        <AppContent />
+        
+        {/* Tes Routes ici */}
+      </GameProvider>
+    
   );
 }
 

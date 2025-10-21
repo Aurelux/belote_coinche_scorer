@@ -398,7 +398,9 @@ export function RankingsScreen() {
                         <span>{player.winRate.toFixed(1)}% victoires</span>
                         <span>{player.averagePoints.toFixed(0)} pts/partie</span>
                         {selectedMode === 'coinche' && (
-                          <span>{player.totalCoinches} coinches</span>
+                          <span>
+  {player.totalCoinches} {player.totalCoinches <= 1 ? "coinche" : "coinches"}
+</span>
                         )}
                       </div>
                     </div>

@@ -229,7 +229,7 @@ const kingOfGame = sortedStats[0];
 if (loading)
   return (
     <div
-      className="min-h-screen w-full flex items-center justify-center px-4 py-safe bg-green-950"
+      className="min-h-screen w-full flex flex-col items-center justify-center bg-green-950 text-white"
       style={{
         backgroundImage: `
           radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px),
@@ -254,7 +254,7 @@ if (loading)
 
       {/* Petit texte d’ambiance */}
       <p className="mt-3 text-sm text-green-400 opacity-80 italic">
-        Préparation des stats ♣️♦️♥️♠️
+        Préparation des cartes et des stats ♣️♦️♥️♠️
       </p>
     </div>
   );
@@ -290,7 +290,7 @@ if (loading)
     const clickedName = e.value; // nom du joueur
     setVisiblePlayers(prev =>
       prev.length === 1 && prev[0] === clickedName
-        ? playerStats.map(p => p.name.slice(0, 5)) // réaffiche tous
+        ? playerStats.map(p => p.name.slice(0, 5)).slice(0,5) // réaffiche tous
         : [clickedName] // afficher seulement le joueur cliqué
     );
   };

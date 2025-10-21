@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Sparkles } from "lucide-react";
+import {Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function SplashScreen({ onFinish }: { onFinish: () => void }) {
@@ -9,7 +9,7 @@ export default function SplashScreen({ onFinish }: { onFinish: () => void }) {
   }, []);
 
   return (
-    <div className="fixed inset-0 bg-green-900 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-green-950 flex items-center justify-center z-50">
       <AnimatePresence>
         <motion.div
           className="flex flex-col items-center gap-4"
@@ -22,6 +22,7 @@ export default function SplashScreen({ onFinish }: { onFinish: () => void }) {
             animate={{ scale: [1, 1.1, 1] }}
             transition={{ repeat: Infinity, duration: 1.6, ease: "easeInOut" }}
           >
+            
             <Sparkles className="w-20 h-20 text-white drop-shadow-lg" />
           </motion.div>
           <motion.p
