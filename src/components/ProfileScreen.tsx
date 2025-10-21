@@ -742,14 +742,24 @@ console.log('Pire coéquipier:', worstTeammate2);
                 <span className="text-sm sm:text-base text-gray-600">Points concédés</span>
                 <span className="font-semibold text-red-600">{stats.totalPointsConceded}</span>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm sm:text-base text-gray-600">Pénalités reçues</span>
-                <span className="font-semibold text-orange-600">{stats.totalPenalties}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-sm sm:text-base text-gray-600">Moyenne par partie</span>
-                <span className="font-semibold text-blue-600">{stats.averagePointsPerGame.toFixed(1)}</span>
-              </div>
+<div className="flex justify-between items-center">
+  <span className="text-sm sm:text-base text-gray-600">Contrats par partie</span>
+  <span className="font-semibold text-orange-600">
+    {stats?.totalGames > 0
+      ? (stats.totalContractsTaken / stats.totalGames).toFixed(1)
+      : 0}
+  </span>
+</div>
+
+<div className="flex justify-between items-center">
+  <span className="text-sm sm:text-base text-gray-600">Performance moyenne</span>
+  <span className="font-semibold text-blue-600">
+    {stats?.totalGames > 0
+      ? ((stats.totalPointsScored - stats.totalPointsConceded) / stats.totalGames).toFixed(1)
+      : 0}
+  </span>
+</div>
+
               <div className="flex justify-between items-center">
                 <span className="text-sm sm:text-base text-gray-600">Belote-Rebelote</span>
                 <span className="font-semibold text-purple-600">{stats.beloteRebelotes}</span>
@@ -848,12 +858,12 @@ console.log('Pire coéquipier:', worstTeammate2);
                 <div className="text-gray-600">Score</div>
               </div>
               <div className="text-center">
-                <div className="font-semibold text-orange-600">{modeStats.penalties}</div>
-                <div className="text-gray-600">Pénalités</div>
+                <div className="font-semibold text-orange-600">{(modeStats.contractsTaken/modeStats.games).toFixed(1)}</div>
+                <div className="text-gray-600">Contrats/partie</div>
               </div>
               <div className="text-center">
-                <div className="font-semibold text-yellow-600">{modeStats.capots}</div>
-                <div className="text-gray-600">Capots</div>
+                <div className="font-semibold text-yellow-600">{modeStats.losses}</div>
+                <div className="text-gray-600">Défaites</div>
               </div>
               <div className="text-center">
                 <div className="font-semibold text-teal-600">
@@ -896,8 +906,8 @@ console.log('Pire coéquipier:', worstTeammate2);
                 <div className="text-gray-600">Score</div>
               </div>
               <div className="text-center">
-                <div className="font-semibold text-orange-600">{modeStats.penalties}</div>
-                <div className="text-gray-600">Pénalités</div>
+                <div className="font-semibold text-orange-600">{modeStats.risk.toFixed(1)}</div>
+                <div className="text-gray-600">Moy. Contrats</div>
               </div>
               <div className="text-center">
                 <div className="font-semibold text-pink-600">
@@ -1064,7 +1074,7 @@ console.log('Pire coéquipier:', worstTeammate2);
           {title.requirement && title.threshold && (
             <div className="mb-2">
               <div className="flex justify-between text-sm text-gray-600 mb-1">
-                <span>{currentValue} / {title.threshold}</span>
+                <span>{Math.round(currentValue * 10) / 10} / {title.threshold}</span>
                 <span>{progress.toFixed(0)}%</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
