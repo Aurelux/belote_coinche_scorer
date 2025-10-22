@@ -108,17 +108,18 @@ const debouncedSearch = debounce(async (index: number, value: string) => {
 
   const allUserResults = await searchUsers(query); // normalisation
   const filteredResults = allUserResults
-  .filter(user => user.id !== gameState.currentUser?.id);
+  .filter(user => user.id !== gameState.currentUser?.id)
+  .filter(user => !playerInputs.some(u => u === user.displayName));
  // correspondance stricte
 
 
 
   setSearchResults(filteredResults);
 }, 200); // délai de 300ms pour éviter le spam
-
   const selectUser = (index: number, user: any) => {
     const newInputs = [...playerInputs];
     newInputs[index] = user.displayName;
+    
     setPlayerInputs(newInputs);
     setSearchResults([]);
     setActiveInputIndex(null);
@@ -298,7 +299,10 @@ const debouncedSearch = debounce(async (index: number, value: string) => {
                           {searchResults.map(user => (
                             <div
                               key={user.id}
-                              onClick={() => selectUser(index, user)}
+                              onClick={() => {
+          selectUser(index, user);
+          setSearchResults((prev) => prev.filter((u) => u.id !== user.id)); // ❌ enlève ce user de la liste
+        }}
                               className="flex items-center space-x-3 p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
                             >
                               {user.profilePicture ? (
@@ -370,7 +374,9 @@ const debouncedSearch = debounce(async (index: number, value: string) => {
                           {searchResults.map(user => (
                             <div
                               key={user.id}
-                              onClick={() => selectUser(index, user)}
+                              onClick={() => {selectUser(index, user);
+                                setSearchResults((prev) => prev.filter((u) => u.id !== user.id));}
+                              }
                               className="flex items-center space-x-3 p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
                             >
                               {user.profilePicture ? (
@@ -453,7 +459,10 @@ const debouncedSearch = debounce(async (index: number, value: string) => {
                           {searchResults.map(user => (
                             <div
                               key={user.id}
-                              onClick={() => selectUser(index, user)}
+                              onClick={() => {
+          selectUser(index, user);
+          setSearchResults((prev) => prev.filter((u) => u.id !== user.id)); // ❌ enlève ce user de la liste
+        }}
                               className="flex items-center space-x-3 p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
                             >
                               {user.profilePicture ? (

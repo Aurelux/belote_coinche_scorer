@@ -653,7 +653,7 @@ const nextDealer = () => {
     console.log('Players set:', players);
     console.log('Registered users in game that need confirmation:', registeredUsersInGame);
     
-    if (registeredUsersInGame.length > 0 && gameState.settings.isTournament === false) {
+    if (registeredUsersInGame.length > 5 && gameState.settings.isTournament === false) {
       // Create confirmation entries for each registered user
       const confirmations: PlayerConfirmation[] = registeredUsersInGame.map(p => ({
         playerId: p.id,
