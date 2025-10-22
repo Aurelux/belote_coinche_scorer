@@ -220,10 +220,10 @@ return () => clearTimeout(handler);
             if (isSurcoincheSuccessful) {
               // Surcoinche successful
               if (contractTeam === 'A') {
-                newScores.teamA = contractValue * 3 + takerPoints + (beloteTeam === 'A' ? beloteBonus : 0) + (announcements || 0);
+                newScores.teamA = contractValue * 3 + 162 + (beloteTeam === 'A' ? beloteBonus : 0) + (announcements || 0);
                 newScores.teamB = beloteTeam === 'B' ? beloteBonus : 0;
               } else {
-                newScores.teamB = contractValue * 3 + takerPoints + (beloteTeam === 'B' ? beloteBonus : 0) + (announcements || 0);
+                newScores.teamB = contractValue * 3 + 162 + (beloteTeam === 'B' ? beloteBonus : 0) + (announcements || 0);
                 newScores.teamA = beloteTeam === 'A' ? beloteBonus : 0;
               }
             } else {

@@ -11,7 +11,7 @@ interface PenaltyModalProps {
 export function PenaltyModal({ team, onClose, onSubmit }: PenaltyModalProps) {
   const { gameState, applyPenaltyToPlayer } = useGame();
   const [selectedPlayer, setSelectedPlayer] = useState('');
-  const [penaltyPoints, setPenaltyPoints] = useState(50);
+  const [penaltyPoints, setPenaltyPoints] = useState(30);
   const [reason, setReason] = useState('');
 
   const teamPlayers = gameState.players.filter(p => p.team === team);
@@ -105,14 +105,22 @@ export function PenaltyModal({ team, onClose, onSubmit }: PenaltyModalProps) {
 
             {/* Custom input */}
             <input
-              type="number"
-              value={penaltyPoints}
-              onChange={(e) => setPenaltyPoints(parseInt(e.target.value) || 0)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-4 focus:ring-red-100 focus:border-red-500 transition-all duration-200 text-center text-xl font-bold"
-              min="1"
-              max="500"
-              placeholder="Points personnalisés"
-            />
+  type="number"
+  value={penaltyPoints}
+  onChange={(e) => {
+    let val = parseInt(e.target.value) || 0;
+
+    // 🔹 On limite entre 0 et 250
+    if (val > 250) val = 250;
+    if (val < 0) val = 0;
+
+    setPenaltyPoints(val);
+  }}
+  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-4 focus:ring-red-100 focus:border-red-500 transition-all duration-200 text-center text-xl font-bold"
+  min="0"
+  max="250"
+  placeholder="Points personnalisés"
+/>
           </div>
 
           {/* Reason */}

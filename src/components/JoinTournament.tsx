@@ -53,6 +53,7 @@ export default function JoinTournament() {
               setCode(e.target.value);
               setError("");
             }}
+            maxLength={6}
             className="w-full text-center text-lg font-mono uppercase border border-green-300 rounded-lg py-2 px-4 focus:outline-none focus:ring-2 focus:ring-green-500"
             placeholder="Ex : YW1K4S"
           />

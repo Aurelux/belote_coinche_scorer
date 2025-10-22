@@ -63,6 +63,8 @@ export default function TournamentView({ code }: { code: string }) {
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);;
+  
   const [treeMatches, setTreeMatches] = useState<MatchNode[]>([]);
   const [teamSwiss, setTeamSwiss] = useState<SwissTeam[]>([]);
   const [matchSwiss, setMatchSwiss] = useState<MatchNode[]>([]);
@@ -221,6 +223,16 @@ let filteredMatches = [existing[0]]
     m.round === 1 || m.changed === true
   
   );
+  const seen = new Set<string>();
+  filteredMatches = filteredMatches.filter((m) => {
+    const key1 = JSON.stringify([m.joueurs_a.sort(), m.joueurs_b.sort()]);
+    const key2 = JSON.stringify([m.joueurs_b.sort(), m.joueurs_a.sort()]); // inverse
+    if (seen.has(key1) || seen.has(key2)) return false;
+    seen.add(key1);
+    return true;
+  });
+  console.log(filteredMatches)
+
   setExistingMatchesSM(filteredMatches);
 }
 
@@ -515,6 +527,40 @@ const handleStartMatch = async (m: MatchNode) => {
     console.warn("Match invalide : aucun joueur assigné");
     return;
   }
+  const { data: matchData, error: fetchError } = await supabase
+  .from("tournament_matches")
+  .select("status")
+  .eq("id", m.id)
+  .eq("tournament_id", m.tournament_id)
+  .single();
+
+if (fetchError) {
+  setError("Erreur lors de la vérification du match.");
+  console.error(fetchError);
+  return;
+}
+
+// Si le match est déjà en cours, on bloque
+if (matchData?.status === "ongoing") {
+  setError("Match déjà lancé !");
+  return;
+}
+
+// Sinon, on le passe à "ongoing"
+const { error: updateError } = await supabase
+  .from("tournament_matches")
+  .update({ status: "ongoing" })
+  .eq("id", m.id)
+  .eq("tournament_id", m.tournament_id);
+
+if (updateError) {
+  setError("Erreur lors de la mise à jour du match.");
+  console.error(updateError);
+  return;
+}
+
+// Succès éventuel
+console.log("Match mis à jour en 'ongoing'");
 
   const allPlayers = [...(m.joueurs_a || []), ...(m.joueurs_b || [])]
   .filter(p => p && p.name && !p.name.toLowerCase().includes("winner") && !p.name.toLowerCase().includes("loser"));// 1️⃣ Nettoyage et adaptation des joueurs du match
@@ -563,13 +609,7 @@ const handleStartMatch = async (m: MatchNode) => {
     codeTournoi : tournament.join_code// tu peux le forcer à false ici ou le rendre dynamique
   };
   
-  await supabase
-    .from("tournament_matches")
-    .update({
-     status : "ongoing",
-    })
-    .eq("id", m.id)
-    .eq("tournament_id",m.tournament_id);
+  
 
 
   // 3️⃣ Mise à jour du contexte / store
@@ -1487,7 +1527,71 @@ console.log(matchSwiss)
     </div>
   );
 
-  if (!tournament) return <p>Tournoi introuvable</p>;
+  if (!tournament) {
+  // ✅ Détection d'une confusion entre O et 0
+  const containsConfusion = /[O0]/.test(code);
+  const suggestedCode = containsConfusion
+    ? code
+        .split("")
+        .map((c) => (c === "O" ? "0" : c === "0" ? "O" : c))
+        .join("")
+    : null;
+
+  return (
+    <div
+      className="min-h-screen w-full flex flex-col items-center justify-center bg-green-950 text-white"
+      style={{
+        backgroundImage: `
+          radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px),
+          radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px)
+        `,
+        backgroundPosition: "0 0, 10px 10px",
+        backgroundSize: "20px 20px",
+      }}
+    >
+      {/* Icône principale */}
+      <div className="relative mb-6">
+        <div className="w-14 h-14 border-4 border-red-400 border-t-transparent rounded-full animate-spin"></div>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span className="text-red-200 font-bold text-lg">🂱</span>
+        </div>
+      </div>
+
+      {/* Message principal */}
+      <p className="text-lg font-semibold text-red-300 mb-2">
+        Tournoi introuvable
+      </p>
+
+      <p className="text-lg font-semibold text-red-300 mb-2">
+        Le code est potentiellement incorrect ! 
+      </p>
+      <p className="text-sm text-red-400 text-center max-w-sm px-4">
+          Vous avez essayé le code : <span className="font-mono">{code}</span>
+      </p>
+
+      {/* Suggestion si confusion possible */}
+      {suggestedCode && (
+        <p className="text-sm text-red-400 text-center max-w-sm px-4">
+         
+          Essayez peut-être avec ce code :{" "}
+          <span className="font-mono font-semibold text-white">{suggestedCode}</span>
+        </p>
+      )}
+
+      {/* Bouton retour */}
+      <div className="mt-6">
+        <button
+          onClick={() => navigateTo("jointournoi")}
+          className="flex flex-col items-center justify-center w-[60px] h-[60px] rounded-full bg-gradient-to-br from-red-500 to-red-600 text-white shadow-md active:scale-95 active:shadow-sm transition-all"
+        >
+          <ArrowLeft className="w-5 h-5 mb-1" />
+          <span className="text-[10px] font-medium">Retour</span>
+        </button>
+      </div>
+    </div>
+  );
+}
+
 const roundsMap: { [round: number]: MatchNode[] } = {};
 
 
@@ -1510,6 +1614,8 @@ if (tournament.options === 'single' || tournament.options === 'double') {
 
   
 }
+
+console.log(roundsMap)
 
 
 
@@ -1637,7 +1743,7 @@ if (tournament.options === 'swiss' && tournament.maxMatches) {
   }
   
 }
-
+console.log(existingMatchesSM)
 console.log(existingMatches)
 
   return (
@@ -2285,7 +2391,7 @@ const matchToPlay = Array.from(roundsMap.values()).flat();
       return (
         <>
           {rounds.map(([round, matches]) => {
-            if (maxMatches && Number(round) > currentRound) return null;
+            if (maxMatches && (Number(round) > currentRound && Number(round)!== 99)) return null;
 
             return (
               <div key={round} className="flex flex-col gap-4">
@@ -2301,6 +2407,8 @@ const matchToPlay = Array.from(roundsMap.values()).flat();
                     (p) => String(p.id) === String(gameState.currentUser?.id)
                   );
                   const isongoing = m.status === "ongoing"
+                  
+                  
 
                   // 🚫 Vérifier limite de matchs
                   
@@ -2448,6 +2556,7 @@ const matchToPlay = Array.from(roundsMap.values()).flat();
                             return (
                               <div className="flex gap-2">
                                 {allHaveTeams ? (
+                                  <>
                                   <button
                                     onClick={() => handleStartMatch(m)}
                                     className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-green-700 active:scale-95 transition-all duration-150 text-sm"
@@ -2455,6 +2564,10 @@ const matchToPlay = Array.from(roundsMap.values()).flat();
                                     <Play size={16} />
                                     <span>Lancer</span>
                                   </button>
+                                  {error && (
+        <span className="text-red-500 text-xs mt-1">{error}</span>
+      )}
+      </>
                                 ) : (
                                   <button
                                     disabled
@@ -2729,6 +2842,7 @@ const matchToPlay = Array.from(roundsMap.values()).flat();
 
           const upper = matchesInRound.filter((m) => m.bracket !== "lower");
           const lower = matchesInRound.filter((m) => m.bracket === "lower");
+          console.log(upper)
 
           return (
             <div key={roundNumber} className="space-y-6">
@@ -2758,7 +2872,8 @@ const matchToPlay = Array.from(roundsMap.values()).flat();
                             String(p.id) === String(gameState.currentUser?.id)
                         );
                         const isFinished = m.status === "finished";
-                        const isongoing = m.statut === "ongoing";
+                        const isongoing = m.status === "ongoing";
+                        console.log(isongoing)
                         const matchColor = bracket.color;
 
                         return (
@@ -2911,6 +3026,7 @@ const matchToPlay = Array.from(roundsMap.values()).flat();
       return (
         <div className="flex gap-2">
           {allHaveTeams ? (
+            <>
             <button
               onClick={() => handleStartMatch(m)}
               className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-green-700 active:scale-95 transition-all duration-150 text-sm"
@@ -2918,6 +3034,10 @@ const matchToPlay = Array.from(roundsMap.values()).flat();
               <Play size={16} />
               <span>Lancer</span>
             </button>
+            {error && (
+        <span className="text-red-500 text-xs mt-1">{error}</span>
+      )}
+            </>
           ) : (
             <button
               disabled
