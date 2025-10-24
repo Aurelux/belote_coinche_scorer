@@ -36,6 +36,7 @@ setGameState: (newState: Partial<GameState>) => void;
   updateUserStats: (userId: string, gameData: any) => Promise<void>;
   setSelectedUser: (user: User | null) => void;
   updateProfileTitle: (titleId: string) => Promise<void>;
+  updateProfileFrame: (titleId: string) => Promise<void>;
   updateProfilePicture: (file: File) => Promise<void>;
   checkAchievements: (userId: string) => Promise<Achievement[]>;
   applyPenaltyToPlayer: (playerId: string, points: number, reason?: string) => void;
@@ -525,7 +526,7 @@ const setGameState = (newState) => {
     console.log('➡️ Previous screen:', previousScreen);
   console.log('➡️ Current screen:', currentScreen);
   console.log('➡️ Screen:', screen);
-  if (currentScreen === 'rankings' && previousScreen === 'home' && !(screen === 'user-profile')){
+  if (currentScreen === 'rankings' && previousScreen === 'home' && !(screen === 'user-profile') && !(screen === 'profile')){
       setScreenHistory((prev) => [...prev, currentScreen]);
       setCurrentScreen(previousScreen);
       return
@@ -652,7 +653,7 @@ const nextDealer = () => {
     
     console.log('Players set:', players);
     console.log('Registered users in game that need confirmation:', registeredUsersInGame);
-    
+    // met un 0 si tu veux les codes //
     if (registeredUsersInGame.length > 5 && gameState.settings.isTournament === false) {
       // Create confirmation entries for each registered user
       const confirmations: PlayerConfirmation[] = registeredUsersInGame.map(p => ({
@@ -1899,6 +1900,7 @@ dispatch({ type: 'SET_MATCH_HISTORY', payload: matchHistoryFiltered });
           displayName: user.display_name,
           email: user.email,
           profilePicture: user.profile_picture,
+          frames: user.profile_frame,
           accessCode: user.access_code,
           profileTitle: user.profile_title,
           friends: [],
@@ -1913,6 +1915,7 @@ dispatch({ type: 'SET_MATCH_HISTORY', payload: matchHistoryFiltered });
           displayName: u.display_name,
           email: u.email,
           profilePicture: u.profile_picture,
+          frames : u.profile_frame,
           accessCode: u.access_code,
           profileTitle: u.profile_title,
           friends: [],
@@ -2233,7 +2236,7 @@ const getTimeFrameUserRankings = async (
     // 1. Charger les users
     const { data: users, error: userError } = await supabase
       .from('users')
-      .select('id, display_name, profile_picture, profile_title');
+      .select('id, display_name, profile_picture, profile_title, profile_frame');
 
     if (userError) throw userError;
     let filteredUsers = users || [];
@@ -2347,7 +2350,8 @@ const getTimeFrameUserRankings = async (
           userId,
           name: stats.name,
           profilePicture: userInfo?.profile_picture || '',
-          profileTitle: stats.profileTitle,
+          profileTitle: userInfo?.profile_title,
+          frames : userInfo?.profile_frame,
           rankingScore,
           gamesPlayed: stats.games,
           winRate,
@@ -2377,7 +2381,7 @@ const getTimeFrameUserRankings = async (
     try {
       const { data: users, error } = await supabase
         .from('users')
-        .select('id, display_name, profile_picture, profile_title, stats');
+        .select('id, display_name, profile_picture, profile_title, stats, profile_frame');
 
       if (error) throw error;
       let filteredUsers = users || [];
@@ -2416,6 +2420,7 @@ const getTimeFrameUserRankings = async (
             name: user.display_name,
             profilePicture: user.profile_picture,
             profileTitle: user.profile_title,
+            frames : user.profile_frame,
             rankingScore: modeStats.rankingScore,
             gamesPlayed: modeStats.games,
             winRate: modeStats.winRate,
@@ -2455,7 +2460,7 @@ const getTimeFrameUserRankings = async (
           const modeStats = stats[modeKey] as GameModeStats;
           
           // Debug log to see what stats we're getting
-          console.log(`User ${user.display_name} stats for ${modeKey}:`, modeStats);
+          console.log(`User ${user.id} stats for ${modeKey}:`, modeStats);
           
           return {
             userId: user.id,
@@ -2498,6 +2503,25 @@ const getTimeFrameUserRankings = async (
       if (error) throw error;
 
       const updatedUser = { ...gameState.currentUser, profileTitle: titleId };
+      dispatch({ type: 'UPDATE_USER', payload: updatedUser });
+    } catch (error) {
+      console.error('Error updating profile title:', error);
+      throw new Error('Failed to update profile title');
+    }
+  };
+
+  const updateProfileFrame = async (titleId: string): Promise<void> => {
+    if (!gameState.currentUser) throw new Error('Must be logged in');
+
+    try {
+      const { error } = await supabase
+        .from('users')
+        .update({ profile_frame: titleId })
+        .eq('id', gameState.currentUser.id);
+
+      if (error) throw error;
+
+      const updatedUser = { ...gameState.currentUser, frames: titleId };
       dispatch({ type: 'UPDATE_USER', payload: updatedUser });
     } catch (error) {
       console.error('Error updating profile title:', error);
@@ -2601,6 +2625,7 @@ const getTimeFrameUserRankings = async (
       setSelectedUser,
       setGameState,
       updateProfileTitle,
+      updateProfileFrame,
       updateProfilePicture,
       checkAchievements,
       applyPenaltyToPlayer,

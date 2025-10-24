@@ -4,7 +4,8 @@ import { useGame } from "../context/GameContext";
 import { supabase } from "../lib/supabase";
 
 import { PlayerTree, MatchNode,GameSettings, Player, Hand } from "./types";
-import { te } from "date-fns/locale";
+import {availableFrames } from '../types/game';
+
 
 type SwissReturn = { team: TeamStats[]; test: MatchNode[] };
 
@@ -342,7 +343,8 @@ console.log(existingMatches)
     id: p?.id || `det-${idx}`, // id temporaire si non défini
     name: p?.name ? p.name.slice(0, 5) : "À det", // max 5 lettres
     profile_picture: p?.profile_picture  || null,
-    team : p?.team || null, // null pour afficher rond
+    team : p?.team || null,
+    frames : p?.frames || null // null pour afficher rond
   }));
 };
 const handleSelectPlayer = (player: Player) => {
@@ -587,6 +589,7 @@ console.log("Match mis à jour en 'ongoing'");
         userId: p.id,
         profilePicture: p?.profile_picture && typeof p.profile_picture === "string" && p.profile_picture.length > 0 ? p.profile_picture : null,
         profileTitle: registeredUser?.profileTitle,
+        frames : p?.frames ?? null,
         isGuest: !registeredUser,
       } as Player;
     });
@@ -1648,6 +1651,7 @@ const MatchCard = ({ match }: { match: MatchNode }) => {
         <div className="flex flex-col gap-2 w-2/5">
           {match.joueurs_a.slice(0, 2).map((p, idx) => (
             <div key={idx} className="flex items-center gap-2">
+              <div className = "relative w-9 h-9">
               {p?.profile_picture ? (
                 <img
                   src={p.profile_picture}
@@ -1661,6 +1665,17 @@ const MatchCard = ({ match }: { match: MatchNode }) => {
                   {p?.name && p.name !== "À déterminer" ? p.name[0] : <User size={16} />}
                 </div>
               )}
+              {p?.frames && (
+                  <img
+                    src={availableFrames[Number(p?.frames) - 1]?.image}
+                    alt="Cadre décoratif"
+                    className="absolute -inset-0 w-auto h-auto pointer-events-none"
+                    style={{
+                                              transform: `scale(${availableFrames[Number(p?.frames) - 1]?.scale || 1})`, // par défaut scale 1 si non défini
+                                            }}
+                  />
+                )}
+              </div>
               <span className="font-semibold text-sm text-gray-800 truncate max-w-[60px]">
                 {p?.name
                   ? p.name === "À déterminer"
@@ -1692,6 +1707,7 @@ const MatchCard = ({ match }: { match: MatchNode }) => {
         <div className="flex flex-col gap-2 w-2/5 items-end">
           {match.joueurs_b.slice(0, 2).map((p, idx) => (
             <div key={idx} className="flex items-center gap-2 flex-row-reverse">
+              <div className = ' relative w-9 h-9'>
               {p?.profile_picture ? (
                 <img
                   src={p.profile_picture}
@@ -1705,6 +1721,17 @@ const MatchCard = ({ match }: { match: MatchNode }) => {
                   {p?.name && p.name !== "À déterminer" ? p.name[0] : <User size={16} />}
                 </div>
               )}
+              {p?.frames && (
+                  <img
+                    src={availableFrames[Number(p.frames) - 1]?.image}
+                    alt="Cadre décoratif"
+                    className="absolute -inset-0 w-auto h-auto pointer-events-none"
+                    style={{
+                                              transform: `scale(${availableFrames[Number(p.frames) - 1]?.scale || 1})`, // par défaut scale 1 si non défini
+                                            }}
+                  />
+                )}
+              </div>
               <span className="font-semibold text-sm text-gray-800 truncate max-w-[60px] text-right">
                 {p?.name
                   ? p.name === "À déterminer"
@@ -2435,19 +2462,31 @@ const matchToPlay = Array.from(roundsMap.values()).flat();
                           {teamA.map((p, idx) => (
                             <div
                               key={idx}
-                              className="w-10 h-10 rounded-full border-2 border-green-500 bg-green-100 overflow-hidden flex items-center justify-center"
+                              className="w-10 h-10 rounded-full border-2 border-green-500 bg-green-100 flex items-center justify-center"
                             >
+                            
                               {p?.profile_picture ? (
                                 <img
                                   src={p.profile_picture}
                                   alt={p.name}
-                                  className="object-cover w-full h-full"
+                                  className="object-cover w-10 h-10 rounded-full flex-shrink-0"
                                 />
                               ) : (
                                 <span className="font-bold text-green-800 text-sm">
                                   {p?.name ? p.name[0].toUpperCase() : "?"}
                                 </span>
                               )}
+                              {p?.frames && (
+                                  <img
+                                    src={availableFrames[Number(p?.frames) - 1]?.image}
+                                    alt="Cadre décoratif"
+                                    className="absolute -inset-0 w-auto h-auto pointer-events-none"
+                                    style={{
+                                                              transform: `scale(${availableFrames[Number(p?.frames) - 1]?.scale || 1})`, // par défaut scale 1 si non défini
+                                                            }}
+                                  />
+                                )}
+                              
                             </div>
                           ))}
                         </div>
@@ -2461,19 +2500,31 @@ const matchToPlay = Array.from(roundsMap.values()).flat();
                           {teamB.map((p, idx) => (
                             <div
                               key={idx}
-                              className="w-10 h-10 rounded-full border-2 border-green-500 bg-green-100 overflow-hidden flex items-center justify-center"
+                              className="w-10 h-10 rounded-full border-2 border-green-500 bg-green-100  flex items-center justify-center"
                             >
+                              
                               {p?.profile_picture ? (
                                 <img
                                   src={p.profile_picture}
                                   alt={p.name}
-                                  className="object-cover w-full h-full"
+                                  className="object-cover w-10 h-10 rounded-full flex-shrink-0"
                                 />
                               ) : (
                                 <span className="font-bold text-green-800 text-sm">
                                   {p?.name ? p.name[0].toUpperCase() : "?"}
                                 </span>
                               )}
+                              {p?.frames && (
+                                  <img
+                                    src={availableFrames[Number(p.frames) - 1]?.image}
+                                    alt="Cadre décoratif"
+                                    className="absolute -inset-0 w-auto h-auto pointer-events-none"
+                                    style={{
+                                                              transform: `scale(${availableFrames[Number(p.frames) - 1]?.scale || 1})`, // par défaut scale 1 si non défini
+                                                            }}
+                                  />
+                                )}
+                              
                             </div>
                           ))}
                         </div>
@@ -2898,13 +2949,14 @@ const matchToPlay = Array.from(roundsMap.values()).flat();
                                   {m.joueurs_a?.map((p, idx) => (
                                     <div
                                       key={idx}
-                                      className={`relative w-10 h-10 rounded-full border-2 border-${matchColor}-500 shadow-sm overflow-hidden bg-${matchColor}-50 flex items-center justify-center`}
+                                      className={`relative w-10 h-10   rounded-full border-2 border-${matchColor}-500 shadow-sm  bg-${matchColor}-50 flex items-center justify-center`}
                                     >
+                                      
                                       {p?.profile_picture ? (
                                         <img
                                           src={p.profile_picture}
                                           alt={p.name}
-                                          className="object-cover w-full h-full"
+                                          className="object-cover w-10 h-10 rounded-full flex-shrink-0"
                                         />
                                       ) : (
                                         <span
@@ -2913,6 +2965,17 @@ const matchToPlay = Array.from(roundsMap.values()).flat();
                                           {p?.name?.[0]?.toUpperCase() || "?"}
                                         </span>
                                       )}
+                                      {p?.frames && (
+                                          <img
+                                            src={availableFrames[Number(p.frames) - 1]?.image}
+                                            alt="Cadre décoratif"
+                                            className="absolute -inset-0 w-auto h-auto pointer-events-none"
+                                            style={{
+                                                                      transform: `scale(${availableFrames[Number(p.frames) - 1]?.scale || 1})`, // par défaut scale 1 si non défini
+                                                                    }}
+                                          />
+                                        )}
+                                      
                                     </div>
                                   ))}
                                 </div>
@@ -2934,13 +2997,14 @@ const matchToPlay = Array.from(roundsMap.values()).flat();
                                   {m.joueurs_b?.map((p, idx) => (
                                     <div
                                       key={idx}
-                                      className={`relative w-10 h-10 rounded-full border-2 border-${matchColor}-500 shadow-sm overflow-hidden bg-${matchColor}-50 flex items-center justify-center`}
+                                      className={`relative w-10 h-10 rounded-full border-2 border-${matchColor}-500 shadow-sm bg-${matchColor}-50 flex items-center justify-center`}
                                     >
+                                      
                                       {p?.profile_picture ? (
                                         <img
                                           src={p.profile_picture}
                                           alt={p.name}
-                                          className="object-cover w-full h-full"
+                                          className="object-cover w-10 h-10 rounded-full flex-shrink-0"
                                         />
                                       ) : (
                                         <span
@@ -2949,6 +3013,17 @@ const matchToPlay = Array.from(roundsMap.values()).flat();
                                           {p?.name?.[0]?.toUpperCase() || "?"}
                                         </span>
                                       )}
+                                      {p?.frames && (
+                                          <img
+                                            src={availableFrames[Number(p.frames) - 1]?.image}
+                                            alt="Cadre décoratif"
+                                            className="absolute -inset-0 w-auto h-auto pointer-events-none"
+                                            style={{
+                                                                      transform: `scale(${availableFrames[Number(p.frames) - 1]?.scale || 1})`, // par défaut scale 1 si non défini
+                                                                    }}
+                                          />
+                                        )}
+                                      
                                     </div>
                                   ))}
                                 </div>

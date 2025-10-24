@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Trash2, ArrowLeft, Trophy, Target, Users, Award, TrendingUp, Crown, Medal, BarChart3, LogOut, UserPlus, Settings, Edit, Camera, Upload, History, TrendingDown, User } from 'lucide-react';
+import { Trash2, ArrowLeft, Trophy, Target, Users, Award, TrendingUp, Crown, Medal,ChevronDown, BarChart3, LogOut, UserPlus, Settings, Edit, Camera, Upload, History, TrendingDown, User } from 'lucide-react';
 import { useGame } from '../context/GameContext';
-import { PROFILE_TITLES } from '../types/game';
+import { PROFILE_TITLES, availableFrames } from '../types/game';
+import { supabase } from "../lib/supabase";
 
 
 
@@ -10,10 +11,13 @@ import { PROFILE_TITLES } from '../types/game';
 
 export function ProfileScreen() {
 
-  
+ 
   const [notifications, setNotifications] = useState<string[]>([]);
 
-  const { gameState, deleteUser, setCurrentScreen, logoutUser, updateProfileTitle, updateProfilePicture, navigateTo, goBack, loadMatchHistory, getUserSoftRankings, loadFriendRequests, loadFriends} = useGame();
+  const [showCadreSelector, setShowCadreSelector] = useState(false);
+  const [selectedCadre, setSelectedCadre] = useState("default");
+  const [unlockedCadre, setUnlockedCadre] = useState<string[]>([]);
+  const { gameState, deleteUser, setCurrentScreen, logoutUser, updateProfileTitle, updateProfilePicture, updateProfileFrame,navigateTo, goBack, loadMatchHistory, getUserSoftRankings, loadFriendRequests, loadFriends} = useGame();
   const [showTitleSelector, setShowTitleSelector] = useState(false);
   const [updating, setUpdating] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
@@ -61,6 +65,69 @@ useEffect(() => {
   useEffect(() => {
     loadMatchHistory();
   }, []);
+
+useEffect(() => {
+  const fetchTournamentHistory = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("tournament_history")
+        .select("top3");
+
+      if (error) {
+        console.error("Erreur Supabase :", error);
+        return;
+      }
+
+      if (!data || data.length === 0) return;
+      console.log(data)
+      // Récupérer les noms des premiers éléments de chaque top3
+      const firstNames: string[] = data
+        .map((entry: any) => {
+          let top3: any[] = [];
+
+          if (Array.isArray(entry.top3)) {
+            top3 = entry.top3;
+          } else if (typeof entry.top3 === "string") {
+            try {
+              top3 = JSON.parse(entry.top3);
+            } catch (e) {
+              top3 = [];
+            }
+          }
+
+          return top3[0]?.name || "";
+        })
+        .filter(Boolean); // on garde que ceux qui existent
+      console.log(firstNames)
+      // Créer une liste unique de tous les joueurs
+      const allPlayers = firstNames
+        .flatMap(name => name.replace(/\[|\]/g, "").split("&").map(n => n.trim()))
+        .filter(Boolean);
+
+      // Vérifier si le user fait partie de cette liste
+      const userPrefix = currentUser?.displayName.slice(0, 5);
+      console.log(allPlayers)
+      if (allPlayers.some(p => p.slice(0, 5) === userPrefix)) {
+        setUnlockedCadre(prev => 
+    prev.includes("1") ? prev : [...prev, "1"]
+  );
+      }
+      const count = allPlayers.filter(p => p.slice(0, 5) === userPrefix).length;
+
+// Si au moins 5 occurrences → ajout de "8"
+if (count >= 5) {
+  setUnlockedCadre(prev => 
+    prev.includes("8") ? prev : [...prev, "8"]
+  );
+}
+      
+    } catch (err) {
+      console.error("Erreur lors du chargement du tournoi :", err);
+    }
+  };
+
+  fetchTournamentHistory();
+}, []);
   if (!currentUser) {
     return (
       <div className="min-h-screen pt-safe pb-safe bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900 flex items-center justify-center p-4">
@@ -104,6 +171,10 @@ const addNotification = (id: string, message: string) => {
 };
 
 
+
+
+
+ 
 
 let mostPlayedWith: { userId: 'id'; name: 'nobody'; count: 0 } ;
   let worstTeammate: { userId: 'id'; name: 'nobody'; losses: 0 } ;
@@ -379,7 +450,7 @@ console.log('Pire coéquipier:', worstTeammate2);
   };
 
   const currentTitle = PROFILE_TITLES.find(t => t.title === currentUser.profileTitle);
-  
+  const uniqueCadre = [...new Set(unlockedCadre)];
 
   return (
     <div className="min-h-screen pt-safe pb-safe flex items-center justify-center p-4"
@@ -413,17 +484,43 @@ console.log('Pire coéquipier:', worstTeammate2);
               </button>
               <div className="flex items-center space-x-4 min-w-0 flex-1">
                 <div className="relative">
-                  {currentUser.profilePicture ? (
-                    <img
-                      src={currentUser.profilePicture}
-                      alt={currentUser.displayName}
-                      className="w-12 h-12 sm:w-16 sm:h-16 rounded-full object-cover border-4 border-green-200 flex-shrink-0"
-                    />
-                  ) : (
-                    <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
-                      <Users className="w-6 h-6 sm:w-8 sm:h-8 text-gray-600" />
-                    </div>
-                  )}
+                  <div className="relative w-12 h-12 sm:w-16 sm:h-16">
+                  
+  {/* Bouton triangle à gauche */}
+  <button
+    onClick={() => setShowCadreSelector(true)}
+    className="absolute -left-4 top-1/2 -translate-y-1/2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-full p-1 shadow-sm z-10"
+  >
+    <ChevronDown className="w-4 h-4" />
+  </button>
+
+  {/* Image ou avatar par défaut */}
+  {currentUser.profilePicture ? (
+    <img
+      src={currentUser.profilePicture}
+      alt={currentUser.displayName}
+      
+      
+      className={"w-full h-full rounded-full object-cover border-2 border-green-400"}
+        
+    />
+  ) : (
+    <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0 border-4 border-green-200">
+      <Users className="w-6 h-6 sm:w-8 sm:h-8 text-gray-600" />
+    </div>
+  )}
+  {currentUser.frames && (
+  <img
+    src={availableFrames[Number(currentUser.frames) - 1]?.image}
+    alt={availableFrames[Number(currentUser.frames) - 1]?.title || "Cadre décoratif"}
+    className="absolute inset-0 w-12 h-12 sm:w-16 sm:h-16 pointer-events-none"
+    style={{
+    transform: `scale(${availableFrames[Number(currentUser.frames) - 1]?.scale || 1})`, // par défaut scale 1 si non défini
+  }}
+  />
+)}
+  </div>
+
                   <label className="absolute bottom-0 right-0 bg-green-600 text-white p-1 rounded-full cursor-pointer hover:bg-green-700 transition-colors">
                     {uploadingPhoto ? (
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -584,6 +681,89 @@ console.log('Pire coéquipier:', worstTeammate2);
         </div>
 
         {/* Title Selector Modal */}
+        {showCadreSelector && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md max-h-[80vh] overflow-hidden">
+      <h3 className="text-xl font-bold text-gray-900 mb-4 text-center">Choisir un cadre</h3>
+
+      {/* Liste des cadres */}
+      <div className="space-y-3 max-h-64 overflow-y-auto pr-1">
+        {/* Aucun cadre */}
+        <button
+          onClick={() => {
+            updateProfileFrame(null);
+            setShowCadreSelector(false);
+          }}
+          className={`w-full p-3 text-left rounded-lg border-2 transition-all flex items-center gap-3 hover:border-gray-300 ${
+            !currentUser.frames ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
+          }`}
+        >
+          <div className="w-12 h-12 rounded-full flex items-center justify-center bg-gray-100 text-gray-500 font-semibold">
+            –
+          </div>
+          <div>
+            <div className="font-medium text-gray-900">Aucun cadre</div>
+            <div className="text-sm text-gray-600">Pas de décoration autour de la photo</div>
+          </div>
+        </button>
+
+        {/* Cadres disponibles */}
+        
+ {[
+          ...availableFrames.filter(f => uniqueCadre.includes(f.id.toString())), // cadres débloqués
+          ...availableFrames.filter(f => !uniqueCadre.includes(f.id.toString())), // cadres non débloqués
+        ].map(frame => {
+          const isUnlocked = uniqueCadre.includes(frame.id.toString());
+          return (
+            <button
+              key={frame.id}
+              onClick={() => {
+                if (!isUnlocked) return; // pas cliquable si verrouillé
+                updateProfileFrame(frame.id);
+                setShowCadreSelector(false);
+              }}
+              className={`w-full p-3 text-left rounded-lg border-2 transition-all flex items-center gap-3
+                ${Number(currentUser.frames) === frame.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200'}
+                ${!isUnlocked ? 'opacity-40 cursor-not-allowed' : 'hover:border-gray-300'}
+              `}
+            >
+              {/* Aperçu du cadre */}
+              <div className="relative w-12 h-12 sm:w-16 sm:h-16">
+                <User className="w-12 h-12 rounded-full object-cover border-2 border-green-400" />
+                <img
+                  src={frame.image}
+                  alt={frame.title}
+                  className="absolute inset-0 w-12 h-12 pointer-events-none"
+                  style={{ transform: `scale(${frame.scale || 1})` }}
+                />
+              </div>
+
+              {/* Infos cadre */}
+              <div>
+                <div className="font-medium text-gray-900">{frame.title}</div>
+                {frame.description && (
+                  <div className="text-sm text-gray-600">{frame.description}</div>
+                )}
+              </div>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Bouton annuler */}
+      <div className="flex space-x-3 mt-6">
+        <button
+          onClick={() => setShowCadreSelector(false)}
+          className="flex-1 px-4 py-2 bg-green-500 text-white-700 rounded-lg hover:bg-green-700 transition-colors"
+        >
+          Annuler
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+
         {showTitleSelector && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md max-h-[80vh] overflow-hidden">
@@ -867,8 +1047,10 @@ console.log('Pire coéquipier:', worstTeammate2);
               </div>
               <div className="text-center">
                 <div className="font-semibold text-teal-600">
-                  {modeStats.successfulContracts}/{modeStats.contractsTaken}
-                </div>
+  {modeStats.contractsTaken > 0
+    ? `${modeStats.successfulContracts}/${modeStats.contractsTaken}`
+    : 0}
+</div>
                 <div className="text-gray-600">Contrats réussis</div>
               </div>
             </div>
@@ -906,7 +1088,7 @@ console.log('Pire coéquipier:', worstTeammate2);
                 <div className="text-gray-600">Score</div>
               </div>
               <div className="text-center">
-                <div className="font-semibold text-orange-600">{modeStats.risk.toFixed(1)}</div>
+                <div className="font-semibold text-orange-600">{ modeStats.risk ? modeStats.risk.toFixed(1) : 0}</div>
                 <div className="text-gray-600">Moy. Contrats</div>
               </div>
               <div className="text-center">
@@ -966,6 +1148,37 @@ console.log('Pire coéquipier:', worstTeammate2);
   // Ajoute-le à la liste des titres débloqués pour éviter de le redéclencher
   setUnlockedTitles(prev => [...prev, title.id]);
 }
+if (isUnlocked && title.requirement === 'successfulCoinches' && title.threshold >= 100 && !unlockedCadre.includes("5")) {
+  setUnlockedCadre(prev => 
+    prev.includes("5") ? prev : [...prev, "5"]
+  );
+}
+if (isUnlocked && title.requirement === 'successfulContracts' && title.threshold >= 300 && !unlockedCadre.includes("10")) {
+  setUnlockedCadre(prev => 
+    prev.includes("10") ? prev : [...prev, "10"]
+  );
+}
+
+if (isUnlocked && title.requirement === 'totalCapots' && title.threshold >= 100 && !unlockedCadre.includes("9")) {
+  setUnlockedCadre(prev => 
+    prev.includes("9") ? prev : [...prev, "9"]
+  );
+}
+if (isUnlocked && title.requirement === 'totalGames' && title.threshold >= 300 && !unlockedCadre.includes("7")) {
+  setUnlockedCadre(prev => 
+    prev.includes("7") ? prev : [...prev, "7"]
+  );
+}
+if (isUnlocked && title.requirement === 'totalGames' && title.threshold >= 5 && !unlockedCadre.includes("6")) {
+  setUnlockedCadre(prev => 
+    prev.includes("6") ? prev : [...prev, "6"]
+  );
+}
+if (isUnlocked && title.requirement === 'totalCapots' && title.threshold >= 10 && !unlockedCadre.includes("5")) {
+  setUnlockedCadre(prev => 
+    prev.includes("5") ? prev : [...prev, "5"]
+  );
+}
         progress = Math.min((currentValue / title.threshold) * 100, 100);
       }
       if (title.requirement === 'winStreak'){
@@ -977,6 +1190,11 @@ console.log('Pire coéquipier:', worstTeammate2);
 
   // Ajoute-le à la liste des titres débloqués pour éviter de le redéclencher
   setUnlockedTitles(prev => [...prev, title.id]);
+}
+if (isUnlocked && title.threshold>=10 && !unlockedCadre.includes("4")){
+  setUnlockedCadre(prev => 
+    prev.includes("4") ? prev : [...prev, "4"]
+  );
 }
         progress = Math.min((currentValue / title.threshold) * 100, 100);
       }
@@ -990,6 +1208,12 @@ console.log('Pire coéquipier:', worstTeammate2);
 
   // Ajoute-le à la liste des titres débloqués pour éviter de le redéclencher
   setUnlockedTitles(prev => [...prev, title.id]);
+}
+if (isUnlocked && title.threshold>=10 && !unlockedCadre.includes("2")){
+  console.log('coucou', title.threshold)
+  setUnlockedCadre(prev => 
+    prev.includes("2") ? prev : [...prev, "2"]
+  );
 }
         progress = Math.min((currentValue / title.threshold) * 100, 100);
       }
@@ -1040,6 +1264,11 @@ console.log('Pire coéquipier:', worstTeammate2);
 
   // Ajoute-le à la liste des titres débloqués pour éviter de le redéclencher
   setUnlockedTitles(prev => [...prev, title.id]);
+}
+if (isUnlocked && title.threshold>=50 && !unlockedCadre.includes("3")){
+  setUnlockedCadre(prev => 
+    prev.includes("3") ? prev : [...prev, "3"]
+  );
 }
   progress = Math.min((currentValue / title.threshold) * 100, 100);
 }

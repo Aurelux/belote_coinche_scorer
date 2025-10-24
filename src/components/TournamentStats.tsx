@@ -44,11 +44,14 @@ import {
   
   
 } from "recharts";
+import {availableFrames } from '../types/game';
+
 
 interface TournamentStat {
   user_id: string;
   display_name: string;
   profile_picture?: string | null;
+  frames?:string | null;
   points_scored: number;
   points_conceded: number;
   wins?: number;
@@ -85,12 +88,13 @@ const [visiblePlayers, setVisiblePlayers] = useState<string[]>([]);
 const [sortedStats, setSortedStats] = useState<TournamentStat[]>([]);
 const [playerStats, setPlayerStats] = useState<PlayerStat[]>([]);
 const [code, setCode] = useState<string>("");
+const [target, setTarget] = useState<number>(2001);
   useEffect(() => {
   const fetchStats = async () => {
     setLoading(true);
     const { data: join , error : tnmterror} = await supabase
       .from("tournaments")
-      .select("join_code")
+      .select("join_code, targetPoints")
       .eq("id", tournamentId)
       .single();
        if (tnmterror || !join) {
@@ -99,6 +103,7 @@ const [code, setCode] = useState<string>("");
       return;
     }
     setCode(join.join_code)
+    setTarget(join.targetPoints)
     // 1️⃣ Récupération des stats du tournoi
     const { data: statsData, error: statsError } = await supabase
       .from("tournament_stats")
@@ -117,7 +122,7 @@ const [code, setCode] = useState<string>("");
     console.log(userIds)
     const { data: usersData, error: usersError } = await supabase
       .from("users")
-      .select("id, display_name, profile_picture")
+      .select("id, display_name, profile_picture, profile_frame")
       .in("id", userIds);
 
     if (usersError || !usersData) {
@@ -132,6 +137,7 @@ const [code, setCode] = useState<string>("");
         ...s,
         display_name: user?.display_name ?? s.name_user ?? "Joueur inconnu",
         profile_picture: user?.profile_picture ?? null,
+        frames : user?.profile_frame ?? null,
       };
     });
 
@@ -267,18 +273,18 @@ if (loading)
     const item: any = { stat: axis };
     playerStats.forEach(p => {
       const totalGames = (p.wins ?? 0) + (p.losses ?? 0) || 1;
-      const attack = (p.pointsScored ?? 0) / totalGames;
-      const performance = ((p.pointsScored ?? 0) - (p.pointsConceded ?? 0)) / totalGames;
+      const attack = ((p.pointsScored ?? 0) / totalGames)/target;
+      const performance = (((p.pointsScored ?? 0) - (p.pointsConceded ?? 0)) / totalGames)/target;
       const coincheRate = (p.total_coinches ?? 0) > 0 ? (p.successful_coinches ?? 0) / (p.total_coinches ?? 1) : 0;
       const capots = Math.min((p.capots ?? 0), 20)*2/totalGames;
       const contracts = (p.contractsTaken ?? 0) > 0 ? (p.successful_contracts ?? 0) / (p.contractsTaken ?? 1) : 0;
 
       const normalized = {
-        Attack: attack,
-        Performance: performance,
-        Coinche: coincheRate * 10,
-        Capots: capots * 10,
-        Contracts: contracts * 10,
+        Attack: attack*100,
+        Performance: performance*100,
+        Coinche: coincheRate * 100,
+        Capots: Math.min(capots * 100,100),
+        Contracts: contracts * 100,
       };
 
       item[p.name.slice(0, 5)] = normalized[axis];
@@ -357,7 +363,7 @@ if (loading)
             }
           </div>
           <p className="text-xs text-gray-500">{label}</p>
-          <p className="font-semibold text-gray-900 truncate">{player.display_name}</p>
+          <p className="font-semibold text-gray-900 truncate">{player.display_name.slice(0,5)}</p>
           <p className="text-sm text-gray-600 mt-1">
             {label === "Meilleur marqueur" ? `${player.points_scored} pts marqués` : ""}
             {label === "Pire joueur" ? `${player.points_conceded} pts concédés` : ""}
@@ -384,12 +390,24 @@ if (loading)
                 className="flex justify-between items-center bg-gray-50 rounded-xl p-4 shadow hover:shadow-md transition"
               >
                 <div className="flex items-center gap-3">
+                  <div className="relative w-12 h-12 ">
                   {s?.profile_picture && typeof s.profile_picture === "string" && s.profile_picture.length > 0 ? 
                                   (<img src={s.profile_picture } alt={s.display_name} className="w-12 h-12 rounded-full border border-green-700 object-cover"/>) :(
                                                 <div className="w-12 h-12 flex items-center justify-center rounded-full border border-green-600 bg-green-200">
                                                   {s.display_name && s.display_name !== "À déterminer" ? s.display_name[0].toUpperCase() : <User size={16} />}
                                                 </div>
                                               )}
+                                              {s?.frames && (
+                                                  <img
+                                                    src={availableFrames[Number(s.frames) - 1]?.image}
+                                                    alt="Cadre décoratif"
+                                                    className="absolute -inset-0 w-auto h-auto pointer-events-none"
+                                                    style={{
+                                                                              transform: `scale(${availableFrames[Number(s.frames) - 1]?.scale || 1})`, // par défaut scale 1 si non défini
+                                                                            }}
+                                                  />
+                                                )}
+                  </div>
                     
                   <div>
                     <p className="font-semibold text-gray-900">{s.display_name}</p>
@@ -446,11 +464,11 @@ if (loading)
     Interprétation des axes
   </h4>
   <ul className="space-y-1 pl-2">
-    <li><span className="font-semibold text-green-900">🗡️ Attaque :</span> moyenne de points marqués par partie jouée.</li>
-    <li><span className="font-semibold text-green-900">⚖️ Performance :</span> différence moyenne entre points marqués et concédés.</li>
-    <li><span className="font-semibold text-green-900">🌀 Coinche :</span> taux de réussite des coinches.</li>
-    <li><span className="font-semibold text-green-900">🏆 Contrats :</span> taux de réussite des contrats pris.</li>
-    <li><span className="font-semibold text-green-900">💥 Capots :</span> fréquence de capots réussis.</li>
+    <li><span className="font-semibold text-green-900">🗡️ Attaque :</span> Pourcentage des points marqués pour une partie jouée.</li>
+    <li><span className="font-semibold text-green-900">⚖️ Performance :</span>  Différence moyenne entre points marqués et concédés. (ramené au % du score à atteindre)</li>
+    <li><span className="font-semibold text-green-900">🌀 Coinche :</span> Taux de réussite des coinches.</li>
+    <li><span className="font-semibold text-green-900">🏆 Contrats :</span> Taux de réussite des contrats pris.</li>
+    <li><span className="font-semibold text-green-900">💥 Capots :</span> Fréquence de capots par partie. (100 = au moins 1 par partie)</li>
   </ul>
   <p className="text-xs text-gray-500 mt-3">
     Chaque joueur est représenté par une couleur. Cliquez sur un nom dans la légende pour afficher uniquement son profil.

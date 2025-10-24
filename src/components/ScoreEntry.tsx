@@ -64,9 +64,9 @@ const [beloteModalTeam, setBeloteModalTeam] = useState<null | 'A' | 'B'>(null);
     setSurcoincher(editedHand.surcoincher ?? '');
     setWinningTeam(editedHand.winningTeam ?? 'A');
     setTeamScores({
-      A: editedHand.teamAScore ?? 0,
-      B: editedHand.teamBScore ?? 0,
-      C: editedHand.teamCScore ?? 0
+      A:  0,
+      B:  0,
+      C:  0
     });
     setBeloteTeam(editedHand.beloteRebeloteTeam ?? null);
     setPenalties(editedHand.penalties ?? []);

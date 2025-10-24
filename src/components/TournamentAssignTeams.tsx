@@ -8,6 +8,7 @@ interface PlayerTeam{
   name: string;
   team?: string;
   profile_picture?: string;
+  frames? : string | null; 
 }
 
 interface Tournament {
@@ -60,7 +61,7 @@ if (!playerIds.length) return [];
 
 const { data: userData, error } = await supabase
   .from("users")
-  .select("id, display_name, profile_picture")
+  .select("id, display_name, profile_picture, profile_frame")
   .filter("id", "in", `(${playerIds.map(id => `"${id}"`).join(",")})`);
 
 if (error) console.error("Supabase error:", error);
@@ -72,6 +73,7 @@ else console.log("userData:", userData);
           ...p,
           name: p.name || user?.display_name,
           profile_picture: user?.profile_picture || User,
+          frames: user?.profile_frame || null,
         };
       });
 
@@ -155,6 +157,7 @@ else console.log("userData:", userData);
   name: p.name,
   team: p.team || null,
   profile_picture: typeof p.profile_picture === "string" ? p.profile_picture : null,
+  frames : p?.frames || null,
 }));
 
   const { error: updateError } = await supabase

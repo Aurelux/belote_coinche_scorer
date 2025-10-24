@@ -8,6 +8,7 @@ import { SurcoincheSuccessAnimation } from './SurcoincheSuccessAnimation';
 import { PlayerConfirmationModal } from './PlayerConfirmationModal';
 import { PenaltyModal } from './PenaltyModal';
 import DealerSelector from "../components/DealerSelector";
+import {availableFrames } from '../types/game';
 
 export function GameBoard() {
   const { gameState, setCurrentScreen, startNewGame, resetGame, startRematch,navigateTo2, applyPenaltyToPlayer, navigateTo, goBack, nextDealer, setDealer} = useGame();
@@ -132,6 +133,7 @@ export function GameBoard() {
             <div key={player.id} className="flex items-center space-x-2">
               <div className={`w-2 h-2 bg-${teamColor}-500 rounded-full flex-shrink-0`}></div>
               <div className="flex items-center space-x-2 min-w-0 flex-1">
+                <div className="relative w-6 h-6 ">
                 {player.profilePicture ? (
                   <img
                     src={player.profilePicture}
@@ -141,6 +143,17 @@ export function GameBoard() {
                 ) : (
                   <User className="w-4 h-4 text-gray-400 flex-shrink-0" />
                 )}
+                {player.frames && (
+                    <img
+                      src={availableFrames[Number(player.frames) - 1]?.image}
+                      alt="Cadre décoratif"
+                      className="absolute -inset-0 w-auto h-auto pointer-events-none"
+                      style={{
+                          transform: `scale(${availableFrames[Number(player.frames) - 1]?.scale || 1})`, // par défaut scale 1 si non défini
+                        }}
+                    />
+                  )}
+                  </div>
                 <span className="text-gray-700 text-sm sm:text-base truncate">{player.name}</span>
                 {currentDealer && player.id === currentDealer.id && (
   <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full whitespace-nowrap">

@@ -20,6 +20,7 @@ export interface User {
   stats?: UserStats;
   achievements?: Achievement[];
   lastLoginAt?: Date;
+  frames? : string;
 }
 
 export interface Achievement {
@@ -348,3 +349,75 @@ export const DEALER_ROTATION_4P = [0, 2, 1, 3]; // Player indices for 4-player c
 
 
 
+export const availableFrames = [
+  {
+    id: 1,
+    image: '../src/frames/goldround.png',
+    title: 'Cadre du Champion',
+    description: 'Récompense réservée aux vainqueurs de tournoi. Montrez votre gloire à tous !',
+    scale : 1.5,
+  },
+  {
+    id: 2,
+    image: '../src/frames/grenouille1534.png',
+    title: 'Cadre de la Pompe à vélo',
+    description: 'Récompense réservée aux pompes à vélo (plus de 10 défaites de suite) !',
+    scale : 1.5,
+  },
+  {
+    id: 3,
+    image: '../src/frames/flowerfriend (1).png',
+    title: "Cadre de l'amitiée fusionnelle",
+    description: 'Récompense réservée aux grandes amitiées (plus de 50 partie avec votre ami) !',
+    scale : 1.5,
+  },
+  {
+    id: 4,
+    image: '../src/frames/allcolor (2).png',
+    title: 'Cadre du Maitre des victoires',
+    description: 'Récompense réservée aux grand victorieux (plus de 10 victoires de suite) !',
+    scale : 1.5,
+  },
+  {
+    id: 5,
+    image: '../src/frames/nuage.png',
+    title: 'Ce sont nos plis !',
+    description: 'Réalisez vos 10 premiers capots !',
+    scale : 1.25,
+  },
+   {
+    id: 6,
+    image: '../src/frames/debut.png',
+    title: 'Début du bonheur',
+    description: 'Jouez vos 5 premières parties',
+    scale : 1.25,
+  },
+   {
+    id: 7,
+    image: '../src/frames/dingue.png',
+    title: "Cadre de l'expérience",
+    description: 'Récompense réservée aux joueurs acharnés (plus de 300 parties )!',
+    scale : 1.5,
+  },
+   {
+    id: 8,
+    image: '../src/frames/5tournois.png',
+    title: 'Cadre de la Légende',
+    description: 'Récompense réservée aux multiples chamions de tournois ! (5 ou plus)',
+    scale : 1.25,
+  },
+  {
+    id: 9,
+    image: '../src/frames/capotblue.png',
+    title: "Cadre de la Légende des capots",
+    description: 'Récompense réservée aux accros des capots (100 capots)!',
+    scale : 1.5,
+  },
+   {
+    id: 10,
+    image: '../src/frames/roseround.png',
+    title: 'Cadre du Dieu des contrats',
+    description: 'Récompense réservée aux preneurs fou (300 contrats réussis) !',
+    scale : 1.5,
+  },
+];

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Trophy, Medal, Award, Crown, TrendingUp, Users, Target, Star,Globe, User } from 'lucide-react';
 import { useGame } from '../context/GameContext';
-import { PROFILE_TITLES } from '../types/game';
+import { PROFILE_TITLES, availableFrames } from '../types/game';
 import { supabase } from '../lib/supabase';
 
 
@@ -71,6 +71,8 @@ export function RankingsScreen() {
     setLoading(false);
   }
 };
+
+const currentUser = gameState.currentUser
 
 
 
@@ -355,6 +357,7 @@ export function RankingsScreen() {
 
                         {/* Player Info */}
                         <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
+                          <div className="relative w-8 h-8 sm:w-10 sm:h-10">
                           {player.profilePicture ? (
                             <img
                               src={player.profilePicture}
@@ -366,6 +369,17 @@ export function RankingsScreen() {
                               <Users className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
                             </div>
                           )}
+                          {player.frames && (
+    <img
+      src={availableFrames[Number(player.frames) - 1]?.image}
+      alt="Cadre décoratif"
+      className="absolute -inset-0 w-auto h-auto pointer-events-none"
+      style={{
+                                transform: `scale(${availableFrames[Number(player.frames) - 1]?.scale || 1})`, // par défaut scale 1 si non défini
+                              }}
+    />
+  )}
+  </div>
                           <div className="min-w-0 flex-1">
                             <div className="font-semibold text-gray-900 text-sm sm:text-base truncate">{player.name}</div>
                             <div className={`text-xs sm:text-sm font-medium truncate ${profileTitle?.color || 'text-gray-600'}`}>

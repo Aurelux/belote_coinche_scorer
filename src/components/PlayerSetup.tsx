@@ -48,12 +48,14 @@ export function PlayerSetup() {
         let userId: string | undefined;
         let profilePicture: string | undefined;
         let profileTitle: string | undefined;
+        let frames: string | undefined;
         
         if (index === 0 && gameState.currentUser) {
           // Current user
           userId = gameState.currentUser.id;
           profilePicture = gameState.currentUser.profilePicture;
           profileTitle = gameState.currentUser.profileTitle;
+          frames = gameState.currentUser.frames;
         } else {
           // Check if it's a registered user (from all users, not just friends)
           const registeredUser = gameState.users.find(
@@ -64,6 +66,7 @@ export function PlayerSetup() {
           userId = registeredUser.id;
           profilePicture = registeredUser.profilePicture;
           profileTitle = registeredUser.profileTitle;
+          frames = registeredUser.frames;
         } else {
           console.warn(`Aucun utilisateur trouvé pour le nom "${name.trim()}", ce joueur sera traité comme invité.`);
         }
@@ -76,7 +79,8 @@ export function PlayerSetup() {
           userId,
           profilePicture,
           profileTitle,
-          isGuest: !userId
+          isGuest: !userId,
+          frames
         };
       });
       
