@@ -28,7 +28,7 @@ export function RankingsScreen() {
     try {
       const { data, error } = await supabase
         .from('users')
-        .select('id, display_name, profile_picture, profile_title, stats'); // pas d'email
+        .select('id, display_name, profile_picture, profile_title, stats, profile_frame'); // pas d'email
       
       if (error) throw error;
 
@@ -37,6 +37,7 @@ export function RankingsScreen() {
         displayName: u.display_name,
         profilePicture: u.profile_picture,
         profileTitle: u.profile_title,
+        frames : u.profile_frame,
         stats: u.stats || {}
       }));
 
@@ -470,7 +471,7 @@ const currentUser = gameState.currentUser
         
 
         {/* Ranking Explanation */}
-        <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 mt-4 sm:mt-6">
+        <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 mt-4 sm:mt-6 mb-6">
           <h3 className="text-lg font-bold text-gray-900 mb-4">Comment fonctionne le classement ?</h3>
           <div className="space-y-3 text-sm text-gray-600">
             <p>

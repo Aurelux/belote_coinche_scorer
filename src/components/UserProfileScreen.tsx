@@ -3,7 +3,7 @@ import {
   ArrowLeft, Trophy, Target, Award, Crown, Users, Medal, BarChart3
 } from 'lucide-react';
 import { useGame } from '../context/GameContext';
-import { PROFILE_TITLES } from '../types/game';
+import { PROFILE_TITLES, availableFrames } from '../types/game';
 
 export function UserProfileScreen() {
   const { gameState, setCurrentScreen, goBack, navigateTo } = useGame();
@@ -70,7 +70,7 @@ export function UserProfileScreen() {
             >
               <ArrowLeft className="w-6 h-6" />
             </button>
-
+            <div className = "relative w-16 h-16">
             {user.profilePicture ? (
               <img
                 src={user.profilePicture}
@@ -82,6 +82,17 @@ export function UserProfileScreen() {
                 <Users className="w-8 h-8 text-white" />
               </div>
             )}
+            {user?.frames && (
+                                              <img
+                                                src={availableFrames[Number(user?.frames) - 1]?.image}
+                                                alt="Cadre décoratif"
+                                                className="absolute -inset-0 w-auto h-auto pointer-events-none"
+                                                style={{
+                                                                          transform: `scale(${availableFrames[Number(user?.frames) - 1]?.scale || 1})`, // par défaut scale 1 si non défini
+                                                                        }}
+                                              />
+                                            )}
+            </div>
 
             <div>
               <h1 className="text-2xl font-bold">{user.displayName}</h1>
@@ -115,8 +126,8 @@ export function UserProfileScreen() {
                 <span className="font-semibold text-red-600">{stats.totalPointsConceded}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Pénalités reçues</span>
-                <span className="font-semibold text-orange-600">{stats.totalPenalties}</span>
+                <span className="text-gray-600">Capots réalisés</span>
+                <span className="font-semibold text-orange-600">{stats?.totalCapots}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Moyenne par partie</span>
@@ -149,7 +160,7 @@ export function UserProfileScreen() {
         </div>
 
         {/* Stats par mode */}
-        <div className="bg-white text-gray-900 rounded-xl shadow-lg p-6">
+        <div className="bg-white text-gray-900 rounded-xl shadow-lg p-6 mt-6 mb-6">
           <h2 className="text-xl font-bold mb-4">Modes de jeu</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {['belote', 'coinche'].map((mode) => (
@@ -182,8 +193,8 @@ export function UserProfileScreen() {
                             <div className="text-gray-500">Score</div>
                           </div>
                           <div>
-                            <div className="font-bold text-orange-600">{modeStats.penalties}</div>
-                            <div className="text-gray-500">Pénalités</div>
+                            <div className="font-bold text-orange-600">{modeStats.risk ? modeStats.risk.toFixed(1): 80}</div>
+                            <div className="text-gray-500">Moy contrats</div>
                           </div>
                         </div>
                       </div>

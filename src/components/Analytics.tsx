@@ -8,14 +8,30 @@ export function Analytics() {
 
   if (!gameState.hands.length) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
+<div className="min-h-screen pt-safe pb-safe flex items-center justify-center p-4"
+
+     style={{
+
+       backgroundColor: '#042204', // vert très foncé
+
+       backgroundImage: `
+          radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px),
+          radial-gradient(circle, rgba(255,255,255,0.05) 1px, transparent 1px)
+        `,
+
+       backgroundPosition: '0 0, 10px 10px',
+
+       backgroundSize: '20px 20px'
+
+     }}
+
+>        <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
           <Trophy className="w-16 h-16 text-gray-400 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Aucune donnée</h2>
           <p className="text-gray-600 mb-6">Jouez quelques mains pour voir les statistiques !</p>
           <button
             onClick={() => navigateTo('game')}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
           >
             Retour au Jeu
           </button>
@@ -707,7 +723,7 @@ gameState.hands
           </div>
 
           {/* Team/Player B Stats */}
-          <div className="bg-white rounded-2xl shadow-xl p-6">
+          <div className="bg-white rounded-2xl shadow-xl p-6 mb-6">
             <h3 className="text-xl font-bold text-red-600 mb-6">
               Statistiques {gameState.settings.playerCount === 4 ? 'Équipe' : 'Joueur'} B
             </h3>
@@ -781,7 +797,7 @@ gameState.hands
 
           {/* Player C Stats (3-player mode) */}
           {gameState.settings.playerCount === 3 && (
-            <div className="bg-white rounded-2xl shadow-xl p-6">
+            <div className="bg-white rounded-2xl shadow-xl p-6 mb-6">
               <h3 className="text-xl font-bold text-green-600 mb-6">Statistiques Joueur C</h3>
               <div className="space-y-4">
                 {getTeamPlayers('C').map(player => {

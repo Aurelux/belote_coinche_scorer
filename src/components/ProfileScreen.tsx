@@ -977,7 +977,7 @@ console.log('Pire coéquipier:', worstTeammate2);
         </div>
 
         {/* Game Mode Statistics */}
-        <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6">
+        <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 mb-6">
           <h3 className="text-xl font-bold text-gray-900 mb-6">Statistiques par mode de jeu</h3>
           
           {/* User Rankings */}

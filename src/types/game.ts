@@ -1,3 +1,90 @@
+// imports en haut du fichier
+import goldRound from '../frames/goldround.png';
+import grenouille1534 from '../frames/grenouille1534.png';
+import flowerFriend from '../frames/flowerfriend (1).png';
+import allColor from '../frames/allcolor (2).png';
+import nuage from '../frames/nuage.png';
+import debut from '../frames/debut.png';
+import dingue from '../frames/dingue.png';
+import tournois5 from '../frames/5tournois.png';
+import capotBlue from '../frames/capotblue.png';
+import roseRound from '../frames/roseround.png';
+
+// tableau avec les imports
+export const availableFrames = [
+  {
+    id: 1,
+    image: goldRound,
+    title: 'Cadre du Champion',
+    description: 'Récompense réservée aux vainqueurs de tournoi. Montrez votre gloire à tous !',
+    scale: 1.5,
+  },
+  {
+    id: 2,
+    image: grenouille1534,
+    title: 'Cadre de la Pompe à vélo',
+    description: 'Récompense réservée aux pompes à vélo (plus de 10 défaites de suite) !',
+    scale: 1.5,
+  },
+  {
+    id: 3,
+    image: flowerFriend,
+    title: "Cadre de l'amitiée fusionnelle",
+    description: 'Récompense réservée aux grandes amitiés (plus de 50 partie avec votre ami) !',
+    scale: 1.5,
+  },
+  {
+    id: 4,
+    image: allColor,
+    title: 'Cadre du Maitre des victoires',
+    description: 'Récompense réservée aux grand victorieux (plus de 10 victoires de suite) !',
+    scale: 1.5,
+  },
+  {
+    id: 5,
+    image: nuage,
+    title: 'Ce sont nos plis !',
+    description: 'Réalisez vos 10 premiers capots !',
+    scale: 1.25,
+  },
+  {
+    id: 6,
+    image: debut,
+    title: 'Début du bonheur',
+    description: 'Jouez vos 5 premières parties',
+    scale: 1.25,
+  },
+  {
+    id: 7,
+    image: dingue,
+    title: "Cadre de l'expérience",
+    description: 'Récompense réservée aux joueurs acharnés (plus de 300 parties )!',
+    scale: 1.5,
+  },
+  {
+    id: 8,
+    image: tournois5,
+    title: 'Cadre de la Légende',
+    description: 'Récompense réservée aux multiples champions de tournois ! (5 ou plus)',
+    scale: 1.25,
+  },
+  {
+    id: 9,
+    image: capotBlue,
+    title: "Cadre de la Légende des capots",
+    description: 'Récompense réservée aux accros des capots (100 capots)!',
+    scale: 1.5,
+  },
+  {
+    id: 10,
+    image: roseRound,
+    title: 'Cadre du Dieu des contrats',
+    description: 'Récompense réservée aux preneurs fous (300 contrats réussis) !',
+    scale: 1.5,
+  },
+];
+
+
 export interface Player {
   id: string;
   name: string;
@@ -349,75 +436,3 @@ export const DEALER_ROTATION_4P = [0, 2, 1, 3]; // Player indices for 4-player c
 
 
 
-export const availableFrames = [
-  {
-    id: 1,
-    image: '../src/frames/goldround.png',
-    title: 'Cadre du Champion',
-    description: 'Récompense réservée aux vainqueurs de tournoi. Montrez votre gloire à tous !',
-    scale : 1.5,
-  },
-  {
-    id: 2,
-    image: '../src/frames/grenouille1534.png',
-    title: 'Cadre de la Pompe à vélo',
-    description: 'Récompense réservée aux pompes à vélo (plus de 10 défaites de suite) !',
-    scale : 1.5,
-  },
-  {
-    id: 3,
-    image: '../src/frames/flowerfriend (1).png',
-    title: "Cadre de l'amitiée fusionnelle",
-    description: 'Récompense réservée aux grandes amitiées (plus de 50 partie avec votre ami) !',
-    scale : 1.5,
-  },
-  {
-    id: 4,
-    image: '../src/frames/allcolor (2).png',
-    title: 'Cadre du Maitre des victoires',
-    description: 'Récompense réservée aux grand victorieux (plus de 10 victoires de suite) !',
-    scale : 1.5,
-  },
-  {
-    id: 5,
-    image: '../src/frames/nuage.png',
-    title: 'Ce sont nos plis !',
-    description: 'Réalisez vos 10 premiers capots !',
-    scale : 1.25,
-  },
-   {
-    id: 6,
-    image: '../src/frames/debut.png',
-    title: 'Début du bonheur',
-    description: 'Jouez vos 5 premières parties',
-    scale : 1.25,
-  },
-   {
-    id: 7,
-    image: '../src/frames/dingue.png',
-    title: "Cadre de l'expérience",
-    description: 'Récompense réservée aux joueurs acharnés (plus de 300 parties )!',
-    scale : 1.5,
-  },
-   {
-    id: 8,
-    image: '../src/frames/5tournois.png',
-    title: 'Cadre de la Légende',
-    description: 'Récompense réservée aux multiples chamions de tournois ! (5 ou plus)',
-    scale : 1.25,
-  },
-  {
-    id: 9,
-    image: '../src/frames/capotblue.png',
-    title: "Cadre de la Légende des capots",
-    description: 'Récompense réservée aux accros des capots (100 capots)!',
-    scale : 1.5,
-  },
-   {
-    id: 10,
-    image: '../src/frames/roseround.png',
-    title: 'Cadre du Dieu des contrats',
-    description: 'Récompense réservée aux preneurs fou (300 contrats réussis) !',
-    scale : 1.5,
-  },
-];

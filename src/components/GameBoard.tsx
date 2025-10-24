@@ -446,7 +446,7 @@ className="flex items-center space-x-2 px-4 py-3 text-base sm:px-3 sm:py-2 sm:te
 
           {/* Recent Hands */}
           {gameState.hands.length > 0 && (
-            <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6">
+            <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 mb-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Historique des mains</h3>
               <div className="space-y-3 max-h-64 overflow-y-auto">
                 {gameState.hands.slice().reverse().map(hand => {
