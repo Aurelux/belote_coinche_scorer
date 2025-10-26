@@ -360,7 +360,7 @@ export const PROFILE_TITLES = [
   { id: 'winrate_deb', title: 'Chaîne de Feu', description: '3 victoires de suites', color: 'text-bronze-600', requirement: 'winStreak', threshold: 3 },
   { id: 'winrate_spe', title: 'Séreal Winner', description: '5 victoires de suites', color: 'text-platinium-600', requirement: 'winStreak', threshold: 5 },
   { id: 'winrate_champ', title: 'Inarrêtable', description: '8 victoires de suites', color: 'text-silver-600', requirement: 'winStreak', threshold: 8 },
-  { id: 'winrate_legend', title: 'Écrasante Domination', description: '10 victoires de suites', color: 'text-gold-600', requirement: 'winStreak', threshold: 20 },
+  { id: 'winrate_legend', title: 'Écrasante Domination', description: '10 victoires de suites', color: 'text-gold-600', requirement: 'winStreak', threshold: 10 },
   { id: 'winrate_divine', title: 'Légende Vivante', description: '15 victoires de suites', color: 'text-emerald-600', requirement: 'winStreak', threshold: 15 },
 
   { id: 'lossrate_oops', title: 'Poissard', description: '3 défaites de suites', color: 'text-gray-600', requirement: 'lossStreak', threshold: 3 },
