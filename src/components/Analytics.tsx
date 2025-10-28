@@ -358,7 +358,7 @@ gameState.hands
 
   // King of the game (player with most points)
   const kingOfGame = playerStats.reduce((king, player) => 
-    player.pointsWon > king.pointsWon ? player : king
+    player.successfulCoinches > king.successfulCoinches ? player : king
   );
 
   // Most active taker
@@ -384,7 +384,7 @@ gameState.hands
 
   // Best coincher (highest success rate with at least 1 coinche)
   const bestCoincher = playerStats
-    .filter(p => p.coinches >= 1)
+    .filter(p => p.successfulCoinches >= 1)
     .reduce((best, player) => 
       player.coincheSuccessRate > best.coincheSuccessRate ? player : best, 
       { coincheSuccessRate: -1, name: 'Aucun' }
@@ -505,7 +505,7 @@ gameState.hands
                 <Crown className="w-6 h-6 text-purple-600" />
               </div>
               <div>
-                <div className="text-lg font-bold text-gray-900">{kingOfGame.name}</div>
+                <div className="text-lg font-bold text-gray-900">{kingOfGame.name.slice(0,5)}</div>
                 <div className="text-sm text-gray-600">Roi de la {gameState.settings.mode}</div>
               </div>
             </div>
@@ -517,7 +517,7 @@ gameState.hands
                 <Award className="w-6 h-6 text-green-600" />
               </div>
               <div>
-                <div className="text-lg font-bold text-gray-900">{bestScorer.name}</div>
+                <div className="text-lg font-bold text-gray-900">{bestScorer.name.slice(0,5)}</div>
                 <div className="text-sm text-gray-600">Meilleur marqueur</div>
                 <div className="text-xs text-gray-500">{bestScorer.pointsScored} pts</div>
               </div>
@@ -530,7 +530,7 @@ gameState.hands
                 <TrendingDown className="w-6 h-6 text-red-600" />
               </div>
               <div>
-                <div className="text-lg font-bold text-gray-900">{worstPlayer.name}</div>
+                <div className="text-lg font-bold text-gray-900">{worstPlayer.name.slice(0,5)}</div>
                 <div className="text-sm text-gray-600">Pire joueur</div>
                 <div className="text-xs text-gray-500">{worstPlayer.pointsConceded} pts concédés</div>
               </div>
@@ -661,7 +661,7 @@ gameState.hands
                   <div key={player.id} className="p-4 bg-blue-50 rounded-lg">
                     <div className="flex items-center justify-between mb-2">
                       <div className="font-semibold text-gray-900 flex items-center space-x-2">
-                        <span>{player.name}</span>
+                        <span>{player.name.slice(0,5)}</span>
                         {stats?.name === kingOfGame.name && (
                           <Crown className="w-4 h-4 text-yellow-500" />
                         )}
@@ -681,9 +681,9 @@ gameState.hands
                     </div>
                     <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
                       <div>
-                        <div>{stats?.handsWon} mains gagnées</div>
+                        <div>{stats?.contractsWon} mains gagnées</div>
                         <div>{stats?.handsTaken} mains prises</div>
-                        <div>{stats?.pointsWon} points totaux</div>
+                        
                         <div>{stats?.pointsScored} pts marqués</div>
                         <div>{stats?.beloteRebelotes} Belote-Rebelote</div>
                       </div>
@@ -734,7 +734,7 @@ gameState.hands
                   <div key={player.id} className="p-4 bg-red-50 rounded-lg">
                     <div className="flex items-center justify-between mb-2">
                       <div className="font-semibold text-gray-900 flex items-center space-x-2">
-                        <span>{player.name}</span>
+                        <span>{player.name.slice(0,5)}</span>
                         {stats?.name === kingOfGame.name && (
                           <Crown className="w-4 h-4 text-yellow-500" />
                         )}
@@ -754,9 +754,9 @@ gameState.hands
                     </div>
                     <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
                       <div>
-                        <div>{stats?.handsWon} mains gagnées</div>
+                        <div>{stats?.contractsWon} mains gagnées</div>
                         <div>{stats?.handsTaken} mains prises</div>
-                        <div>{stats?.pointsWon} points totaux</div>
+                        
                         <div>{stats?.pointsScored} pts marqués</div>
                         <div>{stats?.beloteRebelotes} Belote-Rebelote</div>
                       </div>
@@ -806,7 +806,7 @@ gameState.hands
                     <div key={player.id} className="p-4 bg-green-50 rounded-lg">
                       <div className="flex items-center justify-between mb-2">
                         <div className="font-semibold text-gray-900 flex items-center space-x-2">
-                          <span>{player.name}</span>
+                          <span>{player.name.slice(0,5)}</span>
                           {stats?.name === kingOfGame.name && (
                             <Crown className="w-4 h-4 text-yellow-500" />
                           )}
@@ -826,9 +826,9 @@ gameState.hands
                       </div>
                       <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
                         <div>
-                          <div>{stats?.handsWon} mains gagnées</div>
+                          <div>{stats?.contractsWon} mains gagnées</div>
                           <div>{stats?.handsTaken} mains prises</div>
-                          <div>{stats?.pointsWon} points totaux</div>
+                          
                           <div>{stats?.pointsScored} pts marqués</div>
                           <div>{stats?.beloteRebelotes} Belote-Rebelote</div>
                         </div>

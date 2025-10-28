@@ -881,7 +881,7 @@ console.log('Pire coéquipier:', worstTeammate2);
       </div>
       <div>
         <div className="text-xl sm:text-2xl font-bold text-gray-900">
-          {bestTeammate.name}
+          {bestTeammate.name.slice(0,5)}
         </div>
         <div className="text-xs sm:text-sm text-gray-600">
           {Math.round(bestTeammate.winRate*10)/10}% de victoires à tes côtés 
@@ -898,7 +898,7 @@ console.log('Pire coéquipier:', worstTeammate2);
       </div>
       <div>
         <div className="text-xl sm:text-2xl font-bold text-gray-900">
-          {worstTeammate2.name}
+          {worstTeammate2.name.slice(0,5)}
         </div>
         <div className="text-xs sm:text-sm text-gray-600">
           {Math.round(worstTeammate2.winRate*10)/10}% de victoires à tes côtés 

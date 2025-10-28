@@ -274,17 +274,19 @@ if (loading)
     playerStats.forEach(p => {
       const totalGames = (p.wins ?? 0) + (p.losses ?? 0) || 1;
       const attack = ((p.pointsScored ?? 0) / totalGames)/target;
-      const performance = (((p.pointsScored ?? 0) - (p.pointsConceded ?? 0)) / totalGames)/target;
+const performance = (p.pointsScored ?? 0) + (p.pointsConceded ?? 0)  > 0
+  ? Math.max(0, Math.min(100, ((p.pointsScored ?? 0) / ((p.pointsScored ?? 0) + (p.pointsConceded ?? 0))) * 100))
+  : 50;
       const coincheRate = (p.total_coinches ?? 0) > 0 ? (p.successful_coinches ?? 0) / (p.total_coinches ?? 1) : 0;
       const capots = Math.min((p.capots ?? 0), 20)*2/totalGames;
       const contracts = (p.contractsTaken ?? 0) > 0 ? (p.successful_contracts ?? 0) / (p.contractsTaken ?? 1) : 0;
 
       const normalized = {
-        Attack: attack*100,
-        Performance: performance*100,
-        Coinche: coincheRate * 100,
-        Capots: Math.min(capots * 100,100),
-        Contracts: contracts * 100,
+        Attack: Math.round(attack*100*10)/10,
+        Performance: Math.round(performance*10)/10,
+        Coinche: Math.round(coincheRate * 100*10)/10,
+        Capots: Math.round(Math.min(capots * 100,100)*10)/10,
+        Contracts: Math.round(contracts * 100*10)/10,
       };
 
       item[p.name.slice(0, 5)] = normalized[axis];
@@ -465,7 +467,7 @@ if (loading)
   </h4>
   <ul className="space-y-1 pl-2">
     <li><span className="font-semibold text-green-900">🗡️ Attaque :</span> Pourcentage des points marqués pour une partie jouée.</li>
-    <li><span className="font-semibold text-green-900">⚖️ Performance :</span>  Différence moyenne entre points marqués et concédés. (ramené au % du score à atteindre)</li>
+    <li><span className="font-semibold text-green-900">⚖️ Performance :</span>La proportion de points gagnés par rapport au total de points impliquant le joueur (gagnés + concédés).</li>
     <li><span className="font-semibold text-green-900">🌀 Coinche :</span> Taux de réussite des coinches.</li>
     <li><span className="font-semibold text-green-900">🏆 Contrats :</span> Taux de réussite des contrats pris.</li>
     <li><span className="font-semibold text-green-900">💥 Capots :</span> Fréquence de capots par partie. (100 = au moins 1 par partie)</li>
