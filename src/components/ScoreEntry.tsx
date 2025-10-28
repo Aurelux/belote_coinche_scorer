@@ -29,6 +29,7 @@ export function ScoreEntry({ onClose, onSubmit, editedHand }: ScoreEntryProps) {
     points: 50,
     reason: ''
   });
+  const [editedh,seteditedh] = useState<Hand | null>(null);
   const [lastChangedTeam, setLastChangedTeam] = useState<'A' | 'B' | 'C' | null>(null);
   const [previousChangedTeam, setPreviousChangedTeam] = useState<string | null>(null);
   const [beloteCounts, setBeloteCounts] = useState<{ A: number; B: number; C: number }>({ A: 0, B: 0, C: 0 });
@@ -632,6 +633,7 @@ return () => clearTimeout(handler);
     
   addHand(handData);
   onSubmit(handData);
+  editedHand = null;
 
     
   };

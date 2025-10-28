@@ -346,32 +346,32 @@ export const PROFILE_TITLES = [
   
   { id: 'veteran', title: 'Vétéran', description: '50 parties jouées', color: 'text-emerald-600', requirement: 'totalGames', threshold: 50 },
   { id: 'champion', title: 'Champion', description: '100 victoires', color: 'text-amber-600', requirement: 'totalWins', threshold: 100 },
-  { id: 'legend', title: 'Légende', description: '150 parties jouées', color: 'text-gradient-to-r from-yellow-500 to-red-500', requirement: 'totalGames', threshold: 150 },
-  { id: 'immortal', title: 'Immortel', description: '300 parties jouées', color: 'text-gradient-to-r from-purple-500 to-pink-500', requirement: 'totalGames', threshold: 300 },
+  { id: 'legend', title: 'Légende', description: '150 parties jouées', color: 'text-purple-600', requirement: 'totalGames', threshold: 150 },
+  { id: 'immortal', title: 'Immortel', description: '300 parties jouées', color: 'text-red-600', requirement: 'totalGames', threshold: 300 },
   
   { id: 'scorer', title: 'Marqueur', description: '10000 points marqués', color: 'text-teal-600', requirement: 'totalPointsScored', threshold: 10000 },
   { id: 'high_scorer', title: 'Grand Marqueur', description: '25000 points marqués', color: 'text-cyan-600', requirement: 'totalPointsScored', threshold: 25000 },
-  { id: 'point_master', title: 'Maître des Points', description: '50000 points marqués', color: 'text-gradient-to-r from-blue-500 to-teal-500', requirement: 'totalPointsScored', threshold: 50000 },
+  { id: 'point_master', title: 'Maître des Points', description: '50000 points marqués', color: 'text-pink-600', requirement: 'totalPointsScored', threshold: 50000 },
   { id: 'point_god', title: 'Accro des points', description: '150000 points marqués', color: 'text-violet-500', requirement: 'totalPointsScored', threshold: 150000 },
 
   { id: 'belote_specialist', title: 'Spécialiste Belote', description: '50 Belote-Rebelote', color: 'text-rose-600', requirement: 'beloteRebelotes', threshold: 50 },
   { id: 'contract_master', title: 'Maître des Contrats', description: '100 contrats réussis', color: 'text-violet-600', requirement: 'successfulContracts', threshold: 100 },
   { id: 'contract_god', title: 'Dieu des Contrats', description: '300 contrats réussis', color: 'text-red-600', requirement: 'successfulContracts', threshold: 300 },
-  { id: 'winrate_deb', title: 'Chaîne de Feu', description: '3 victoires de suites', color: 'text-bronze-600', requirement: 'winStreak', threshold: 3 },
-  { id: 'winrate_spe', title: 'Séreal Winner', description: '5 victoires de suites', color: 'text-platinium-600', requirement: 'winStreak', threshold: 5 },
-  { id: 'winrate_champ', title: 'Inarrêtable', description: '8 victoires de suites', color: 'text-silver-600', requirement: 'winStreak', threshold: 8 },
-  { id: 'winrate_legend', title: 'Écrasante Domination', description: '10 victoires de suites', color: 'text-gold-600', requirement: 'winStreak', threshold: 10 },
-  { id: 'winrate_divine', title: 'Légende Vivante', description: '15 victoires de suites', color: 'text-emerald-600', requirement: 'winStreak', threshold: 15 },
+  { id: 'winrate_deb', title: 'Chaîne de Feu', description: '3 victoires de suites', color: 'text-emerald-600', requirement: 'winStreak', threshold: 3 },
+  { id: 'winrate_spe', title: 'Séreal Winner', description: '5 victoires de suites', color: 'text-cyan-600', requirement: 'winStreak', threshold: 5 },
+  { id: 'winrate_champ', title: 'Inarrêtable', description: '8 victoires de suites', color: 'text-blue-600', requirement: 'winStreak', threshold: 8 },
+  { id: 'winrate_legend', title: 'Écrasante Domination', description: '10 victoires de suites', color: 'text-purple-600', requirement: 'winStreak', threshold: 10 },
+  { id: 'winrate_divine', title: 'Légende Vivante', description: '15 victoires de suites', color: 'text-red-600', requirement: 'winStreak', threshold: 15 },
 
-  { id: 'lossrate_oops', title: 'Poissard', description: '3 défaites de suites', color: 'text-gray-600', requirement: 'lossStreak', threshold: 3 },
-  { id: 'lossrate_ghost', title: 'Fantôme du Jeu', description: '5 défaites de suites', color: 'text-bluegray-600', requirement: 'lossStreak', threshold: 5 },
+  { id: 'lossrate_oops', title: 'Poissard', description: '3 défaites de suites', color: 'text-gray-400', requirement: 'lossStreak', threshold: 3 },
+  { id: 'lossrate_ghost', title: 'Fantôme du Jeu', description: '5 défaites de suites', color: 'text-green-800', requirement: 'lossStreak', threshold: 5 },
   { id: 'lossrate_punchbag', title: 'Sac de Frappe', description: '8 défaites de suites', color: 'text-red-600', requirement: 'lossStreak', threshold:8 },
   { id: 'lossrate_clown', title: 'Pompe à vélo', description: '10 défaites de suites', color: 'text-amber-600', requirement: 'lossStreak', threshold: 10 },
-  { id: 'lossrate_downfall', title: 'Descente aux Enfers', description: '15 défaites de suites', color: 'text-black-600', requirement: 'lossStreak', threshold: 15},
+  { id: 'lossrate_downfall', title: 'Descente aux Enfers', description: '15 défaites de suites', color: 'text-red-600', requirement: 'lossStreak', threshold: 15},
   // Win rate based titles
 
   { id: 'pastis', title: 'Tournée de Pastis', description: "Faire un score qu'avec des 5/1", color: 'text-yellow-600', requirement: 'isPastis', threshold: 1 },
-  { id: 'biere', title: 'Tournée de Bière', description: "Faire un score qu'avec des 8/6", color: 'text-bluegray-600', requirement: 'isBiere', threshold: 1 },
+  { id: 'biere', title: 'Tournée de Bière', description: "Faire un score qu'avec des 8/6", color: 'text-green-600', requirement: 'isBiere', threshold: 1 },
   { id: 'tempete', title: 'Tempête sous la couette', description: "Faire un score qu'avec des 6/9", color: 'text-red-600', requirement: 'isTempete', threshold: 1 },
 
   { 
@@ -387,7 +387,7 @@ export const PROFILE_TITLES = [
   id: 'ame_soeur', 
   title: 'Âme Sœur de Belote', 
   description: "Atteindre 30 parties avec ton coéquipier le plus joué", 
-  color: 'text-rose-600', 
+  color: 'text-pink-600', 
   requirement: 'mostPlayedWith', 
   threshold: 30 
 },
@@ -395,7 +395,7 @@ export const PROFILE_TITLES = [
   id: 'indeboulonnable_duo', 
   title: 'Indéboulonnable Duo', 
   description: "50 parties jouées avec le même joueur à tes côtés", 
-  color: 'text-indigo-700', 
+  color: 'text-purple-700', 
   requirement: 'mostPlayedWith', 
   threshold: 50 
 },
@@ -426,7 +426,7 @@ export const PROFILE_TITLES = [
 ,
   
   { id: 'winner', title: 'Gagnant', description: '60% de victoires (min 50 parties)', color: 'text-green-700', requirement: 'winRate', threshold: 60, minGames: 50 },
-  { id: 'dominator', title: 'Dominateur', description: '60% de victoires (min 100 parties)', color: 'text-gradient-to-r from-green-600 to-emerald-600', requirement: 'winRate', threshold: 60, minGames: 100 }
+  { id: 'dominator', title: 'Dominateur', description: '60% de victoires (min 100 parties)', color: 'text-red-800', requirement: 'winRate', threshold: 60, minGames: 100 }
 
   
 ];

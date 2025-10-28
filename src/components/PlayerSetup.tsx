@@ -3,10 +3,11 @@ import { HelpCircle,Users, ArrowRight, Search, UserPlus, X, ArrowLeft} from 'luc
 import { useGame } from '../context/GameContext';
 import { PlayerConfirmationModal } from './PlayerConfirmationModal';
 import { Player } from '../types/game';
-import { debounce } from 'lodash'; // ou tu peux coder ton propre debounce
+import { debounce } from 'lodash'; 
+import { supabase } from '../lib/supabase';// ou tu peux coder ton propre debounce
 
 export function PlayerSetup() {
-  const { gameState, setPlayers, setCurrentScreen, searchUsers, sendFriendRequest, showPlayerConfirmationModal, goBack, navigateTo } = useGame();
+  const { gameState, setPlayers, setCurrentScreen,createEmptyUserStats, searchUsers, sendFriendRequest, showPlayerConfirmationModal, goBack, navigateTo } = useGame();
   const [playerCount, setPlayerCount] = useState<2 | 3 | 4>(4);
   const [playerInputs, setPlayerInputs] = useState(['', '', '', '']);
   const [searchResults, setSearchResults] = useState<any[]>([]);
@@ -16,6 +17,34 @@ export function PlayerSetup() {
 
   // Pre-fill current user's name
   useEffect(() => {
+    const fetchUsers = async () => {
+      const { data, error } = await supabase
+        .from("users")
+        .select("*");
+      
+      if (!error && data) {
+        const h = data.map(u => ({
+          id: u.id,
+          displayName: u.display_name,
+          email: u.email,
+          profilePicture: u.profile_picture,
+          frames : u.profile_frame,
+          accessCode: u.access_code,
+          profileTitle: u.profile_title,
+          friends: [],
+          createdAt: new Date(u.created_at),
+          stats: u.stats || createEmptyUserStats(),
+          achievements: [],
+          lastLoginAt: new Date()
+        }))
+        gameState.users = h;
+      }
+    };
+
+    fetchUsers();
+  }, []);
+  useEffect(() => {
+    
     if (gameState.currentUser) {
       setPlayerInputs(prev => {
         const newInputs = [...prev];
@@ -58,6 +87,7 @@ export function PlayerSetup() {
           frames = gameState.currentUser.frames;
         } else {
           // Check if it's a registered user (from all users, not just friends)
+          
           const registeredUser = gameState.users.find(
           u => u.displayName.toLowerCase() === name.trim().toLowerCase()
         );
@@ -102,6 +132,8 @@ const handleInputChange = (index: number, value: string) => {
   setActiveInputIndex(index);
   debouncedSearch(index, value);
 };
+
+
 
 const debouncedSearch = debounce(async (index: number, value: string) => {
   if (!value.trim()) {

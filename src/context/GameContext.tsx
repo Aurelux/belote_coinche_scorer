@@ -15,6 +15,7 @@ setGameState: (newState: Partial<GameState>) => void;
   goBack: () => void;
   setPlayers: (players: Player[]) => void;
   setGameSettings: (settings: GameSettings) => void;
+  createEmptyUserStats: () => UserStats;
   addHand: (hand: Omit<Hand, 'id' | 'handNumber' | 'timestamp'>) => void;
   resetGame: () => void;
   startNewGame: () => void;
@@ -2007,7 +2008,9 @@ const isAfter = (dateA: Date, dateB: Date): boolean => {
     const { data: results, error } = await supabase
         .from('users')
         .select('*')
-        .or(`noaccent_name.ilike.%${query}%`);
+        .or(`noaccent_name.ilike.%${query}%`)
+        .throwOnError()
+  .then((res) => res);
     console.log(results)
 
     if (error) throw error;
@@ -2636,7 +2639,8 @@ const getTimeFrameUserRankings = async (
       loadMatchHistory,
       setDealer,
       nextDealer,
-      reportMatchResult
+      reportMatchResult,
+      createEmptyUserStats,
     }}>
       {children}
     </GameContext.Provider>

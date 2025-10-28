@@ -570,7 +570,12 @@ className="flex items-center space-x-2 px-4 py-3 text-base sm:px-3 sm:py-2 sm:te
       setShowScoreEntry(false);
       setEditedHand(null); // reset après fermeture
     }}
-    onSubmit={handleScoreSubmit}
+    onSubmit={() => {
+  
+  handleScoreSubmit;
+  setEditedHand(null);
+  setShowScoreEntry(false);
+}}
     editedHand={editedHand} // 👈 passe-la ici
   />
 )}

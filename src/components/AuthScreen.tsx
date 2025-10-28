@@ -218,7 +218,7 @@ const letsInvite = () => {
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all duration-200"
                 >
                   {defaultTitles.map(title => (
-                    <option key={title.id} value={title.id}>
+                    <option key={title.title} value={title.title}>
                       {title.title} - {title.description}
                     </option>
                   ))}
