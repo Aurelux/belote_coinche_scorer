@@ -412,7 +412,7 @@ const currentUser = gameState.currentUser
                       <div className="flex justify-between text-xs text-gray-600">
                         <span>{player.winRate.toFixed(1)}% victoires</span>
                         <span>{player.averagePoints.toFixed(0)} pts/partie</span>
-                        {selectedMode === 'coinche' && (
+                        {selectedMode === 'coinche' && selectedTimeFrame === 'all' && (
                           <span>
   {player.totalCoinches} {player.totalCoinches <= 1 ? "coinche" : "coinches"}
 </span>
@@ -478,13 +478,13 @@ const currentUser = gameState.currentUser
               <strong>Score de classement</strong> : Formule avancée basée sur :
             </p>
             <ul className="list-disc list-inside space-y-1 ml-4">
-              <li><strong>Taux de victoire</strong> (0-40 points) : Pourcentage de parties gagnées</li>
+              <li><strong>Taux de victoire</strong> (0-45 points) : Pourcentage de parties gagnées</li>
               <li><strong>Bonus expérience</strong> (un poids entre 0.7 et 1) : Récompense le nombre de parties jouées</li>
-              <li><strong>Bonus performance</strong> (max 40 points) : Ratio points marqués/concédés</li>
-              <li><strong>Bonus coinche</strong> (max 10 points) : Taux de réussite des coinches</li>
-              <li><strong>Bonus contrats et activté</strong> (max 15 points) : Taux de réussite des contrats pris*nombre de conrtat pris par parties</li>
-              <li><strong>Bonus capots</strong> (max 10 points) : Nombre de capots réalisés par partie</li>
-              <li><strong>Malus pénalités</strong> (max -10 points) : Pénalités reçues</li>
+              <li><strong>Bonus performance</strong> (max 50 points) : Ratio points marqués/concédés</li>
+              <li><strong>Bonus coinche</strong> (max 11 points) : Taux de réussite des coinches</li>
+              <li><strong>Bonus contrats et activté</strong> (max 20 points) : Taux de réussite des contrats pris*nombre de contrat pris par parties</li>
+              <li><strong>Bonus capots</strong> (max 12 points) : Nombre de capots réalisés par partie</li>
+              
             </ul>
             <p className="text-xs text-gray-500 mt-3">
               * Certaines parties peuvent etre annulées et non comptabilisées (algo d'anti-triche).

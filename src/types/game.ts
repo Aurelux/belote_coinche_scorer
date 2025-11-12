@@ -6,9 +6,12 @@ import allColor from '../frames/allcolor (2).png';
 import nuage from '../frames/nuage.png';
 import debut from '../frames/debut.png';
 import dingue from '../frames/dingue.png';
-import tournois5 from '../frames/5tournois.png';
+import tournois5 from '../frames/gold5-removebg-preview.png';
 import capotBlue from '../frames/capotblue.png';
 import roseRound from '../frames/roseround.png';
+import tournois10 from '../frames/gold10-removebg-preview.png';
+import cat from '../frames/cat-removebg-preview.png';
+import star from '../frames/star-removebg-preview.png';
 
 // tableau avec les imports
 export const availableFrames = [
@@ -65,9 +68,10 @@ export const availableFrames = [
     id: 8,
     image: tournois5,
     title: 'Cadre de la Légende',
-    description: 'Récompense réservée aux multiples champions de tournois ! (5 ou plus)',
-    scale: 1.25,
+    description: 'Récompense réservée aux multiples champions de tournois ! (5)',
+    scale: 1.5,
   },
+  
   {
     id: 9,
     image: capotBlue,
@@ -82,6 +86,27 @@ export const availableFrames = [
     description: 'Récompense réservée aux preneurs fous (300 contrats réussis) !',
     scale: 1.5,
   },
+  {
+    id: 11,
+    image: tournois10,
+    title: 'Cadre du Faker de la Belote/Coinche',
+    description: 'Récompense réservée aux multiples champions de tournois ! (10)',
+    scale: 1.5,
+  },
+  {
+    id: 12,
+    image: star,
+    title: 'Cadre du Dieu de la Coinche',
+    description: 'Récompense réservée aux coincheurs fou (75 coinches réussis) !',
+    scale: 1.5,
+  },
+  {
+    id: 13,
+    image: cat,
+    title: 'Retomber sur ses pattes',
+    description: 'Récompense réservée a ceux qui ont su se ressaisir (7 défaites et 7 victoires de suite)',
+    scale: 1.5,
+  }
 ];
 
 
@@ -373,6 +398,7 @@ export const PROFILE_TITLES = [
   { id: 'pastis', title: 'Tournée de Pastis', description: "Faire un score qu'avec des 5/1", color: 'text-yellow-600', requirement: 'isPastis', threshold: 1 },
   { id: 'biere', title: 'Tournée de Bière', description: "Faire un score qu'avec des 8/6", color: 'text-green-600', requirement: 'isBiere', threshold: 1 },
   { id: 'tempete', title: 'Tempête sous la couette', description: "Faire un score qu'avec des 6/9", color: 'text-red-600', requirement: 'isTempete', threshold: 1 },
+  { id: 'caracaca', title: 'Caracaca !', description: "Faire un score final avec un 44", color: 'text-red-600', requirement: 'isCaracaca', threshold: 1 },
 
   { 
   id: 'duo_fidele', 

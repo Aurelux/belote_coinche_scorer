@@ -120,6 +120,13 @@ if (count >= 5) {
     prev.includes("8") ? prev : [...prev, "8"]
   );
 }
+
+if (count >= 10) {
+  setUnlockedCadre(prev => 
+    prev.includes("11") ? prev : [...prev, "11"]
+  );
+}
+
       
     } catch (err) {
       console.error("Erreur lors du chargement du tournoi :", err);
@@ -212,6 +219,8 @@ function getPersistentFlag(key: string, allowedDigits: string[]): boolean {
 }
 
 const isPastis = getPersistentFlag('isPastis', ['5', '1']);
+const iscaracaca = getPersistentFlag('isCaracaca', ['4', '4']);
+console.log('regardele caca : ', iscaracaca)
 const isBiere = getPersistentFlag('isBiere', ['8', '6']);
 const isTempete = getPersistentFlag('isTempete', ['6', '9']);
 
@@ -415,6 +424,13 @@ console.log('Pire coéquipier:', worstTeammate2);
         return currentValue >= title.threshold && meetsMinGames;
         
       }
+      console.log(iscaracaca)
+      if (title.requirement === 'isCaracaca'){
+        
+        currentValue = iscaracaca? 1 : 0
+        return currentValue >= title.threshold && meetsMinGames;
+        
+      }
 
   if (title.customCheck && typeof customChecks[title.customCheck] === 'function') {
     return customChecks[title.customCheck](playerGames) && meetsMinGames;
@@ -434,6 +450,12 @@ console.log('Pire coéquipier:', worstTeammate2);
       setUpdating(false);
     }
   };
+
+  if(winStreak>6 && lossStreak>6 && !unlockedCadre.includes("13")){
+setUnlockedCadre(prev => 
+    prev.includes("13") ? prev : [...prev, "13"]
+  );
+  }
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -549,7 +571,6 @@ console.log('Pire coéquipier:', worstTeammate2);
                       <Edit className="w-3 h-3 sm:w-4 sm:h-4" />
                     </button>
                   </div>
-                  <p className="text-sm sm:text-base text-gray-600 truncate">{currentUser.email}</p>
                   <p className="text-xs sm:text-sm text-gray-500">
                     Membre depuis {new Intl.DateTimeFormat('fr-FR', { 
                       year: 'numeric', 
@@ -884,7 +905,7 @@ console.log('Pire coéquipier:', worstTeammate2);
           {bestTeammate.name.slice(0,5)}
         </div>
         <div className="text-xs sm:text-sm text-gray-600">
-          {Math.round(bestTeammate.winRate*10)/10}% de victoires à tes côtés 
+          {Math.round(bestTeammate.winRate*10)/10}% de victoires à tes côtés avec {Math.round(bestTeammate.games)} parties.
         </div>
       </div>
     </div>
@@ -901,7 +922,7 @@ console.log('Pire coéquipier:', worstTeammate2);
           {worstTeammate2.name.slice(0,5)}
         </div>
         <div className="text-xs sm:text-sm text-gray-600">
-          {Math.round(worstTeammate2.winRate*10)/10}% de victoires à tes côtés 
+          {Math.round(worstTeammate2.winRate*10)/10}% de victoires à tes côtés avec {Math.round(worstTeammate2.games)} parties.
         </div>
       </div>
     </div>
@@ -1148,9 +1169,10 @@ console.log('Pire coéquipier:', worstTeammate2);
   // Ajoute-le à la liste des titres débloqués pour éviter de le redéclencher
   setUnlockedTitles(prev => [...prev, title.id]);
 }
-if (isUnlocked && title.requirement === 'successfulCoinches' && title.threshold >= 100 && !unlockedCadre.includes("5")) {
+
+if (isUnlocked && title.requirement === 'successfulCoinches' && title.threshold >= 75 && !unlockedCadre.includes("12")) {
   setUnlockedCadre(prev => 
-    prev.includes("5") ? prev : [...prev, "5"]
+    prev.includes("12") ? prev : [...prev, "12"]
   );
 }
 if (isUnlocked && title.requirement === 'successfulContracts' && title.threshold >= 300 && !unlockedCadre.includes("10")) {
@@ -1219,6 +1241,18 @@ if (isUnlocked && title.threshold>=10 && !unlockedCadre.includes("2")){
       }
       if (title.requirement === 'isPastis'){
         currentValue = isPastis? 1 : 0
+        isUnlocked = currentValue >= title.threshold && meetsMinGames;
+        if (isUnlocked && !unlockedTitles.includes(title.id)) {
+  // Nouveau défi débloqué !
+  addNotification(title.id,`Défi débloqué : ${title.title} 🎉`);
+
+  // Ajoute-le à la liste des titres débloqués pour éviter de le redéclencher
+  setUnlockedTitles(prev => [...prev, title.id]);
+}
+        progress = Math.min((currentValue / title.threshold) * 100, 100);
+      }
+      if (title.requirement === 'isCaracaca'){
+        currentValue = iscaracaca? 1 : 0
         isUnlocked = currentValue >= title.threshold && meetsMinGames;
         if (isUnlocked && !unlockedTitles.includes(title.id)) {
   // Nouveau défi débloqué !

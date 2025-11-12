@@ -7,7 +7,7 @@ export function GameModeSelection() {
   const { gameState, setGameSettings, setCurrentScreen, goBack, navigateTo, startNewGame } = useGame();
   const [selectedMode, setSelectedMode] = React.useState<'belote' | 'coinche'>('belote');
   const [withAnnouncements, setWithAnnouncements] = React.useState(false);
-  const [targetScore, setTargetScore] = React.useState(501);
+  const [targetScore, setTargetScore] = React.useState(1001);
 
   const playerCount = gameState.players.length as 2 | 3 | 4;
 

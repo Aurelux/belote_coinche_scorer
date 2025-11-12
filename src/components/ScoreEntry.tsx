@@ -861,22 +861,28 @@ return () => clearTimeout(handler);
                     Capot
                   </button>
                   <button
-                    type="button"
-                    onClick={() => setBid(prev => ({ 
-                      ...prev, 
-                      value: 500,
-                      suit: prev?.suit || 'hearts',
-                      player: taker || allPlayers[0].id,
-                      type: 'general'
-                    }))}
-                    className={`p-3 rounded-xl border-2 transition-all duration-200 ${
-                      bid?.value === 500 & bid?.type === 'general'
-                        ? 'border-purple-500 bg-purple-50 text-purple-700'
-                        : 'border-gray-200 hover:border-gray-300 bg-gray-50 text-gray-700'
-                    }`}
-                  >
-                    Général
-                  </button>
+  type="button"
+  disabled={gameState.settings.isTournament}
+  onClick={() =>
+    setBid(prev => ({
+      ...prev,
+      value: 500,
+      suit: prev?.suit || 'hearts',
+      player: taker || allPlayers[0].id,
+      type: 'general'
+    }))
+  }
+  className={`p-3 rounded-xl border-2 transition-all duration-200
+    ${
+      bid?.value === 500 && bid?.type === 'general'
+        ? 'border-purple-500 bg-purple-50 text-purple-700'
+        : 'border-gray-200 hover:border-gray-300 bg-gray-50 text-gray-700'
+    }
+    ${gameState.settings.isTournament ? 'opacity-50 cursor-not-allowed' : ''}
+  `}
+>
+  Général
+</button>
                 </div>
               </div>
             )}

@@ -2319,8 +2319,8 @@ const getTimeFrameUserRankings = async (
         const teamKey = player.team === 'A' ? 'teamA' : 'teamB';
         const opponentKey = player.team === 'A' ? 'teamB' : 'teamA';
 
-        const teamPoints = match.final_scores?.[teamKey] || 0;
-        const otherTeamPoints = match.final_scores?.[opponentKey] || 0;
+        const teamPoints = match.final_scores?.[teamKey]/2 || 0;
+        const otherTeamPoints = match.final_scores?.[opponentKey]/2 || 0;
 
         // Normaliser les points selon targetScore
         const normalizedPoints = (teamPoints / targetScore) * 2000;

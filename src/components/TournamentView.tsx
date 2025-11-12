@@ -2460,35 +2460,42 @@ const matchToPlay = Array.from(roundsMap.values()).flat();
                         {/* Team A */}
                         <div className="flex items-center gap-2">
                           {teamA.map((p, idx) => (
-                            <div
-                              key={idx}
-                              className="w-10 h-10 rounded-full border-2 border-green-500 bg-green-100 flex items-center justify-center"
-                            >
-                            
-                              {p?.profile_picture ? (
-                                <img
-                                  src={p.profile_picture}
-                                  alt={p.name}
-                                  className="object-cover w-10 h-10 rounded-full flex-shrink-0"
-                                />
-                              ) : (
-                                <span className="font-bold text-green-800 text-sm">
-                                  {p?.name ? p.name[0].toUpperCase() : "?"}
-                                </span>
-                              )}
-                              {p?.frames && (
-                                  <img
-                                    src={availableFrames[Number(p?.frames) - 1]?.image}
-                                    alt="Cadre décoratif"
-                                    className="absolute -inset-0 w-auto h-auto pointer-events-none"
-                                    style={{
-                                                              transform: `scale(${availableFrames[Number(p?.frames) - 1]?.scale || 1})`, // par défaut scale 1 si non défini
-                                                            }}
-                                  />
-                                )}
-                              
-                            </div>
-                          ))}
+  <div
+    key={idx}
+    className="relative w-10 h-10 rounded-full flex items-center justify-center"
+  >
+    {/* Image ou initiale */}
+    {p?.profile_picture ? (
+      <img
+        src={p.profile_picture}
+        alt={p.name}
+        className="object-cover w-10 h-10 rounded-full"
+      />
+    ) : (
+      <span className="font-bold text-green-800 text-sm">
+        {p?.name ? p.name[0].toUpperCase() : "?"}
+      </span>
+    )}
+
+    {/* Cadre décoratif par-dessus l'image */}
+    {p?.frames && (
+      <img
+        src={availableFrames[Number(p.frames) - 1]?.image}
+        alt="Cadre décoratif"
+        className="absolute inset-0 w-10 h-10 rounded-full pointer-events-none"
+        style={{
+          transform: `scale(${
+            availableFrames[Number(p.frames) - 1]?.scale || 1.1
+          })`, // légère mise à l'échelle du cadre
+        }}
+      />
+    )}
+
+    {/* Bordure de base (si tu veux garder ton style d'avant) */}
+    <div className="absolute inset-0 rounded-full border-2 border-green-500 pointer-events-none"></div>
+  </div>
+))}
+
                         </div>
 
                         <div className="text-green-600 font-extrabold text-lg tracking-widest">
@@ -2498,35 +2505,42 @@ const matchToPlay = Array.from(roundsMap.values()).flat();
                         {/* Team B */}
                         <div className="flex items-center gap-2">
                           {teamB.map((p, idx) => (
-                            <div
-                              key={idx}
-                              className="w-10 h-10 rounded-full border-2 border-green-500 bg-green-100  flex items-center justify-center"
-                            >
-                              
-                              {p?.profile_picture ? (
-                                <img
-                                  src={p.profile_picture}
-                                  alt={p.name}
-                                  className="object-cover w-10 h-10 rounded-full flex-shrink-0"
-                                />
-                              ) : (
-                                <span className="font-bold text-green-800 text-sm">
-                                  {p?.name ? p.name[0].toUpperCase() : "?"}
-                                </span>
-                              )}
-                              {p?.frames && (
-                                  <img
-                                    src={availableFrames[Number(p.frames) - 1]?.image}
-                                    alt="Cadre décoratif"
-                                    className="absolute -inset-0 w-auto h-auto pointer-events-none"
-                                    style={{
-                                                              transform: `scale(${availableFrames[Number(p.frames) - 1]?.scale || 1})`, // par défaut scale 1 si non défini
-                                                            }}
-                                  />
-                                )}
-                              
-                            </div>
-                          ))}
+  <div
+    key={idx}
+    className="relative w-10 h-10 rounded-full flex items-center justify-center"
+  >
+    {/* Image ou initiale */}
+    {p?.profile_picture ? (
+      <img
+        src={p.profile_picture}
+        alt={p.name}
+        className="object-cover w-10 h-10 rounded-full"
+      />
+    ) : (
+      <span className="font-bold text-green-800 text-sm">
+        {p?.name ? p.name[0].toUpperCase() : "?"}
+      </span>
+    )}
+
+    {/* Cadre décoratif par-dessus l'image */}
+    {p?.frames && (
+      <img
+        src={availableFrames[Number(p.frames) - 1]?.image}
+        alt="Cadre décoratif"
+        className="absolute inset-0 w-10 h-10 rounded-full pointer-events-none"
+        style={{
+          transform: `scale(${
+            availableFrames[Number(p.frames) - 1]?.scale || 1.1
+          })`, // légère mise à l'échelle du cadre
+        }}
+      />
+    )}
+
+    {/* Bordure de base (si tu veux garder ton style d'avant) */}
+    <div className="absolute inset-0 rounded-full border-2 border-green-500 pointer-events-none"></div>
+  </div>
+))}
+
                         </div>
                       </div>
 
