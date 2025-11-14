@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useReducer, ReactNode, useEffect,useState } from 'react';
 import { PlayerTree,PlayerStatsForTimeframe,GameState, Player, GameSettings, Hand, AppScreen, MatchHistory, User, UserStats, GameModeStats, PlayerRanking, FriendRequest, Achievement, PROFILE_TITLES, PlayerConfirmation, DEALER_ROTATION_4P } from '../types/game';
 import { supabase } from '../lib/supabase';
+import imageCompression from 'browser-image-compression';
 
 
 interface GameContextType {
@@ -2532,31 +2533,38 @@ const getTimeFrameUserRankings = async (
     }
   };
 
-  const updateProfilePicture = async (file: File): Promise<void> => {
+
+
+const updateProfilePicture = async (file: File): Promise<void> => {
   if (!gameState.currentUser) throw new Error('Must be logged in');
 
   try {
-    // Upload file to Supabase Storage
-    const fileExt = file.name.split('.').pop();
+    // 🔥 1. Compression locale
+    const compressedFile = await imageCompression(file, {
+      maxSizeMB: 0.1,          // limite à ~200 KB
+      maxWidthOrHeight: 512,   // redimensionnement max
+      useWebWorker: true
+    });
+
+    // Upload du fichier compressé
+    const fileExt = compressedFile.name.split('.').pop();
     const fileName = `${gameState.currentUser.id}-${Date.now()}.${fileExt}`;
 
     const { error: uploadError } = await supabase.storage
       .from('profile-pictures')
-      .upload(fileName, file);
+      .upload(fileName, compressedFile, {
+        cacheControl: '3600',
+        upsert: false,
+      });
 
     if (uploadError) throw uploadError;
 
-    // Get public URL
     const { data: { publicUrl } } = supabase.storage
       .from('profile-pictures')
       .getPublicUrl(fileName);
 
-    // Ajouter automatiquement les paramètres d'optimisation
-    const optimizedUrl = `${publicUrl}?width=50&height=50&quality=5&format=webp`;
+    const optimizedUrl = `${publicUrl}?width=128&height=128&quality=50&format=webp`;
 
-    console.log('Updating user with id', gameState.currentUser.id);
-
-    // Update user profile
     const { error: updateError } = await supabase
       .from('users')
       .update({ profile_picture: optimizedUrl })
@@ -2564,14 +2572,15 @@ const getTimeFrameUserRankings = async (
 
     if (updateError) throw updateError;
 
-    // Mettre à jour le state local
     const updatedUser = { ...gameState.currentUser, profilePicture: optimizedUrl };
     dispatch({ type: 'UPDATE_USER', payload: updatedUser });
+
   } catch (error) {
     console.error('Error updating profile picture:', error);
     throw new Error('Failed to update profile picture');
   }
 };
+
 
 
   const checkAchievements = async (userId: string): Promise<Achievement[]> => {

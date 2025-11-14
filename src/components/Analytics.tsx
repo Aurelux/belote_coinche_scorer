@@ -56,21 +56,34 @@ export function Analytics() {
   }, [] as Array<{ hand: number; teamA: number; teamB: number; teamC: number }>);
 
   // Calculate team statistics
+  const teamAPlayers  =gameState.players.map(player => player.team === 'A')
+  const teamBPlayers  =gameState.players.map(player => player.team === 'C')
+  const teamCPlayers  =gameState.players.map(player => player.team === 'C')
   const teamStats = {
     A: {
       handsWon: gameState.hands.filter(h => h.winningTeam === 'A').length,
+      handsTaken: gameState.hands
+  .filter(h => teamAPlayers.some(p => p.id === h.taker))
+  .length,
+
       totalPoints: gameState.teamAScore,
       capots: gameState.hands.filter(h => h.winningTeam === 'A' && h.isCapot).length,
       avgPoints: Math.round(gameState.teamAScore / Math.max(gameState.hands.filter(h => h.winningTeam === 'A').length, 1))
     },
     B: {
       handsWon: gameState.hands.filter(h => h.winningTeam === 'B').length,
+      handsTaken: gameState.hands
+  .filter(h => teamBPlayers.some(p => p.id === h.taker))
+  .length,
       totalPoints: gameState.teamBScore,
       capots: gameState.hands.filter(h => h.winningTeam === 'B' && h.isCapot).length,
       avgPoints: Math.round(gameState.teamBScore / Math.max(gameState.hands.filter(h => h.winningTeam === 'B').length, 1))
     },
     C: {
       handsWon: gameState.hands.filter(h => h.winningTeam === 'C').length,
+      handsTaken: gameState.hands
+  .filter(h => teamCPlayers.some(p => p.id === h.taker))
+  .length,
       totalPoints: gameState.teamCScore,
       capots: gameState.hands.filter(h => h.winningTeam === 'C' && h.isCapot).length,
       avgPoints: Math.round(gameState.teamCScore / Math.max(gameState.hands.filter(h => h.winningTeam === 'C').length, 1))
@@ -78,6 +91,7 @@ export function Analytics() {
   };
 
   // Player individual stats
+  
   const playerStats = gameState.players.map(player => {
   const takenHands = gameState.hands.filter(h => h.taker === player.id);
   const coincheHands = gameState.hands.filter(h => h.coincher === player.id);
@@ -467,7 +481,7 @@ gameState.hands
                 <Trophy className="w-6 h-6 text-blue-600" />
               </div>
               <div>
-                <div className="text-2xl font-bold text-gray-900">{teamStats.A.handsWon}</div>
+                <div className="text-2xl font-bold text-gray-900">{teamStats.A.handsTaken}</div>
                 <div className="text-sm text-gray-600">Mains {gameState.settings.playerCount === 4 ? 'Équipe' : 'Joueur'} A</div>
               </div>
             </div>
@@ -479,7 +493,7 @@ gameState.hands
                 <Trophy className="w-6 h-6 text-red-600" />
               </div>
               <div>
-                <div className="text-2xl font-bold text-gray-900">{teamStats.B.handsWon}</div>
+                <div className="text-2xl font-bold text-gray-900">{teamStats.B.handsTaken}</div>
                 <div className="text-sm text-gray-600">Mains {gameState.settings.playerCount === 4 ? 'Équipe' : 'Joueur'} B</div>
               </div>
             </div>
@@ -492,7 +506,7 @@ gameState.hands
                   <Trophy className="w-6 h-6 text-green-600" />
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-gray-900">{teamStats.C.handsWon}</div>
+                  <div className="text-2xl font-bold text-gray-900">{teamStats.C.handsTaken}</div>
                   <div className="text-sm text-gray-600">Mains Joueur C</div>
                 </div>
               </div>

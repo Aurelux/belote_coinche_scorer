@@ -39,7 +39,7 @@ export default function DealerSelector({
           ))}
         </div>
         <h2 className="text-2xl font-extrabold  mt-6 text-center text-yellow-300">
-          Dispositon des joueurs
+          Disposition des joueurs
         </h2>
 
       {/* Table Coinche */}

@@ -219,7 +219,7 @@ const computeScore = (s: TournamentStat) => {
             15 * Math.tanh(diff / 500) +
             10 * coincheRate +
             10 * contractRate +
-            5 * Math.min((s.capots ?? 0) / 3, 1)
+            4 * Math.min((s.capots ?? 0) / 2, 1)
         )
       )
     );
