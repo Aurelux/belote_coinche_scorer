@@ -56,9 +56,9 @@ export function Analytics() {
   }, [] as Array<{ hand: number; teamA: number; teamB: number; teamC: number }>);
 
   // Calculate team statistics
-  const teamAPlayers  =gameState.players.map(player => player.team === 'A')
-  const teamBPlayers  =gameState.players.map(player => player.team === 'C')
-  const teamCPlayers  =gameState.players.map(player => player.team === 'C')
+  const teamAPlayers  =gameState.players.filter(player => player.team === 'A')
+  const teamBPlayers  =gameState.players.filter(player => player.team === 'C')
+  const teamCPlayers  =gameState.players.filter(player => player.team === 'C')
   const teamStats = {
     A: {
       handsWon: gameState.hands.filter(h => h.winningTeam === 'A').length,
