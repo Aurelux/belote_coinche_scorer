@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Trash2, ArrowLeft, Trophy, Target, Users, Award, TrendingUp, Crown, Medal,ChevronDown, BarChart3, LogOut, UserPlus, Settings, Edit, Camera, Upload, History, TrendingDown, User } from 'lucide-react';
+import { Trash2, ArrowLeft, Trophy, Target, Users, Award, TrendingUp, Crown, Medal,ChevronDown, BarChart3, LogOut, UserPlus, Settings, Edit, Camera, Upload, History, TrendingDown, User, ShieldHalf, Axe } from 'lucide-react';
 import { useGame } from '../context/GameContext';
 import { PROFILE_TITLES, availableFrames } from '../types/game';
 import { supabase } from "../lib/supabase";
@@ -204,6 +204,22 @@ function checkCondition(allowedDigits: string[]): boolean {
   
   return results.some(r => r === 'O');
 }
+let scoretest = 0; 
+const results = gameState.matchHistory
+    .slice()
+    .reverse()
+    .map(match => {
+
+      const player = match.players.find(p => p.userId === currentUser.id);
+      if (!player || !player.team || !match.winningTeam) return null;
+      const score = player.team === "A" ? match.finalScores.teamA : match.finalScores.teamB;
+      if (score>scoretest){
+        scoretest = score
+      }
+      return score
+    }).sort((a,b) => b-a)[0] ?? 0
+
+    
 
 // Fonction pour récupérer et mémoriser dans localStorage
 function getPersistentFlag(key: string, allowedDigits: string[]): boolean {
@@ -220,7 +236,7 @@ function getPersistentFlag(key: string, allowedDigits: string[]): boolean {
 
 const isPastis = getPersistentFlag('isPastis', ['5', '1']);
 const iscaracaca = getPersistentFlag('isCaracaca', ['4', '4']);
-console.log('regardele caca : ', iscaracaca)
+
 const isBiere = getPersistentFlag('isBiere', ['8', '6']);
 const isTempete = getPersistentFlag('isTempete', ['6', '9']);
 
@@ -378,6 +394,56 @@ if (eligibleTeammates.length > 0) {
 
 console.log('Meilleur coéquipier:', bestTeammate);
 console.log('Pire coéquipier:', worstTeammate2);
+
+const teammateStats2: Record<string, TeammateStats> = {};
+// Parcourir l'historique
+gameState.matchHistory.forEach(match => {
+  const currentPlayer = match.players.find(p => p.userId === currentUser.id);
+
+  if (!currentPlayer || !currentPlayer.team || !match.winningTeam) return;
+
+  // Cherche les coéquipiers (même équipe, autre que toi)
+  const teammates = match.players.filter(
+    p => p.team !== currentPlayer.team 
+  );
+  
+
+
+
+  const isWin = currentPlayer.team === match.winningTeam;
+
+  teammates.forEach(teammate => {
+    if (teammate.userId !== null){
+    if (!teammateStats2[teammate.userId]) {
+      teammateStats2[teammate.userId] = { name: teammate.name, wins: 0, games: 0, winRate: 0 };
+    }
+
+    teammateStats2[teammate.userId].games += 1;
+    if (isWin ) teammateStats2[teammate.userId].wins += 1;
+  }
+  });
+});
+
+// Calculer le pourcentage de victoire
+Object.values(teammateStats2).forEach(stat => {
+  stat.winRate = (stat.wins / stat.games) * 100;
+});
+
+// Filtrer les coéquipiers avec au moins 4 parties
+const eligibleTeammatesAG = Object.values(teammateStats2).filter(stat => stat.games >= 4);
+
+let bestTeammateAG: TeammateStats | null = null;
+let worstTeammate2AG: TeammateStats | null = null;
+
+if (eligibleTeammatesAG.length > 0) {
+  bestTeammateAG = eligibleTeammatesAG.reduce((acc, curr) => (curr.winRate > acc.winRate ? curr : acc), eligibleTeammatesAG[0]);
+  worstTeammate2AG = eligibleTeammatesAG.reduce((acc, curr) => (curr.winRate < acc.winRate ? curr : acc), eligibleTeammatesAG[0]);
+}
+
+console.log('Meilleur victime:', bestTeammateAG);
+console.log('Pire victime:', worstTeammate2AG);
+
+
   const getGameModeStats = (mode: 'belote' | 'coinche', playerCount: 2 | 3 | 4) => {
     const key = `${mode}${playerCount}P` as keyof typeof stats;
     return stats[key];
@@ -877,7 +943,7 @@ setUnlockedCadre(prev =>
                 <Award className="w-5 h-5 sm:w-6 sm:h-6 text-purple-600" />
               </div>
               <div>
-                <div className="text-xl sm:text-2xl font-bold text-gray-900">{stats.highestScore}</div>
+                <div className="text-xl sm:text-2xl font-bold text-gray-900">{results ?? 0}</div>
                 <div className="text-xs sm:text-sm text-gray-600">Meilleur score</div>
               </div>
             </div>
@@ -923,6 +989,42 @@ setUnlockedCadre(prev =>
         </div>
         <div className="text-xs sm:text-sm text-gray-600">
           {Math.round(worstTeammate2.winRate*10)/10}% de victoires à tes côtés avec {Math.round(worstTeammate2.games)} parties.
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+{bestTeammateAG && (
+  <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6">
+    <div className="flex items-center space-x-3">
+      <div className="bg-red-100 p-2 sm:p-3 rounded-lg">
+        <Axe className="w-5 h-5 sm:w-6 sm:h-6 text-red-600" />
+      </div>
+      <div>
+        <div className="text-xl sm:text-2xl font-bold text-gray-800">
+          {bestTeammateAG.name.slice(0,5)}
+        </div>
+        <div className="text-xs sm:text-sm text-gray-600">
+          {Math.round(bestTeammateAG.winRate*10)/10}% de victoires contre il/elle avec {Math.round(bestTeammateAG.games)} parties.
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
+{worstTeammate2AG && (
+  <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6">
+    <div className="flex items-center space-x-3">
+      
+      <div className="bg-blue-100 p-2 sm:p-3 rounded-lg">
+        <ShieldHalf className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
+      </div>
+      <div>
+        <div className="text-xl sm:text-2xl font-bold text-gray-800">
+          {worstTeammate2AG.name.slice(0,5)}
+        </div>
+        <div className="text-xs sm:text-sm text-gray-600">
+          {Math.round((100 - worstTeammate2AG.winRate)*10)/10}% de défaites contre lui/elle avec {Math.round(worstTeammate2AG.games)} parties.
         </div>
       </div>
     </div>

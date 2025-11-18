@@ -57,7 +57,7 @@ export function Analytics() {
 
   // Calculate team statistics
   const teamAPlayers  =gameState.players.filter(player => player.team === 'A')
-  const teamBPlayers  =gameState.players.filter(player => player.team === 'C')
+  const teamBPlayers  =gameState.players.filter(player => player.team === 'B')
   const teamCPlayers  =gameState.players.filter(player => player.team === 'C')
   const teamStats = {
     A: {
