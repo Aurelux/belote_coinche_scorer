@@ -190,6 +190,10 @@ function containsOnlyDigits(str: string, allowedDigits: string[]): boolean {
   return [...str].every(ch => allowedDigits.includes(ch));
 }
 
+function endsWithTwoFours(str: string): boolean {
+  return str.endsWith("44");
+}
+
 function checkCondition(allowedDigits: string[]): boolean {
   const results = gameState.matchHistory
     .slice()
@@ -199,6 +203,22 @@ function checkCondition(allowedDigits: string[]): boolean {
       if (!player || !player.team || !match.winningTeam) return null;
       const score = player.team === "A" ? match.finalScores.teamA.toString() : match.finalScores.teamB.toString();
       return containsOnlyDigits(score, allowedDigits) ? 'O' : 'N';
+    })
+    .filter(r => r !== null) as ('O' | 'N')[];
+  
+  return results.some(r => r === 'O');
+}
+
+function checkCondition2(allowedDigits: string[]): boolean {
+  const results = gameState.matchHistory
+    .slice()
+    .reverse()
+    .map(match => {
+      const player = match.players.find(p => p.userId === currentUser.id);
+      if (!player || !player.team || !match.winningTeam) return null;
+      const score = player.team === "A" ? match.finalScores.teamA.toString() : match.finalScores.teamB.toString();
+      console.log(score)
+      return endsWithTwoFours(score) ? 'O' : 'N';
     })
     .filter(r => r !== null) as ('O' | 'N')[];
   
@@ -227,11 +247,20 @@ function getPersistentFlag(key: string, allowedDigits: string[]): boolean {
   if (stored === 'true') return true; // déjà détecté avant
 
   // Sinon, on calcule
-  const detectedNow = checkCondition(allowedDigits);
-  if (detectedNow) {
-    localStorage.setItem(key, 'true'); // on garde cette info
-  }
-  return detectedNow;
+  let detectedNow;
+
+if (key === 'isCaracaca') {
+  detectedNow = checkCondition2(allowedDigits);
+} else {
+  detectedNow = checkCondition(allowedDigits);
+}
+
+if (detectedNow) {
+  localStorage.setItem(key, 'true'); // on garde cette info
+}
+
+return detectedNow;
+
 }
 
 const isPastis = getPersistentFlag('isPastis', ['5', '1']);
@@ -1337,6 +1366,11 @@ if (isUnlocked && title.threshold>=10 && !unlockedCadre.includes("2")){
   console.log('coucou', title.threshold)
   setUnlockedCadre(prev => 
     prev.includes("2") ? prev : [...prev, "2"]
+  );
+}
+if (isUnlocked && title.threshold>=15 && !unlockedCadre.includes("14")){
+  setUnlockedCadre(prev => 
+    prev.includes("14") ? prev : [...prev, "14"]
   );
 }
         progress = Math.min((currentValue / title.threshold) * 100, 100);

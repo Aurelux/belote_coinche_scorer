@@ -12,6 +12,7 @@ import roseRound from '../frames/roseround.png';
 import tournois10 from '../frames/gold10-removebg-preview.png';
 import cat from '../frames/cat-removebg-preview.png';
 import star from '../frames/star-removebg-preview.png';
+import toilet from '../frames/toiletpoop.png'
 
 // tableau avec les imports
 export const availableFrames = [
@@ -106,6 +107,13 @@ export const availableFrames = [
     title: 'Retomber sur ses pattes',
     description: 'Récompense réservée a ceux qui ont su se ressaisir (7 défaites et 7 victoires de suite)',
     scale: 1.5,
+  },
+  {
+    id: 14,
+    image: toilet,
+    title: "Les jeux de cartes, c'est pas pour toi !",
+    description: 'A ce niveau là, joue aux dés (plus de 15 défaites de suite) !',
+    scale: 1.8,
   }
 ];
 
@@ -392,7 +400,7 @@ export const PROFILE_TITLES = [
   { id: 'lossrate_ghost', title: 'Fantôme du Jeu', description: '5 défaites de suites', color: 'text-green-800', requirement: 'lossStreak', threshold: 5 },
   { id: 'lossrate_punchbag', title: 'Sac de Frappe', description: '8 défaites de suites', color: 'text-red-600', requirement: 'lossStreak', threshold:8 },
   { id: 'lossrate_clown', title: 'Pompe à vélo', description: '10 défaites de suites', color: 'text-amber-600', requirement: 'lossStreak', threshold: 10 },
-  { id: 'lossrate_downfall', title: 'Descente aux Enfers', description: '15 défaites de suites', color: 'text-red-600', requirement: 'lossStreak', threshold: 15},
+  { id: 'lossrate_downfall', title: 'Pompe à merde', description: '15 défaites de suites', color: "text-orange-900", requirement: 'lossStreak', threshold: 15},
   // Win rate based titles
 
   { id: 'pastis', title: 'Tournée de Pastis', description: "Faire un score qu'avec des 5/1", color: 'text-yellow-600', requirement: 'isPastis', threshold: 1 },
