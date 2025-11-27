@@ -115,6 +115,74 @@ export default function DealerSelector({
             </div>
           </div>
         )}
+        {/* Table Coinche pour 3 joueurs */}
+{players.length === 3 && (
+  <div className="relative mt-4 w-52 h-52 flex items-center justify-center">
+    <h2 className="text-1xl font-extrabold text-center text-yellow-300">Table</h2>
+    
+    {/* Icône de table au centre */}
+    <div className="absolute text-yellow-400 opacity-80">
+      <div className="relative flex items-center justify-center">
+        <RectangleHorizontal size={110} strokeWidth={1.5} />
+      </div>
+    </div>
+
+    {/* Haut */}
+    <div className="absolute top-0 left-1/2 -translate-x-1/2 flex flex-col items-center">
+      <div className="w-12 h-12 bg-yellow-700 text-white rounded-full flex items-center justify-center text-lg font-bold shadow-md border border-yellow-400">
+        <Armchair size={23} strokeWidth={1.5} className="absolute text-yellow-300" />
+      </div>
+      <span className="text-xs text-yellow-200 mt-1">{shortNames[0].full}</span>
+    </div>
+
+    {/* Bas gauche */}
+    <div className="absolute bottom-0 left-1/4 -translate-x-1/2 flex flex-col items-center">
+      <div className="w-12 h-12 bg-yellow-700 text-white rounded-full flex items-center justify-center text-lg font-bold shadow-md border border-yellow-400">
+        <Armchair size={23} strokeWidth={1.5} className="absolute text-yellow-300" />
+      </div>
+      <span className="text-xs text-yellow-200 mt-1">{shortNames[1].full}</span>
+    </div>
+
+    {/* Bas droite */}
+    <div className="absolute bottom-0 right-0 -translate-x-1/2 flex flex-col items-center">
+      <div className="w-12 h-12 bg-yellow-700 text-white rounded-full flex items-center justify-center text-lg font-bold shadow-md border border-yellow-400">
+        <Armchair size={23} strokeWidth={1.5} className="absolute text-yellow-300" />
+      </div>
+      <span className="text-xs text-yellow-200 mt-1">{shortNames[2].full}</span>
+    </div>
+  </div>
+)}
+
+{/* Table Coinche pour 2 joueurs */}
+{players.length === 2 && (
+  <div className="relative mt-4 w-52 h-52 flex items-center justify-center">
+    <h2 className="text-1xl font-extrabold text-center text-yellow-300">Table</h2>
+    
+    {/* Icône de table au centre */}
+    <div className="absolute text-yellow-400 opacity-80">
+      <div className="relative flex items-center justify-center">
+        <RectangleHorizontal size={110} strokeWidth={1.5} />
+      </div>
+    </div>
+
+    {/* Haut */}
+    <div className="absolute top-0 left-1/2 -translate-x-1/2 flex flex-col items-center">
+      <div className="w-12 h-12 bg-yellow-700 text-white rounded-full flex items-center justify-center text-lg font-bold shadow-md border border-yellow-400">
+        <Armchair size={23} strokeWidth={1.5} className="absolute text-yellow-300" />
+      </div>
+      <span className="text-xs text-yellow-200 mt-1">{shortNames[0].full}</span>
+    </div>
+
+    {/* Bas */}
+    <div className="absolute bottom-0 left-1/2 -translate-x-1/2 flex flex-col items-center">
+      <div className="w-12 h-12 bg-yellow-700 text-white rounded-full flex items-center justify-center text-lg font-bold shadow-md border border-yellow-400">
+        <Armchair size={23} strokeWidth={1.5} className="absolute text-yellow-300" />
+      </div>
+      <span className="text-xs text-yellow-200 mt-1">{shortNames[1].full}</span>
+    </div>
+  </div>
+)}
+
       </div>
     </div>
   );

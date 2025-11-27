@@ -862,7 +862,7 @@ return () => clearTimeout(handler);
                   </button>
                   <button
   type="button"
-  disabled={gameState.settings.isTournament}
+  disabled={gameState.settings.isTournament || gameState.players.length === 3}
   onClick={() =>
     setBid(prev => ({
       ...prev,
@@ -878,7 +878,7 @@ return () => clearTimeout(handler);
         ? 'border-purple-500 bg-purple-50 text-purple-700'
         : 'border-gray-200 hover:border-gray-300 bg-gray-50 text-gray-700'
     }
-    ${gameState.settings.isTournament ? 'opacity-50 cursor-not-allowed' : ''}
+    ${gameState.settings.isTournament || gameState.players.length === 3 ? 'opacity-50 cursor-not-allowed' : ''}
   `}
 >
   Général

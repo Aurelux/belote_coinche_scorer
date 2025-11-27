@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Trash2, ArrowLeft, Trophy, Target, Users, Award, TrendingUp, Crown, Medal,ChevronDown, BarChart3, LogOut, UserPlus, Settings, Edit, Camera, Upload, History, TrendingDown, User, ShieldHalf, Axe } from 'lucide-react';
+import { Trash2, ArrowLeft, Trophy, Target, Users, Award, TrendingUp, Crown, Medal,ChevronDown, BarChart3, LogOut, UserPlus, Settings, Edit, Camera, Upload, History, TrendingDown, User, ShieldHalf, Axe, HeartIcon } from 'lucide-react';
 import { useGame } from '../context/GameContext';
 import { PROFILE_TITLES, availableFrames } from '../types/game';
 import { supabase } from "../lib/supabase";
@@ -483,7 +483,7 @@ console.log('Pire victime:', worstTeammate2AG);
 
   const meetsMinGames = !title.minGames || stats.totalGames >= title.minGames;
   let currentValue = 0
-  if (title.requirement && !['winStreak', 'lossStreak', 'isPastis', 'isBiere', 'isTempete'].includes(title.requirement)) {
+  if (title.requirement && !['winStreak', 'lossStreak', 'isPastis', 'isBiere', 'isTempete','isCaracaca'].includes(title.requirement)) {
     currentValue = stats[title.requirement as keyof typeof stats] as number;
     return currentValue >= (title.threshold || 0) && meetsMinGames;
   }
@@ -672,6 +672,13 @@ setUnlockedCadre(prev =>
                       month: 'long' 
                     }).format(currentUser.createdAt)}
                   </p>
+                  {mostPlayedWith && (
+  <div className="flex items-center gap-1 mt-1 text-sm text-pink-500">
+    <HeartIcon className="w-4 h-4" /> {/* Utilise ton icône cœur */}
+    <span>{mostPlayedWith.name}</span>
+    <span className="text-gray-400">({mostPlayedWith.count} parties)</span>
+  </div>
+)}
                 </div>
               </div>
             </div>
