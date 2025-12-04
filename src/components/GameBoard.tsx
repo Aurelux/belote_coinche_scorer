@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { HelpCircle,ArrowLeft, BarChart3, RotateCcw, Trophy, Plus, History, RefreshCw, Skull, User } from 'lucide-react';
+import { HelpCircle,ArrowLeft, BarChart3, RotateCcw, Trophy, Plus, History, RefreshCw, Skull, User, Settings} from 'lucide-react';
 import { useGame } from '../context/GameContext';
 import { ScoreEntry } from './ScoreEntry';
 import { CapotCelebration } from './CapotCelebration';
@@ -11,7 +11,7 @@ import DealerSelector from "../components/DealerSelector";
 import {availableFrames } from '../types/game';
 
 export function GameBoard() {
-  const { gameState, setCurrentScreen, startNewGame, resetGame, startRematch,navigateTo2, applyPenaltyToPlayer, navigateTo, goBack, nextDealer, setDealer} = useGame();
+  const { gameState, setGameState,setCurrentScreen, startNewGame, resetGame, startRematch,navigateTo2, applyPenaltyToPlayer, navigateTo, goBack, nextDealer, setDealer} = useGame();
   const [editedHand, setEditedHand] = useState<Hand | null>(null);
   const [showScoreEntry, setShowScoreEntry] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
@@ -23,6 +23,74 @@ export function GameBoard() {
   const [selectedTeam, setSelectedTeam] = useState<'A' | 'B' | 'C'>('A');
   const [showExitGameModal, setShowExitGameModal] = useState(false);
   const [showNewGameModal, setShowNewGameModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+const [playerOrder, setPlayerOrder] = useState(gameState.players.map(p => p.id));
+const [maxScore, setMaxScore] = useState(gameState.settings.targetScore);
+const [atoutMode, setAtoutMode] = useState(gameState.settings.withAnnouncements);
+const [playerTeams, setPlayerTeams] = useState(() => {
+  return gameState.players.map((p, i) => (i < 2 ? "A" : "B"));
+});
+const [keepTeams, setKeepTeams] = useState<boolean>(true);  // par défaut on garde les équipes
+const [changeTeams, setChangeTeams] = useState<boolean>(false); // par défaut, changement d'équipe non sélectionné
+
+
+
+const saveSettings = () => {
+  setGameState({
+    ...gameState,
+
+    players: gameState.players
+  .map((p, i) => ({
+    ...p,
+    team: playerTeams[i] as 'A' | 'B', // équipe A ou B
+  }))
+  .sort((a, b) => {
+    if (a.team === "A" && b.team === "B") return -1; // A avant B
+    if (a.team === "B" && b.team === "A") return 1;  // B après A
+    return 0; // sinon garde l'ordre
+  }),
+
+    settings: {
+      ...gameState.settings,
+      targetScore: maxScore,
+      withAnnouncements: atoutMode,
+    },
+  });
+};
+
+
+const updatePlayerTeam = (playerIndex, newTeam) => {
+  const updatedTeams = [...playerTeams];
+  updatedTeams[playerIndex] = newTeam;
+
+  // On sépare les joueurs A puis B
+  const teamA = [];
+  const teamB = [];
+
+  gameState.players.forEach((p, i) => {
+    if (updatedTeams[i] === "A") teamA.push(p);
+    else teamB.push(p);
+  });
+
+  // Réorganisation : A1 - B1 - A2 - B2
+  const reordered = [];
+  for (let i = 0; i < 2; i++) {
+    if (teamA[i]) reordered.push(teamA[i]);
+    if (teamB[i]) reordered.push(teamB[i]);
+  }
+
+  // Mise à jour finale
+  setPlayerTeams(updatedTeams);
+ // << ta fonction pour mettre à jour gameState.players
+};
+
+
+
+console.log(playerTeams)
+
+
+
+
 
   if (!gameState.players.length) {
     return null;
@@ -85,17 +153,23 @@ export function GameBoard() {
   const progressB = (gameState.teamBScore / gameState.settings.targetScore) * 100;
   const progressC = (gameState.teamCScore / gameState.settings.targetScore) * 100;
   
-  const getSuitDisplay = (suit: string) => {
-    const suits = {
-      hearts: '♥️',
-      diamonds: '♦️',
-      clubs: '♣️',
-      spades: '♠️',
-      'no-trump': 'SA',
-      'all-trump': 'TA'
-    };
-    return suits[suit as keyof typeof suits] || suit;
+ const getSuitDisplay = (suit: string) => {
+  const suits: Record<string, string> = {
+    hearts: '♥️',
+    diamonds: '♦️',
+    clubs: '♣️',
+    spades: '♠️',
   };
+
+  // Si l'annonce est triée, on ajoute TA/SA
+  if (gameState.settings.withAnnouncements) {
+    suits['no-trump'] = 'SA';
+    suits['all-trump'] = 'TA';
+  }
+
+  return suits[suit as keyof typeof suits] || suit;
+};
+
 
   const getTeamColor = (team: 'A' | 'B' | 'C') => {
     const colors = {
@@ -254,7 +328,7 @@ export function GameBoard() {
                 <div>
                   <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
                     {gameState.settings.mode === 'belote' ? 'Belote' : 'Coinche'}
-                    {gameState.settings.withAnnouncements && ' avec Annonces'}
+                    
                   </h1>
                   <p className="text-sm sm:text-base text-gray-600">
                     {gameState.settings.playerCount} joueurs • Objectif: {gameState.settings.targetScore} points
@@ -270,7 +344,7 @@ export function GameBoard() {
   <div className="flex flex-wrap gap-2">
     <button
       onClick={() => navigateTo('history')}
-      className="flex items-center space-x-2 px-4 py-3 text-base sm:px-3 sm:py-2 sm:text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+      className="flex items-center space-x-2 px-4 py-3 text-base sm:px-3 sm:py-2 sm:text-sm bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
     >
       <History className="w-5 h-5 sm:w-4 sm:h-4" />
       <span className="hidden sm:inline">Historique</span>
@@ -297,39 +371,232 @@ export function GameBoard() {
   >
     <HelpCircle className="w-6 h-6" />
   </button>
-                <button
-      onClick={() => setShowNewGameModal(true)} // ouvre directement le modal
-className="flex items-center space-x-2 px-4 py-3 text-base sm:px-3 sm:py-2 sm:text-sm bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors"
-    >
-                  <RotateCcw className="w-6 h-6" />
-                </button>
+                
                 {showNewGameModal && (
-      <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-        <div className="bg-white rounded-2xl shadow-xl p-6 w-11/12 max-w-md text-center">
-          <h2 className="text-lg font-semibold mb-4">Recommencez la partie ?</h2>
-          <p className="mb-6 text-gray-700">
-            Si vous recommencez maintenant, la partie en cours sera perdue et les scores seront reinitialisés.
-          </p>
-          <div className="flex justify-center gap-4">
+  <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+    <div className="bg-white rounded-2xl shadow-xl p-6 w-11/12 max-w-md text-center">
+      <h2 className="text-lg font-semibold mb-4">Recommencez la partie ?</h2>
+      <p className="mb-6 text-gray-700">
+        Si vous recommencez maintenant, la partie en cours sera perdue et les scores seront réinitialisés.
+      </p>
+
+      {/* Choix équipes */}
+{gameState.settings.playerCount === 4 && (
+  <div className="flex justify-center gap-4 mb-4">
+    <button
+      className={`px-4 py-2 rounded-lg font-semibold ${
+        keepTeams ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+      }`}
+      onClick={() => {
+        setKeepTeams(true);
+        setChangeTeams(false);
+      }}
+    >
+      Garder les équipes
+    </button>
+    <button
+      className={`px-4 py-2 rounded-lg font-semibold ${
+        changeTeams ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+      }`}
+      onClick={() => {
+        setChangeTeams(true);
+        setKeepTeams(false);
+      }}
+    >
+      Changer les équipes
+    </button>
+  </div>
+)}
+
+
+      {/* Bouton supplémentaire si changement d’équipes */}
+{changeTeams && (
+  <div className="mb-6">
+    <p className="font-medium text-gray-700 mb-2">Équipes :</p>
+
+    <div className="flex flex-col gap-3">
+      {gameState.players.map((player, index) => (
+        <div
+          key={player.id}
+          className="flex items-center justify-between p-3 border rounded-xl shadow-sm bg-gray-50"
+        >
+          <span className="font-medium">{player.name}</span>
+
+          {/* Toggle équipe A / B */}
+          <div className="flex gap-2">
             <button
-              className="px-4 py-2 rounded-lg bg-gray-200 text-gray-800 font-semibold hover:bg-gray-300"
-              onClick={() => setShowNewGameModal(false)} // Annuler
+              onClick={() => updatePlayerTeam(index, "A")}
+              className={`px-4 py-2 rounded-full text-base font-semibold ${
+                playerTeams[index] === "A"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-200 text-gray-700"
+              }`}
             >
-              Annuler
+              A
             </button>
+
             <button
-              className="px-4 py-2 rounded-lg bg-green-500 text-white font-semibold hover:bg-green-600"
-              onClick={() => {
-                setShowNewGameModal(false);
-                startNewGame(); // Confirme et navigue
-              }}
+              onClick={() => updatePlayerTeam(index, "B")}
+              className={`px-4 py-2 rounded-full text-base font-semibold ${
+                playerTeams[index] === "B"
+                  ? "bg-red-500 text-white"
+                  : "bg-gray-200 text-gray-700"
+              }`}
             >
-              Nouvelle partie
+              B
             </button>
           </div>
         </div>
+      ))}
+    </div>
+
+    {/* Message d'avertissement si équipe invalide */}
+    {(() => {
+      const countA = Object.values(playerTeams).filter(t => t === "A").length;
+      const countB = Object.values(playerTeams).filter(t => t === "B").length;
+      if (countA !== 2 || countB !== 2) {
+        return (
+          <p className="mt-2 text-sm text-red-600 font-medium">
+            Chaque équipe doit avoir exactement 2 joueurs !
+          </p>
+        );
+      }
+      return null;
+    })()}
+  </div>
+)}
+
+
+      {/* Boutons Annuler / Nouvelle partie */}
+      <div className="flex justify-center gap-4">
+        <button
+          className="px-4 py-2 rounded-lg bg-gray-700 text-white font-semibold hover:bg-gray-800"
+          onClick={() => setShowNewGameModal(false)}
+        >
+          Annuler
+        </button>
+        
+          <button
+            className="px-4 py-2 rounded-lg bg-green-800 border-2 border-green-900 text-white font-semibold hover:bg-green-900"
+            onClick={() => {
+              saveSettings();
+              setShowNewGameModal(false);
+              startNewGame(); // nouvelle partie avec les mêmes équipes
+            }}
+          >
+            Nouvelle partie
+          </button>
+        
       </div>
-    )}
+    </div>
+  </div>
+)}
+
+    <button
+  onClick={() => setShowSettingsModal(true)}
+  className="flex items-center px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+>
+  <Settings className="w-6 h-6" />
+</button>
+
+
+{/* --- MODAL PARAMÈTRES (MOBILE FRIENDLY) --- */}
+{showSettingsModal && (
+  <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+    <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm max-h-[85vh] overflow-y-auto p-5">
+
+      <h2 className="text-xl font-semibold text-center mb-4">
+        Paramètres de la partie
+      </h2>
+
+      
+      {/* 🔥 SCORE MAX EN 3 GROS BOUTONS */}
+      <div className="mb-6">
+        <p className="font-medium text-gray-700 mb-2">Score à atteindre :</p>
+
+        <div className="grid grid-cols-3 gap-2">
+          {(
+            gameState.settings.mode === "belote"
+              ? [501, 701, 1001]
+              : gameState.settings.playerCount % 2 === 0 ? [1001, 1501, 2001]: [501, 701, 1001]
+          ).map((v) => (
+            <button
+              key={v}
+              onClick={() => setMaxScore(v)}
+              className={`py-3 rounded-xl font-bold text-center ${
+                maxScore === v
+                  ? "bg-green-500 text-white"
+                  : "bg-gray-200 text-gray-700"
+              }`}
+            >
+              {v}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* 🔥 Toggle TA/SA */}
+      {gameState.settings.mode === 'coinche' && (
+      <div className="mb-6">
+        <div className="flex items-center justify-between">
+          <span className="font-medium text-gray-700">
+            Jouer avec Tout Atout / Sans Atout
+          </span>
+
+          <label className="relative inline-flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              checked={atoutMode !== false}
+              onChange={(e) =>
+                setAtoutMode(e.target.checked ? true : false)
+              }
+              className="sr-only peer"
+            />
+            <div className="w-11 h-6 bg-gray-300 rounded-full peer peer-checked:bg-green-500 transition-colors"></div>
+            <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
+          </label>
+        </div>
+      </div>)}
+
+      {/* 🔄 RECOMMENCER */}
+      <button
+  className="w-full py-3 mt-3 rounded-xl bg-green-500 text-white font-semibold hover:bg-green-600 flex items-center justify-center gap-2"
+  onClick={() => {
+    setShowSettingsModal(false);
+    setShowNewGameModal(true);
+  }}
+>
+  <RotateCcw className="w-6 h-6" />
+  <span>Recommencer la partie</span>
+</button>
+
+
+      {/* FOOTER */}
+      <div className="flex justify-between mt-4 ">
+        <button
+          className="px-4 py-2 rounded-lg bg-gray-700 border-2 border-gray-800 text-white font-semibold hover:bg-gray-800"
+          onClick={() => setShowSettingsModal(false)}
+        >
+          Fermer
+        </button>
+
+        <button
+          className="px-4 py-2 rounded-lg bg-green-800 border-2 border-green-900 text-white font-semibold hover:bg-green-900"
+          onClick={() => {
+            saveSettings();
+            setShowSettingsModal(false);
+          }}
+        >
+          Enregistrer
+        </button>
+      </div>
+
+    </div>
+  </div>
+)}
+
+
+
                 </div>
 
   

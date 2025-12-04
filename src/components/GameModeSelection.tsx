@@ -6,7 +6,7 @@ import { GameSettings } from '../types/game';
 export function GameModeSelection() {
   const { gameState, setGameSettings, setCurrentScreen, goBack, navigateTo, startNewGame } = useGame();
   const [selectedMode, setSelectedMode] = React.useState<'belote' | 'coinche'>('belote');
-  const [withAnnouncements, setWithAnnouncements] = React.useState(false);
+  const [withAnnouncements, setWithAnnouncements] = React.useState(true);
   const [targetScore, setTargetScore] = React.useState(1001);
 
   const playerCount = gameState.players.length as 2 | 3 | 4;
@@ -149,21 +149,48 @@ export function GameModeSelection() {
           </div>
 
           {/* Announcements */}
-          {/* <div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Options</h3>
-            <label className="flex items-center space-x-3 p-4 rounded-lg border border-gray-200 hover:bg-gray-50 cursor-pointer transition-colors">
-              <input
-                type="checkbox"
-                checked={withAnnouncements}
-                onChange={(e) => setWithAnnouncements(e.target.checked)}
-                className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
-              />
-              <div>
-                <div className="font-medium text-gray-900">Avec annonces</div>
-                <div className="text-sm text-gray-600">Permet les annonces pendant la partie</div>
-              </div>
-            </label>
-          </div>*/}
+         {selectedMode === 'coinche' && (
+  <div>
+    <h3 className="text-lg font-semibold text-gray-900 mb-4">Options</h3>
+    <label className={`flex items-center space-x-3 p-4 rounded-lg border cursor-pointer
+      ${withAnnouncements ? 'bg-green-100 border-green-500' : 'bg-white border-gray-300 hover:bg-gray-50'}`}>
+      
+      {/* Input caché */}
+      <input
+        type="checkbox"
+        checked={withAnnouncements}
+        onChange={(e) => setWithAnnouncements(e.target.checked)}
+        className="sr-only"
+      />
+
+      {/* Slider toggle */}
+      <div
+        className={`flex items-center w-14 h-6 rounded-full p-0.5 transition-colors ${
+          withAnnouncements ? 'bg-green-500 justify-end' : 'bg-gray-300 justify-start'
+        }`}
+      >
+        <div className="w-5 h-5 bg-white rounded-full shadow-md transition-all"></div>
+      </div>
+
+      {/* Texte */}
+      <div className="flex flex-col">
+        <div className={`font-medium transition-colors ${withAnnouncements ? 'text-green-800' : 'text-gray-700'}`}>
+          Avec TA/SA
+        </div>
+        <div className={`text-sm transition-colors ${withAnnouncements ? 'text-green-600' : 'text-gray-500'}`}>
+          Permet les annonces à Tout Atout/Sans Atout
+        </div>
+      </div>
+    </label>
+  </div>
+)}
+
+
+
+
+
+
+
 
           {/* Target Score */}
           <div>

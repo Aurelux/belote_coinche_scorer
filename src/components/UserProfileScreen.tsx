@@ -100,6 +100,7 @@ export function UserProfileScreen() {
               <p className="text-sm text-gray-500">
                 Membre depuis {new Intl.DateTimeFormat('fr-FR', { year: 'numeric', month: 'long' }).format(user.createdAt)}
               </p>
+              
             </div>
           </div>
         </div>

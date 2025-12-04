@@ -53,6 +53,8 @@ setGameState: (newState: Partial<GameState>) => void;
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
 
+const saveTimeouts: Record<string, NodeJS.Timeout> = {};
+
 const createEmptyGameModeStats = (): GameModeStats => ({
   games: 0,
   wins: 0,
@@ -172,20 +174,21 @@ const calculateRankingScore = (stats: GameModeStats): number => {
   const contractSuccess = stats.contractsTaken > 0 ? (stats.successfulContracts / stats.contractsTaken) : 0;
   const activite = stats.games > 0 ? stats.contractsTaken/stats.games : 0;
   const risk = stats.risk > 0 ? (stats.risk/120) : 0.8
+  const riskcoinche = stats.coinches >0 ? (stats.coinches*3/stats.games) : 0;
  // Nouveau bloc de calcul coinche
 let actionScore = 0;
 
 if (stats.coinches > 0) {
   if (stats.coinches <= 10) {
     // Cas débutant : 1 point par coinche réussie
-    actionScore = stats.successfulCoinches;
+    actionScore = stats.successfulCoinches*riskcoinche;
   } else {
     // Cas confirmé : formule pondérée
     const coincheSuccess =
       stats.coinches > 0
-        ? (stats.successfulCoinches / stats.coinches) * 1.1
+        ? (stats.successfulCoinches / (stats.coinches-Math.floor(stats.coinches/12))) * 1.1
         : 0;
-    actionScore = coincheSuccess * 10;
+    actionScore = coincheSuccess * 10*riskcoinche;
   }
 } // max 20 pts
 
@@ -681,6 +684,29 @@ const nextDealer = () => {
   const setGameSettings = (settings: GameSettings) => {
     dispatch({ type: 'SET_GAME_SETTINGS', payload: settings });
   };
+  // On stocke un timeout par "key joueurs"
+
+
+
+// clé unique et stable par équipe
+
+const scheduleStatsUpdate = (hand: Hand, players: Player[]) => {
+  const key = players.map(p => p.userId || p.id).sort().join('-');
+  console.log(saveTimeouts[key])
+  
+
+  if (saveTimeouts[key]){
+console.log('ancienne partie supprimé');
+clearTimeout(saveTimeouts[key])
+  } ;
+
+  saveTimeouts[key] = setTimeout(async () => {
+    await updateStatsAfterHand(hand);
+    delete saveTimeouts[key]; 
+    console.log('partie sauvegardée')// ✅ supprime la clé pour ce groupe de joueurs
+  }, 2 * 60 * 1000);
+};
+
 
  const addHand = async (handData: Omit<Hand, 'id' | 'handNumber' | 'timestamp'> & { id?: string }) => {
   const isEdit = gameState.hands.some(h => h.id === handData.id);
@@ -709,9 +735,10 @@ const nextDealer = () => {
     newTeamBScore >= gameState.settings.targetScore ||
     (gameState.settings.playerCount === 3 && newTeamCScore >= gameState.settings.targetScore);
 
-  if (gameEnded) {
-    await updateStatsAfterHand(hand);
-  }
+if (gameEnded) {
+  scheduleStatsUpdate(hand, gameState.players);
+}
+
 
   await saveGameToSupabase();
   if (

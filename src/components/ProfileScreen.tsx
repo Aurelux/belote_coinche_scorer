@@ -546,11 +546,14 @@ console.log('Pire victime:', worstTeammate2AG);
     }
   };
 
-  if(winStreak>6 && lossStreak>6 && !unlockedCadre.includes("13")){
+  if(maxWinStreak>6 && maxLossStreak>6 && !unlockedCadre.includes("13")){
 setUnlockedCadre(prev => 
     prev.includes("13") ? prev : [...prev, "13"]
   );
   }
+
+
+
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

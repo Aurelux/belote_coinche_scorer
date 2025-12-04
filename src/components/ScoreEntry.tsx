@@ -47,14 +47,20 @@ const [beloteModalTeam, setBeloteModalTeam] = useState<null | 'A' | 'B'>(null);
     teamC: number;
   }>({ teamA: 0, teamB: 0, teamC: 0 });
 
-  const suits = [
-    { value: 'hearts', label: '♥️', color: 'text-red-600' },
-    { value: 'diamonds', label: '♦️', color: 'text-red-600' },
-    { value: 'clubs', label: '♣️', color: 'text-gray-800' },
-    { value: 'spades', label: '♠️', color: 'text-gray-800' },
-    { value: 'no-trump', label: 'SA', color: 'text-purple-600' },
-    { value: 'all-trump', label: 'TA', color: 'text-orange-600' }
-  ];
+const suits = [
+  { value: 'hearts', label: '♥️', color: 'text-red-600' },
+  { value: 'diamonds', label: '♦️', color: 'text-red-600' },
+  { value: 'clubs', label: '♣️', color: 'text-gray-800' },
+  { value: 'spades', label: '♠️', color: 'text-gray-800' },
+  // Ajouter TA/SA seulement si l'annonce est triée
+  ...(gameState.settings.withAnnouncements 
+    ? [
+        { value: 'no-trump', label: 'SA', color: 'text-purple-600' },
+        { value: 'all-trump', label: 'TA', color: 'text-orange-600' }
+      ]
+    : [])
+];
+
 
   const bidValues = [80, 90, 100, 110, 120, 130, 140, 150, 160, 170, 180];
   useEffect(() => {
