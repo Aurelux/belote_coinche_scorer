@@ -603,7 +603,7 @@ console.log("Match mis à jour en 'ongoing'");
   const settings: GameSettings = {
     mode: tournament.mode, // 'belote' ou 'coinche'
     playerCount: matchPlayers.length as 2 | 3 | 4,
-    withAnnouncements : false,
+    withAnnouncements : true,
     targetScore : tournament.targetPoints,
     isTournament: true,
     currentTournamentId: tournament.id,

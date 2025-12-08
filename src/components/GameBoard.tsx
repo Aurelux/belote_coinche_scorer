@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { HelpCircle,ArrowLeft, BarChart3, RotateCcw, Trophy, Plus, History, RefreshCw, Skull, User, Settings} from 'lucide-react';
+import { HelpCircle,ArrowLeft, BarChart3, RotateCcw, Trophy, Plus, History, RefreshCw, Skull, User, Settings, TurtleIcon} from 'lucide-react';
 import { useGame } from '../context/GameContext';
 import { ScoreEntry } from './ScoreEntry';
 import { CapotCelebration } from './CapotCelebration';
@@ -651,14 +651,14 @@ console.log(playerTeams)
               {!gameState.settings.isTournament  && (
               <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
                 <button
-                  onClick={startRematch}
+                  onClick={startNewGame}
                   className="flex items-center space-x-2 px-4 sm:px-6 py-2 sm:py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm sm:text-base"
                 >
                   <RefreshCw className="w-4 h-4 sm:w-5 sm:h-5" />
                   <span>Revanche</span>
                 </button>
                 <button
-                  onClick={startNewGame}
+                  onClick={() => setShowNewGameModal(true)}
                   className="px-4 sm:px-6 py-2 sm:py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm sm:text-base"
                 >
                   Nouvelle Partie
