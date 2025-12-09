@@ -323,6 +323,7 @@ if (currentType === 'L') maxLossStreak = Math.max(maxLossStreak, currentStreak);
     });
   });
 
+  console.log(teammateCounts)
   // Trouver le joueur avec qui on a le plus joué
   const bestEntry = Object.entries(teammateCounts).reduce(
     (acc, [userId, data]) => {
