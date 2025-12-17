@@ -309,6 +309,8 @@ let filteredMatches = [existing[0]]
     const allFinishedSM = filteredMatches.every((m) => m.status === "finished");
 
   if (allFinished || (filteredMatches.length === matchnumber && allFinishedSM)) {
+  
+
   // Vérifier si le tournoi est déjà dans l'historique
   const { data: existingHistory, error: historyError } = await supabase
     .from("tournament_history")
@@ -322,6 +324,7 @@ let filteredMatches = [existing[0]]
   } else if (!existingHistory) {
     console.log('histo')
     // S'il n'existe pas, on marque le tournoi comme terminé dans l'historique
+   
     await markTournamentAsFinished(tournamentId);
   }
 
@@ -520,6 +523,7 @@ const handleFinishTournament = async () => {
       console.error("Erreur lors de la fin du tournoi :", e);
       
     } finally {
+      
       markTournamentAsFinished(tournament.id)
       setLoadingFinish(false);
     }

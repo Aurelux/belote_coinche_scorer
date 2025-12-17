@@ -34,7 +34,20 @@ const [keepTeams, setKeepTeams] = useState<boolean>(true);  // par défaut on ga
 const [changeTeams, setChangeTeams] = useState<boolean>(false); // par défaut, changement d'équipe non sélectionné
 
 
+const WARNING_GAP = gameState.settings.playerCount === 3 ? 150 : 225;
 
+const teamsScores = [
+  gameState.teamAScore,
+  gameState.teamBScore,
+  gameState.teamCScore,
+].filter((score): score is number => typeof score === "number");
+
+
+const isNearGameEnd = teamsScores.some(
+  (score) =>
+    gameState.settings.targetScore - score <= WARNING_GAP &&
+    score < gameState.settings.targetScore
+);
 const saveSettings = () => {
   setGameState({
     ...gameState,
@@ -699,14 +712,30 @@ console.log(playerTeams)
 </button>
 
                 </div>
-                
-                <button
-                  onClick={() => setShowScoreEntry(true)}
-                  className="flex items-center space-x-2 px-4 sm:px-6 py-3 bg-gradient-to-r from-green-600 to-green-800 text-white rounded-lg hover:from-green-700 hover:to-green-900 transition-all duration-200 shadow-lg text-sm sm:text-base"
-                >
-                  <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
-                  <span>Ajouter une Main</span>
-                </button>
+                <div className="flex flex-col items-center gap-2 text-center">
+
+  {isNearGameEnd && !gameState.gameEnded && (
+  <div className="border border-orange-300 bg-orange-50 text-orange-800 text-xs sm:text-sm font-semibold px-4 py-3 rounded-lg max-w-md text-center">
+    ⚠️ Attention : la fin de la partie approche.<br />
+    Vous ne pourrez plus modifier les mains une fois la partie terminée.
+  </div>
+)}
+
+  <button
+    onClick={() => setShowScoreEntry(true)}
+    disabled={gameState.gameEnded}
+    className={`flex items-center space-x-2 px-4 sm:px-6 py-3 rounded-lg transition-all duration-200 shadow-lg text-sm sm:text-base
+      ${
+        gameState.gameEnded
+          ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+          : "bg-gradient-to-r from-green-600 to-green-800 text-white hover:from-green-700 hover:to-green-900"
+      }
+    `}
+  >
+    <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
+    <span>Ajouter une main</span>
+  </button>
+</div>
               </div>
             </div>
           )}
@@ -809,11 +838,18 @@ console.log(playerTeams)
 
                             <div className="mt-4 flex justify-end">
   <button
-    onClick={() => handleEditHand(hand)}
-    className="bg-green-600 text-white px-4 py-2 rounded-lg text-xs font-semibold shadow hover:bg-green-700 transition"
-  >
-    ✏️ Modifier
-  </button>
+  onClick={() => handleEditHand(hand)}
+  disabled={gameState.gameEnd}
+  className={`px-4 py-2 rounded-lg text-xs font-semibold shadow transition
+    ${
+      gameState.gameEnded
+        ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+        : "bg-green-600 text-white hover:bg-green-700"
+    }
+  `}
+>
+  ✏️ Modifier
+</button>
 </div>
                           </div>
                           

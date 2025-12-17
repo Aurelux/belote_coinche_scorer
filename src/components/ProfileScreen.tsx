@@ -484,7 +484,7 @@ console.log('Pire victime:', worstTeammate2AG);
 
   const meetsMinGames = !title.minGames || stats.totalGames >= title.minGames;
   let currentValue = 0
-  if (title.requirement && !['winStreak', 'lossStreak', 'isPastis', 'isBiere', 'isTempete','isCaracaca'].includes(title.requirement)) {
+  if (title.requirement && !['winStreak', 'lossStreak', 'isPastis', 'isBiere', 'isTempete','isCaracaca','mostPlayedWith'].includes(title.requirement)) {
     currentValue = stats[title.requirement as keyof typeof stats] as number;
     return currentValue >= (title.threshold || 0) && meetsMinGames;
   }

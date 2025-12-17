@@ -53,7 +53,7 @@ setGameState: (newState: Partial<GameState>) => void;
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
 
-const saveTimeouts: Record<string, NodeJS.Timeout> = {};
+
 
 const createEmptyGameModeStats = (): GameModeStats => ({
   games: 0,
@@ -690,22 +690,6 @@ const nextDealer = () => {
 
 // clé unique et stable par équipe
 
-const scheduleStatsUpdate = (hand: Hand, players: Player[]) => {
-  const key = players.map(p => p.userId || p.id).sort().join('-');
-  console.log(saveTimeouts[key])
-  
-
-  if (saveTimeouts[key]){
-console.log('ancienne partie supprimé');
-clearTimeout(saveTimeouts[key])
-  } ;
-
-  saveTimeouts[key] = setTimeout(async () => {
-    await updateStatsAfterHand(hand);
-    delete saveTimeouts[key]; 
-    console.log('partie sauvegardée')// ✅ supprime la clé pour ce groupe de joueurs
-  }, 2 * 60 * 1000);
-};
 
 
  const addHand = async (handData: Omit<Hand, 'id' | 'handNumber' | 'timestamp'> & { id?: string }) => {
@@ -736,7 +720,7 @@ clearTimeout(saveTimeouts[key])
     (gameState.settings.playerCount === 3 && newTeamCScore >= gameState.settings.targetScore);
 
 if (gameEnded) {
-  scheduleStatsUpdate(hand, gameState.players);
+  await updateStatsAfterHand(hand);
 }
 
 
@@ -1174,7 +1158,7 @@ const markTournamentAsFinished = async (tournamentId: string) => {
   // 6️⃣ Calcul du score d’équipe
   const computeTeamScore = (t: typeof teams[0]) => {
     const diff = t.total_scored - t.total_conceded;
-    return t.wins * 3 + diff * 0.01;
+    return t.wins * 3 + diff * 0.001;
   };
 
   // 7️⃣ Tri et top 3
@@ -1205,6 +1189,23 @@ const markTournamentAsFinished = async (tournamentId: string) => {
   // 9️⃣ Génération de l’ID aléatoire
   const randomId =
     tournament.join_code + "_" + Math.random().toString(36).substring(2, 10);
+
+  const { data: existing, error: checkError } = await supabase
+  .from("tournament_history")
+  .select("id")
+  .eq("tournament_id", tournamentId)
+  .maybeSingle();
+
+if (checkError) {
+  console.error("Erreur lors de la vérification :", checkError);
+  return; // on arrête, pour éviter une insertion folle
+}
+
+// 🛑 Déjà présent → on ne fait rien
+if (existing) {
+  console.log("⛔ Tournoi déjà présent dans l’historique, aucune insertion.");
+  return;
+}
 
   // 🔟 Insertion dans l’historique
   const { error: insertError } = await supabase.from("tournament_history").insert({
@@ -1433,16 +1434,19 @@ const is2Players = gameState.settings.playerCount === 2;
       baseStats.win_rate = (baseStats.wins / baseStats.total_games) * 100;
       baseStats.contractsTaken +=contractsTaken;
       baseStats.successful_contracts +=successfulContracts;
-      // --- Upsert propre (insertion ou mise à jour selon l'existence) ---
-      
 
-if (existingStats) {
+      console.log(baseStats)
+      // --- Upsert propre (insertion ou mise à jour selon l'existence) ---
+
+
+
+if (existingStats && (existingStats.created_at == existingStats.updated_at || new Date(existingStats.updated_at).getTime() < Date.now() - 120 * 1000)) {
   await supabase
     .from("tournament_stats")
     .update({ ...baseStats, win_rate: baseStats.win_rate })
     .eq("tournament_id", tournamentId)
     .eq("user_id", player.userId);
-} else {
+} else if (!existingStats) {
   await supabase
     .from("tournament_stats")
     .insert([{ ...baseStats, win_rate: baseStats.win_rate }]);
