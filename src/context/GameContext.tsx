@@ -2398,7 +2398,7 @@ const getTimeFrameUserRankings = async (
           rank: 0
         };
       })
-      .filter(r => r.gamesPlayed >= 1)
+      .filter(r => r.userId != 'null' &&  r.gamesPlayed >= 1)
       .sort((a, b) => b.rankingScore - a.rankingScore)
       .map((ranking, index) => ({ ...ranking, rank: index + 1 }));
 

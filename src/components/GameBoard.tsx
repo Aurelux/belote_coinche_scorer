@@ -30,7 +30,7 @@ const [atoutMode, setAtoutMode] = useState(gameState.settings.withAnnouncements)
 const [playerTeams, setPlayerTeams] = useState(() => {
   return gameState.players.map((p, i) => (i < 2 ? "A" : "B"));
 });
-const [keepTeams, setKeepTeams] = useState<boolean>(true);  // par défaut on garde les équipes
+const [keepTeams, setKeepTeams] = useState<boolean>(false);  // par défaut on garde les équipes
 const [changeTeams, setChangeTeams] = useState<boolean>(false); // par défaut, changement d'équipe non sélectionné
 
 
@@ -384,15 +384,26 @@ console.log(playerTeams)
   >
     <HelpCircle className="w-6 h-6" />
   </button>
-                
                 {showNewGameModal && (
   <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-    <div className="bg-white rounded-2xl shadow-xl p-6 w-11/12 max-w-md text-center">
-      <h2 className="text-lg font-semibold mb-4">Recommencez la partie ?</h2>
+    <div className="relative bg-white rounded-2xl shadow-xl p-6 w-11/12 max-w-md text-center">
+
+      {/* Flèche retour */}
+      <button
+        onClick={() => setShowNewGameModal(false)}
+        className="absolute top-4 left-4 p-2 rounded-full hover:bg-gray-100 transition"
+        aria-label="Retour"
+      >
+        <ArrowLeft className="w-5 h-5 text-gray-600" />
+      </button>
+
+      <h2 className="text-lg font-semibold mb-4">
+        Recommencez la partie ?
+      </h2>
+
       <p className="mb-6 text-gray-700">
         Si vous recommencez maintenant, la partie en cours sera perdue et les scores seront réinitialisés.
       </p>
-
       {/* Choix équipes */}
 {gameState.settings.playerCount === 4 && (
   <div className="flex justify-center gap-4 mb-4">
@@ -401,8 +412,11 @@ console.log(playerTeams)
         keepTeams ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
       }`}
       onClick={() => {
-        setKeepTeams(true);
+        setKeepTeams(false);
         setChangeTeams(false);
+        saveSettings();
+        setShowNewGameModal(false);
+        startNewGame();
       }}
     >
       Garder les équipes
@@ -481,17 +495,14 @@ console.log(playerTeams)
 
 
       {/* Boutons Annuler / Nouvelle partie */}
+    {changeTeams && (
       <div className="flex justify-center gap-4">
-        <button
-          className="px-4 py-2 rounded-lg bg-gray-700 text-white font-semibold hover:bg-gray-800"
-          onClick={() => setShowNewGameModal(false)}
-        >
-          Annuler
-        </button>
+        
         
           <button
             className="px-4 py-2 rounded-lg bg-green-800 border-2 border-green-900 text-white font-semibold hover:bg-green-900"
             onClick={() => {
+              setChangeTeams(false);
               saveSettings();
               setShowNewGameModal(false);
               startNewGame(); // nouvelle partie avec les mêmes équipes
@@ -501,6 +512,7 @@ console.log(playerTeams)
           </button>
         
       </div>
+    )}
     </div>
   </div>
 )}

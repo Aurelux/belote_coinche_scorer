@@ -1312,7 +1312,7 @@ setUnlockedCadre(prev =>
   setUnlockedTitles(prev => [...prev, title.id]);
 }
 
-if (isUnlocked && title.requirement === 'successfulCoinches' && title.threshold >= 75 && !unlockedCadre.includes("12")) {
+if (title.requirement === 'successfulCoinches' && stats?.successfulCoinches >= 75 && !unlockedCadre.includes("12")) {
   setUnlockedCadre(prev => 
     prev.includes("12") ? prev : [...prev, "12"]
   );

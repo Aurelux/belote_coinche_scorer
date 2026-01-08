@@ -4,15 +4,19 @@ import { useGame } from '../context/GameContext';
 import { PROFILE_TITLES, availableFrames } from '../types/game';
 import { supabase } from '../lib/supabase';
 
+type Mode = "coinche" | "belote"
+type PlayersCount = 2 | 3 | 4
 
 export function RankingsScreen() {
   const { gameState, setCurrentScreen, getUserRankings, navigateTo, goBack, setSelectedUser, getTimeFrameUserRankings} = useGame();
-  const [selectedMode, setSelectedMode] = useState<'belote' | 'coinche'>('belote');
+  const [selectedMode, setSelectedMode] = useState<'belote' | 'coinche'>('coinche');
   const [selectedPlayerCount, setSelectedPlayerCount] = useState<2 | 3 | 4>(4);
   const [selectedGroup, setSelectedGroup] = useState<'world' | 'friends'>('world');
   const [selectedTimeFrame, setSelectedTimeFrame] = useState<'all' | 'month'| 'week'>('all');
   const [popupPosition, setPopupPosition] = useState<{ x: number; y: number; playerId: string } | null>(null);
 
+  const [mode, setMode] = useState<Mode>("coinche")
+  const [playersCount, setPlayersCount] = useState<PlayersCount>(4)
 
 
   const [rankings, setRankings] = useState<any[]>([]);
@@ -77,9 +81,127 @@ const currentUser = gameState.currentUser
 
 
 
+const TOP3_2025: Record<
+  Mode,
+  Record<PlayersCount, Record<string, number>>
+> = {
+  coinche: {
+    4: {
+      AurelB: 111,
+      Adele: 96,
+      "Big Boss Faust": 95,
+    },
+    3: {
+      AurelB: 91,
+      Adele: 78,
+      "Big Boss Faust": 72,
+    },
+    2: {
+      "Pépé": 88,
+      JojoLaTerreure: 75,
+      Asseu: 69,
+    },
+  },
+  belote: {
+    4: {
+      Lejob: 50,
+      AurelB: 45,
+      Clem: 22,
+    },
+    3: {
+      AurelB: 27,
+      Lejob: 14,
+      Pateo: 8,
+    },
+    2: {
+      AurelB: 22,
+      Lejob: 19,
+      Pateo: 6,
+    },
+  },
+}
+
+const ranking = TOP3_2025[mode][playersCount]
+console.log(ranking)
+const TOP3_NAMES = Object.keys(ranking)
+console.log(TOP3_NAMES)
+
+
+const top3 = users
+  .filter((u) => TOP3_NAMES.includes(u.displayName))
+  .map((u) => ({
+    ...u,
+    stats: {
+      ...u.stats,
+      score: ranking[u.displayName],
+    },
+  }))
+  .sort((a, b) => (b.stats.score ?? 0) - (a.stats.score ?? 0))
+  .slice(0, 3)
+
+
+console.log(top3)
 
 // Nouvelle fonction pour récupérer les classements par période
 
+
+
+const [first, second, third] = top3
+
+function PodiumCard({
+  player,
+  rank,
+  medal,
+  height,
+  highlight = false,
+}: {
+  player: Player
+  rank: number
+  medal: string
+  height: string
+  highlight?: boolean
+}) {
+  return (
+    <div className="flex flex-col items-center">
+      {/* Avatar */}
+      <div
+        className={`relative rounded-full border-4 ${
+          highlight ? "border-yellow-400" : "border-gray-300"
+        }`}
+      >
+        <img
+          src={player?.profilePicture ?? 'avatar.png'}
+          alt={player?.displayName ?? 'nobody'}
+          className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover"
+        />
+        {highlight && (
+          <Crown className="absolute -top-4 -right-4 w-6 h-6 text-yellow-400" />
+        )}
+      </div>
+
+      {/* Name */}
+      <p className="mt-2 font-semibold text-sm sm:text-base text-gray-900">
+        {player?.displayName ?? 'nobody'}
+      </p>
+
+      {/* Score */}
+      <p className="text-xs sm:text-sm text-gray-500">
+        {player?.stats.score ?? 0} pts
+      </p>
+
+      {/* Podium */}
+      <div
+        className={`mt-3 w-20 sm:w-24 ${height} rounded-t-xl flex items-center justify-center text-xl font-bold ${
+          highlight
+            ? "bg-gradient-to-t from-yellow-400 to-yellow-300"
+            : "bg-gray-200"
+        }`}
+      >
+        {medal}
+      </div>
+    </div>
+  )
+}
 
   const getRankIcon = (rank: number) => {
     switch (rank) {
@@ -165,7 +287,7 @@ const currentUser = gameState.currentUser
                   onClick={() => setSelectedMode('belote')}
                   className={`p-3 sm:p-4 rounded-xl border-2 transition-all duration-200 ${
                     selectedMode === 'belote'
-                      ? 'border-blue-500 bg-blue-50 text-blue-700'
+                      ? 'border-green-500 bg-green-50 text-green-700'
                       : 'border-gray-200 hover:border-gray-300 text-gray-700'
                   }`}
                 >
@@ -177,7 +299,7 @@ const currentUser = gameState.currentUser
                   onClick={() => setSelectedMode('coinche')}
                   className={`p-3 sm:p-4 rounded-xl border-2 transition-all duration-200 ${
                     selectedMode === 'coinche'
-                      ? 'border-blue-500 bg-blue-50 text-blue-700'
+                      ? 'border-green-500 bg-green-50 text-green-700'
                       : 'border-gray-200 hover:border-gray-300 text-gray-700'
                   }`}
                 >
@@ -197,7 +319,7 @@ const currentUser = gameState.currentUser
                     onClick={() => setSelectedPlayerCount(count as 2 | 3 | 4)}
                     className={`py-2 sm:py-3 px-3 sm:px-4 rounded-lg border-2 font-semibold transition-all duration-200 text-sm sm:text-base ${
                       selectedPlayerCount === count
-                        ? 'border-blue-500 bg-blue-50 text-blue-700'
+                        ? 'border-green-500 bg-green-50 text-green-700'
                         : 'border-gray-200 hover:border-gray-300 text-gray-700'
                     }`}
                   >
@@ -218,7 +340,7 @@ const currentUser = gameState.currentUser
         onClick={() => setSelectedGroup(option.key)}
         className={`flex items-center justify-center gap-2 py-2 sm:py-3 px-3 sm:px-4 rounded-lg border-2 font-semibold transition-all duration-200 text-sm sm:text-base ${
           selectedGroup === option.key
-            ? 'border-blue-500 bg-blue-50 text-blue-700'
+            ? 'border-green-500 bg-green-50 text-green-700'
             : 'border-gray-200 hover:border-gray-300 text-gray-700'
         }`}
       >
@@ -235,7 +357,7 @@ const currentUser = gameState.currentUser
       onClick={() => setSelectedTimeFrame(tf)}
         className={`flex items-center justify-center gap-2 py-2 sm:py-3 px-3 sm:px-4 rounded-lg border-2 font-semibold transition-all duration-200 text-sm sm:text-base ${
           selectedTimeFrame === tf
-            ? 'border-blue-500 bg-blue-50 text-blue-700'
+            ? 'border-green-500 bg-green-50 text-green-700'
             : 'border-gray-200 hover:border-gray-300 text-gray-700'
         }`}
     >
@@ -252,13 +374,13 @@ const currentUser = gameState.currentUser
         {currentUserRank && currentUserRank.rank > 30 && (
           <div className="bg-white rounded-2xl shadow-xl p-4 mb-4">
             <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center space-x-2">
-              <Star className="w-5 h-5 text-blue-600" />
+              <Star className="w-5 h-5 text-green-600" />
               <span>Votre classement</span>
             </h3>
-            <div className="p-3 bg-blue-50 rounded-xl border border-blue-200">
+            <div className="p-3 bg-green-50 rounded-xl border border-green-200">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-sm">
+                  <div className="w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center font-bold text-sm">
                     #{currentUserRank.rank}
                   </div>
                   <div className="flex items-center space-x-2">
@@ -298,7 +420,7 @@ const currentUser = gameState.currentUser
 
           {loading ? (
             <div className="text-center py-12">
-              <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+              <div className="w-8 h-8 border-2 border-green-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
               <p className="text-gray-600">Chargement des classements...</p>
             </div>
           ) : rankings.length === 0 ? (
@@ -469,6 +591,96 @@ const currentUser = gameState.currentUser
 
         </div>
         
+
+  
+    <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 my-4">
+      <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 space-y-2 sm:space-y-3">Mode de jeu</h3>
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 ">
+                <button
+                  onClick={() => setMode('belote')}
+                  className={`p-3 sm:p-4 rounded-xl border-2 transition-all duration-200 ${
+                    mode === 'belote'
+                      ? 'border-green-500 bg-green-50 text-green-700'
+                      : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                  }`}
+                >
+                  <div className="font-semibold">Belote</div>
+                  <div className="text-sm opacity-75">Classique</div>
+                </button>
+                
+                <button
+                  onClick={() => setMode('coinche')}
+                  className={`p-3 sm:p-4 rounded-xl border-2 transition-all duration-200 ${
+                    mode === 'coinche'
+                      ? 'border-green-500 bg-green-50 text-green-700'
+                      : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                  }`}
+                >
+                  <div className="font-semibold">Coinche</div>
+                  <div className="text-sm opacity-75">Avec enchères</div>
+                </button>
+              </div>
+            </div>
+
+            {/* Player Count Selection */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 space-y-2 sm:space-y-3">Nombre de joueurs</h3>
+              <div className="grid grid-cols-3 gap-2 sm:gap-3">
+                {[2, 3, 4].map(count => (
+                  <button
+                    key={count}
+                    onClick={() => setPlayersCount(count as 2 | 3 | 4)}
+                    className={`py-2 sm:py-3 px-3 sm:px-4 rounded-lg border-2 font-semibold transition-all duration-200 text-sm sm:text-base ${
+                      playersCount === count
+                        ? 'border-green-500 bg-green-50 text-green-700'
+                        : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                    }`}
+                  >
+                    {count}J
+                  </button>
+                ))}
+              </div>
+            </div>
+            
+
+      <h2 className="text-xl sm:text-2xl font-extrabold text-center mb-8 space-y-2 sm:space-y-3 my-10">
+        🏆 Top 3 – Classement 2025
+      </h2>
+
+      <div className="flex items-end justify-center gap-6 sm:gap-10">
+
+        {/* 🥈 Second */}
+        <PodiumCard
+          player={second}
+          rank={2}
+          height="h-32"
+          medal="🥈"
+        />
+
+        {/* 🥇 First */}
+        <PodiumCard
+          player={first}
+          rank={1}
+          height="h-40"
+          medal="🥇"
+          highlight
+        />
+
+        {/* 🥉 Third */}
+        <PodiumCard
+          player={third}
+          rank={3}
+          height="h-28"
+          medal="🥉"
+        />
+
+      </div>
+    </div>
+  
+
+
+
 
         {/* Ranking Explanation */}
         <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 mt-4 sm:mt-6 mb-6">
