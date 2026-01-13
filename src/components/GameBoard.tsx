@@ -435,6 +435,24 @@ console.log(playerTeams)
   </div>
 )}
 
+{gameState.settings.playerCount != 4 && (
+  <div className="flex justify-center gap-4 mb-4">
+    <button
+      className={`px-4 py-2 rounded-lg font-semibold ${
+        keepTeams ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+      }`}
+      onClick={() => {
+        
+        setShowNewGameModal(false);
+        startNewGame();
+      }}
+    >
+      Recommencez la partie
+    </button>
+    
+  </div>
+)}
+
 
       {/* Bouton supplémentaire si changement d’équipes */}
 {changeTeams && (
@@ -851,7 +869,7 @@ console.log(playerTeams)
                             <div className="mt-4 flex justify-end">
   <button
   onClick={() => handleEditHand(hand)}
-  disabled={gameState.gameEnd}
+  disabled={gameState.gameEnded}
   className={`px-4 py-2 rounded-lg text-xs font-semibold shadow transition
     ${
       gameState.gameEnded

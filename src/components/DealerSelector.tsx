@@ -140,7 +140,7 @@ export default function DealerSelector({
       <div className="w-12 h-12 bg-yellow-700 text-white rounded-full flex items-center justify-center text-lg font-bold shadow-md border border-yellow-400">
         <Armchair size={23} strokeWidth={1.5} className="absolute text-yellow-300" />
       </div>
-      <span className="text-xs text-yellow-200 mt-1">{shortNames[1].full}</span>
+      <span className="text-xs text-yellow-200 mt-1">{shortNames[2].full}</span>
     </div>
 
     {/* Bas droite */}
@@ -148,7 +148,7 @@ export default function DealerSelector({
       <div className="w-12 h-12 bg-yellow-700 text-white rounded-full flex items-center justify-center text-lg font-bold shadow-md border border-yellow-400">
         <Armchair size={23} strokeWidth={1.5} className="absolute text-yellow-300" />
       </div>
-      <span className="text-xs text-yellow-200 mt-1">{shortNames[2].full}</span>
+      <span className="text-xs text-yellow-200 mt-1">{shortNames[1].full}</span>
     </div>
   </div>
 )}
