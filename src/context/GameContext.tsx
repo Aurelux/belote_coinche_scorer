@@ -49,6 +49,7 @@ setGameState: (newState: Partial<GameState>) => void;
   loadMatchHistory: () => Promise<void>;
   setDealer: (index: number) => void;
   nextDealer: () => void;
+  getNextDealerIndex: (currentDealer: number, playerCount: number) => number ;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -1098,80 +1099,140 @@ const markTournamentAsFinished = async (tournamentId: string) => {
   }
 
   // 2️⃣ Récupération des stats associées
-  const { data: stats, error: statsError } = await supabase
-    .from("tournament_stats")
-    .select("*")
-    .eq("tournament_id", tournamentId);
+const { data: matches, error } = await supabase
+  .from("tournament_matches")
+  .select("*")
+  .eq("tournament_id", tournamentId);
 
-  if (statsError || !stats) {
-    console.error("Erreur récupération stats :", statsError);
-    return;
+if (error || !matches) {
+  console.error("Erreur récupération matchs :", error);
+  return;
+}
+
+/**
+ * Structure équipe
+ */
+type TeamStats = {
+  team: string;
+  members: string[];
+  total_scored: number;
+  total_conceded: number;
+  wins: number;
+  losses: number;
+  games: number;
+};
+
+const teamsMap: Record<string, TeamStats> = {};
+
+/**
+ * Helper pour créer clé d’équipe stable
+ */
+const getTeamKey = (players: any[]) => {
+  // On trie par id pour être sûr que l’ordre n’impacte pas la clé
+  return players
+    .map((p) => p.id)
+    .sort()
+    .join("_");
+};
+
+matches.forEach((match) => {
+  const teamAPlayers = match.joueurs_a ?? [];
+  const teamBPlayers = match.joueurs_b ?? [];
+
+  const scoreA = match.score_a ?? 0;
+  const scoreB = match.score_b ?? 0;
+
+  const keyA = getTeamKey(teamAPlayers);
+  const keyB = getTeamKey(teamBPlayers);
+
+  // Initialisation équipe A
+  if (!teamsMap[keyA]) {
+    teamsMap[keyA] = {
+      team: teamAPlayers[0]?.team ?? "Equipe A",
+      members: teamAPlayers.map((p: any) => p.name),
+      total_scored: 0,
+      total_conceded: 0,
+      wins: 0,
+      losses: 0,
+      games: 0,
+    };
   }
 
-  // 3️⃣ Récupération des infos joueurs + équipes
-  const players = tournament.players
-
-  // 4️⃣ Fusion joueur / stats
-  const merged = stats.map((s) => {
-    const player = players.find((p) => p.id === s.user_id);
-    return {
-      ...s,
-      team: player?.team ?? "inconnue",
-      display_name: player?.name ?? "Inconnu",
+  // Initialisation équipe B
+  if (!teamsMap[keyB]) {
+    teamsMap[keyB] = {
+      team: teamBPlayers[0]?.team ?? "Equipe B",
+      members: teamBPlayers.map((p: any) => p.name),
+      total_scored: 0,
+      total_conceded: 0,
+      wins: 0,
+      losses: 0,
+      games: 0,
     };
-  });
+  }
 
-  // 5️⃣ Regroupement par équipe
-  const teamsMap: Record<
-    string,
-    {
-      team: string;
-      members: string[];
-      total_scored: number;
-      total_conceded: number;
-      wins: number;
-      losses: number;
-    }
-  > = {};
+  // Mise à jour stats A
+  teamsMap[keyA].total_scored += scoreA;
+  teamsMap[keyA].total_conceded += scoreB;
+  teamsMap[keyA].games += 1;
 
-  merged.forEach((p) => {
-    if (!teamsMap[p.team]) {
-      teamsMap[p.team] = {
-        team: p.team,
-        members: [],
-        total_scored: 0,
-        total_conceded: 0,
-        wins: 0,
-        losses: 0,
-      };
-    }
+  // Mise à jour stats B
+  teamsMap[keyB].total_scored += scoreB;
+  teamsMap[keyB].total_conceded += scoreA;
+  teamsMap[keyB].games += 1;
 
-    teamsMap[p.team].members.push(p.display_name);
-    teamsMap[p.team].total_scored += p.points_scored ?? 0;
-    teamsMap[p.team].total_conceded += p.points_conceded ?? 0;
-    teamsMap[p.team].wins += p.wins ?? 0;
-    teamsMap[p.team].losses += p.losses ?? 0;
-  });
+  if (scoreA > scoreB) {
+    teamsMap[keyA].wins += 1;
+    teamsMap[keyB].losses += 1;
+  } else if (scoreB > scoreA) {
+    teamsMap[keyB].wins += 1;
+    teamsMap[keyA].losses += 1;
+  }
+});
 
-  const teams = Object.values(teamsMap);
+/**
+ * Conversion en array
+ */
+const teams = Object.values(teamsMap);
 
-  // 6️⃣ Calcul du score d’équipe
-  const computeTeamScore = (t: typeof teams[0]) => {
-    const diff = t.total_scored - t.total_conceded;
-    return t.wins * 3 + diff * 0.001;
-  };
+/**
+ * Score classement
+ * 3 points par victoire + différentiel
+ */
+const computeTeamScore = (t: TeamStats) => {
+  const diff = t.total_scored - t.total_conceded;
+  return t.wins * 3 + diff * 0.001;
+};
 
-  // 7️⃣ Tri et top 3
-  const sortedTeams = teams
-    .map((t) => ({
-      ...t,
-      score: computeTeamScore(t),
-    }))
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 3);
+/**
+ * Tri
+ */
+const top3 = teams
+  .map((t) => ({
+    ...t,
+    diff: t.total_scored - t.total_conceded,
+    score: computeTeamScore(t),
+  }))
+  .sort((a, b) => {
+    if (b.wins !== a.wins) return b.wins - a.wins;
+    return b.diff - a.diff;
+  })
+  .slice(0, 3);
+
+  const formattedTop3 = top3.map((t) => ({
+  team: t.team,
+  members: t.members,
+  games: t.games,
+  wins: t.wins,
+  losses: t.losses,
+  points_scored: t.total_scored,
+  points_conceded: t.total_conceded,
+  diff: t.diff,
+  score: t.score,
+}));
 
   // 8️⃣ Format final du top 3
-  const top3 = sortedTeams.map((t) => {
+  const finaltop3 = formattedTop3.map((t) => {
   
 
   const shortNames = t.members
@@ -1216,7 +1277,7 @@ if (existing) {
     total_joueurs: tournament.total_players,
     options: tournament.options,
     
-    top3, // 🟢 top 3 équipes
+    top3: finaltop3, // 🟢 top 3 équipes
   });
 
   if (insertError) {
@@ -2679,6 +2740,7 @@ const updateProfilePicture = async (file: File): Promise<void> => {
       loadMatchHistory,
       setDealer,
       nextDealer,
+      getNextDealerIndex,
       reportMatchResult,
       createEmptyUserStats,
     }}>

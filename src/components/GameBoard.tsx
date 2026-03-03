@@ -11,7 +11,7 @@ import DealerSelector from "../components/DealerSelector";
 import {availableFrames } from '../types/game';
 
 export function GameBoard() {
-  const { gameState, setGameState,setCurrentScreen, startNewGame, resetGame, startRematch,navigateTo2, applyPenaltyToPlayer, navigateTo, goBack, nextDealer, setDealer} = useGame();
+  const { gameState, setGameState,setCurrentScreen, getNextDealerIndex,startNewGame, resetGame, startRematch,navigateTo2, applyPenaltyToPlayer, navigateTo, goBack, nextDealer, setDealer} = useGame();
   const [editedHand, setEditedHand] = useState<Hand | null>(null);
   const [showScoreEntry, setShowScoreEntry] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
@@ -109,9 +109,9 @@ console.log(playerTeams)
     return null;
   }
 
-  const currentDealer = gameState.currentDealer !== null 
-  ? gameState.players[gameState.currentDealer] 
+  const currentDealer = gameState.currentDealer !== null ? gameState.players[gameState.currentDealer] 
   : null;
+ 
   const teamAPlayers = gameState.players.filter(p => p.team === 'A');
   const teamBPlayers = gameState.players.filter(p => p.team === 'B');
   const teamCPlayers = gameState.players.filter(p => p.team === 'C');
@@ -127,7 +127,9 @@ console.log(playerTeams)
 />
     );
   }
-
+ const currentStart = gameState.currentDealer !== null 
+  ? gameState.players[getNextDealerIndex(gameState.currentDealer,gameState.players.length)] 
+  : null;
   const handleEditHand = (hand: Hand) => {
   setEditedHand(hand);
   setShowScoreEntry(true);
@@ -245,6 +247,11 @@ console.log(playerTeams)
                 {currentDealer && player.id === currentDealer.id && (
   <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full whitespace-nowrap">
     Donneur
+  </span>
+)}
+{currentStart && player.id === currentStart.id && (
+  <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full whitespace-nowrap">
+    Commence
   </span>
 )}
               </div>
