@@ -87,19 +87,19 @@ const TOP3_2025: Record<
 > = {
   coinche: {
     4: {
-      AurelB: 111,
-      Adele: 96,
-      "Big Boss Faust": 95,
+      AurelB: 114,
+      JojoLaTerreure: 113,
+      Adele: 107,
     },
     3: {
-      AurelB: 91,
-      Adele: 78,
-      "Big Boss Faust": 72,
+      AurelB: 71,
+      JojoLaTerreure: 47,
+      Asseu : 30,
     },
     2: {
-      "Pépé": 88,
-      JojoLaTerreure: 75,
-      Asseu: 69,
+      JojoLaTerreure: 39,
+      AurelB: 39,
+      Manu: 31,
     },
   },
   belote: {
@@ -270,7 +270,7 @@ function PodiumCard({
               <ArrowLeft className="w-6 h-6" />
             </button>
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Classements</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Classement </h1>
               <p className="text-gray-600">Top 30 joueurs par mode</p>
             </div>
           </div>
@@ -414,7 +414,7 @@ function PodiumCard({
           <div className="flex items-center space-x-3 mb-4 sm:mb-6">
             <Trophy className="w-6 h-6 text-yellow-500" />
             <h3 className="text-lg sm:text-xl font-bold text-gray-900">
-              Top 30 - {selectedMode === 'belote' ? 'Belote' : 'Coinche'}  à {selectedPlayerCount}J ({selectedTimeFrame} - {selectedGroup})
+              {selectedMode === 'belote' ? 'Belote' : 'Coinche'}  à {selectedPlayerCount}J (Printemps🌸)
             </h3>
           </div>
 
@@ -645,7 +645,7 @@ function PodiumCard({
             
 
       <h2 className="text-xl sm:text-2xl font-extrabold text-center mb-8 space-y-2 sm:space-y-3 my-10">
-        🏆 Top 3 – Classement 2025
+        ❄️🏆 Top 3 – Classement Hiver 2026
       </h2>
 
       <div className="flex items-end justify-center gap-6 sm:gap-10">
