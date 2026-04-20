@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Trophy, Sword, Shield, Zap, Heart, CheckCircle, XCircle, AlertTriangle, Minus } from 'lucide-react';
-import { useGame } from '../context/GameContext';
+import {  useGame } from '../context/useGame';
 import { Bid, Penalty } from '../types/game';
 
 interface ScoreEntryProps {

@@ -2,7 +2,7 @@ import React from 'react';
 import {
   ArrowLeft, Trophy, Target, Award, Crown, Users, Medal, BarChart3
 } from 'lucide-react';
-import { useGame } from '../context/GameContext';
+import {  useGame } from '../context/useGame';
 import { PROFILE_TITLES, availableFrames } from '../types/game';
 
 export function UserProfileScreen() {

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { ArrowLeft, UserPlus, X, PlusCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "../lib/supabase";
-import { useGame } from "../context/GameContext";
+import {  useGame } from '../context/useGame';
 
 type Player = {
   id?: string;

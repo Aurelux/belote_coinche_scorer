@@ -52,7 +52,7 @@ setGameState: (newState: Partial<GameState>) => void;
   getNextDealerIndex: (currentDealer: number, playerCount: number) => number ;
 }
 
-const GameContext = createContext<GameContextType | undefined>(undefined);
+export const GameContext = createContext<GameContextType | undefined>(undefined);
 
 
 
@@ -2655,7 +2655,7 @@ const updateProfilePicture = async (file: File): Promise<void> => {
       .from('profile-pictures')
       .getPublicUrl(fileName);
 
-    const optimizedUrl = `${publicUrl}?width=128&height=128&quality=50&format=webp`;
+    const optimizedUrl = `${publicUrl}?width=128&height=128&quality=50`;
 
     const { error: updateError } = await supabase
       .from('users')
@@ -2749,10 +2749,3 @@ const updateProfilePicture = async (file: File): Promise<void> => {
   );
 }
 
-export function useGame() {
-  const context = useContext(GameContext);
-  if (context === undefined) {
-    throw new Error('useGame must be used within a GameProvider');
-  }
-  return context;
-}

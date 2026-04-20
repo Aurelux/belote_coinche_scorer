@@ -1,6 +1,6 @@
 import React, { useEffect, useState , useRef} from "react";
 import { ArrowLeft, Trophy, Users, Clock,User, Network, Play, BarChart, RefreshCw, Flag, Settings, Goal, Shield, Layers3} from "lucide-react";
-import { useGame } from "../context/GameContext";
+import {  useGame } from '../context/useGame';
 import { supabase } from "../lib/supabase";
 
 import { PlayerTree, MatchNode,GameSettings, Player, Hand } from "./types";

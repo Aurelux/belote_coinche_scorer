@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Users, Mail, Lock, Camera, UserPlus, LogIn, Eye, EyeOff, User } from 'lucide-react';
-import { useGame } from '../context/GameContext';
+import {  useGame } from '../context/useGame';
 import { PROFILE_TITLES } from '../types/game';
 import { supabase } from "../lib/supabase";
 

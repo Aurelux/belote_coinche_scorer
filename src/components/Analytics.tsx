@@ -1,6 +1,6 @@
 import React from 'react';
 import { ArrowLeft, Trophy, Target, TrendingUp, Crown, Zap, Shield, User, TrendingDown, Award } from 'lucide-react';
-import { useGame } from '../context/GameContext';
+import {  useGame } from '../context/useGame';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 
 export function Analytics() {

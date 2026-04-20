@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
-import { useGame } from "../context/GameContext";
+import {  useGame } from '../context/useGame';
 import {
   ArrowLeft,
   Trophy,

@@ -1,6 +1,6 @@
 import React from "react";
 import { ArrowLeft } from "lucide-react";
-import { useGame } from '../context/GameContext';
+import {  useGame } from '../context/useGame';
 
 export default function HelpCoinche2j() {
   const { navigateTo, goBack } = useGame();

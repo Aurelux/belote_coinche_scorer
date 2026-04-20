@@ -1,6 +1,6 @@
 import React from "react";
 import { ArrowLeft, PlusCircle, Users, Clock } from "lucide-react";
-import { useGame } from "../context/GameContext";
+import {  useGame } from '../context/useGame';
 
 export default function TournamentsScreen() {
   const { gameState,navigateTo, navigateTo2 } = useGame();

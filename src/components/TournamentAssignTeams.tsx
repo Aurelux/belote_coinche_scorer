@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { ArrowLeft, User } from "lucide-react";
-import { useGame } from "../context/GameContext";
+import {  useGame } from '../context/useGame';
 import { supabase } from "../lib/supabase";
 
 interface PlayerTeam{

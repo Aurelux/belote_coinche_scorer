@@ -1,6 +1,6 @@
 import React from "react";
 import { ArrowLeft, BookOpen, Users, Megaphone, Trophy, Calculator, Brain, Scale, CheckCircle } from "lucide-react";
-import { useGame } from '../context/GameContext';
+import {  useGame } from '../context/useGame';
 
 export default function HelpCoinche4j() {
   const { navigateTo,goBack } = useGame();

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
-import { useGame } from "../context/GameContext";
+import {  useGame } from '../context/useGame';
 import { Crown, Trophy, Medal, Award, ArrowLeft } from "lucide-react";
 
 interface TournamentHistoryEntry {

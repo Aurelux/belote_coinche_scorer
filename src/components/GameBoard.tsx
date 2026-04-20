@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { HelpCircle,ArrowLeft, BarChart3, RotateCcw, Trophy, Plus, History, RefreshCw, Skull, User, Settings, TurtleIcon} from 'lucide-react';
-import { useGame } from '../context/GameContext';
+import {  useGame } from '../context/useGame';
 import { ScoreEntry } from './ScoreEntry';
 import { CapotCelebration } from './CapotCelebration';
 import { CoincheSuccessAnimation } from './CoincheSuccessAnimation';

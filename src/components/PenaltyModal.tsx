@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, Skull, AlertTriangle } from 'lucide-react';
-import { useGame } from '../context/GameContext';
+import {  useGame } from '../context/useGame';
 
 interface PenaltyModalProps {
   team: 'A' | 'B' | 'C';

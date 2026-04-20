@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Trophy, Medal, Award, Crown, TrendingUp, Users, Target, Star,Globe, User } from 'lucide-react';
-import { useGame } from '../context/GameContext';
+import {  useGame } from '../context/useGame';
 import { PROFILE_TITLES, availableFrames } from '../types/game';
 import { supabase } from '../lib/supabase';
 

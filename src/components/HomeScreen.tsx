@@ -1,6 +1,6 @@
 import React from "react";
 import { Trophy, Gamepad2, BarChart3, BookOpen, Spade } from "lucide-react";
-import { useGame } from "../context/GameContext";
+import {  useGame } from '../context/useGame';
 import AppIcon from '../assets/AppIcon-512@2x.png';
 
 export default function HomeScreen() {

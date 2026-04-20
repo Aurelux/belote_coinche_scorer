@@ -1,6 +1,6 @@
 import React from 'react';
 import { Spade, Crown, ArrowLeft, Play } from 'lucide-react';
-import { useGame } from '../context/GameContext';
+import {  useGame } from '../context/useGame';
 import { GameSettings } from '../types/game';
 
 export function GameModeSelection() {

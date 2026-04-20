@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Trash2, ArrowLeft, Trophy, Target, Users, Award, TrendingUp, Crown, Medal,ChevronDown, BarChart3, LogOut, UserPlus, Settings, Edit, Camera, Upload, History, TrendingDown, User, ShieldHalf, Axe, HeartIcon } from 'lucide-react';
-import { useGame } from '../context/GameContext';
+import {  useGame } from '../context/useGame';
 import { PROFILE_TITLES, availableFrames } from '../types/game';
 import { supabase } from "../lib/supabase";
 

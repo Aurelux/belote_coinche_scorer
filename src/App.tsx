@@ -1,5 +1,6 @@
 import React , { useEffect, useState } from 'react';
-import { GameProvider, useGame } from './context/GameContext';
+import { GameProvider } from './context/GameContext';
+import {  useGame } from './context/useGame';
 import { AuthScreen } from './components/AuthScreen';
 import { PlayerSetup } from './components/PlayerSetup';
 import { GameModeSelection } from './components/GameModeSelection';

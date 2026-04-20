@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, Shield, AlertCircle, CheckCircle, XCircle } from 'lucide-react';
-import { useGame } from '../context/GameContext';
+import {  useGame } from '../context/useGame';
 
 export function PlayerConfirmationModal() {
   const { gameState, confirmPlayer, hidePlayerConfirmationModal, setCurrentScreen, navigateTo, goBack } = useGame();
