@@ -1,4 +1,4 @@
-import React, { useState, useEffect} from 'react';
+import React, { useState, useEffect,useRef} from 'react';
 import { HelpCircle,ArrowLeft, BarChart3, RotateCcw, Trophy, Plus, History, RefreshCw, Skull, User, Settings, TurtleIcon} from 'lucide-react';
 import {  useGame} from '../context/useGame';
 import { ScoreEntry } from './ScoreEntry';
@@ -45,7 +45,11 @@ const [TotGames, setTotGames] = useState<
 >([]);
 
 const [loadingElo, setLoadingElo] = useState(true);
-
+const [eloUpdated, setEloUpdated] = useState(false);
+const [eloLoading, setEloLoading] = useState(false);
+const [reelDelta, setReelDelta] = useState<
+  { user_id: string; delta: number }[]
+>([]);
 useEffect(() => {
   async function loadElo() {
     if (!gameState.players.length) return;
@@ -175,13 +179,36 @@ setHistStreak(streaks);
       eloSnapshot: eloMap.get(p.userId) ?? 1000,
     }));
 
+    const { data: datadelta, error: errordelta } = await supabase
+  .rpc("get_latest_elo_history");
+
+if (errordelta) {
+  console.error(errordelta);
+  return;
+}
+
+// ids des joueurs de la game
+const playerIds = new Set(gameState.players.map(p => p.userId));
+
+// on garde uniquement ceux de la game
+const real_deltas = (datadelta ?? [])
+  .filter(row => playerIds.has(row.user_id))
+  .map(row => ({
+    user_id: row.user_id,
+    delta: row.delta,
+  }));
+
+setReelDelta(real_deltas);
+
     setPlayersWithElo(enriched);
     setLoadingElo(false);
+
   }
 
   loadElo();
-}, [gameState.players, gameState.settings.mode, gameState.settings.playerCount, gameState.gameEnded]);
-
+}, [gameState.players, gameState.settings.mode, gameState.settings.playerCount, gameState.gameEnded,eloUpdated]);
+console.log(eloUpdated)
+console.log(reelDelta)
 const WARNING_GAP = gameState.settings.playerCount === 3 ? 150 : 225;
 console.log(TotGames)
 const teamsScores = [
@@ -1005,12 +1032,18 @@ const updatedEloMap: EloMap = {
 
   return 'Intégration Delta terminee';
 }
-
 const termine = gameState.gameEnded
-if (termine) {
+if (termine && !eloUpdated ) {
   calculateAndUpdateElo(supabase,eloDeltas)
-}
- 
+  
+  
+  setTimeout(() => {
+  setEloUpdated(true) 
+}, 2000)}
+
+
+
+
 
     
     return (
@@ -1077,19 +1110,19 @@ if (termine) {
 
           {/* Nom */}
           <span className="text-gray-700 text-sm sm:text-base truncate">
-            {player.name}
+            {player.name.slice(0,10)}
           </span>
 
           {/* Badges */}
           {currentDealer && player.id === currentDealer.id && (
             <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full whitespace-nowrap">
-              Donneur
+              D
             </span>
           )}
 
           {currentStart && player.id === currentStart.id && (
             <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full whitespace-nowrap">
-              Commence
+              C
             </span>
           )}
         </div>
@@ -1146,9 +1179,8 @@ style={{
         : 1,
     }}
   >
-    {gameState.gameEnded && delta
-      ? (player.eloSnapshot ?? 1000) +
-        (delta.finalDelta ?? 0)
+    {gameState.gameEnded && delta 
+      ?  (player.eloSnapshot ?? 1000) 
       : player.eloSnapshot ?? 1000}
   </span>
 
@@ -1208,7 +1240,7 @@ style={{
             }}
           >
             {(delta.finalDelta ?? 0) >= 0 ? "+" : ""}
-            {delta.finalDelta}
+            {reelDelta.find(d => d.user_id === player.userId)?.delta}
           </span>
         </div>
       ) : (
@@ -1401,6 +1433,7 @@ style={{
         setChangeTeams(false);
         saveSettings();
         setShowNewGameModal(false);
+        setEloUpdated(false)
         startNewGame();
       }}
     >
@@ -1429,6 +1462,8 @@ style={{
       onClick={() => {
         
         setShowNewGameModal(false);
+        setEloUpdated(false)
+
         startNewGame();
       }}
     >
@@ -1508,6 +1543,8 @@ style={{
               setChangeTeams(false);
               saveSettings();
               setShowNewGameModal(false);
+              setEloUpdated(false)
+
               startNewGame(); // nouvelle partie avec les mêmes équipes
             }}
           >
@@ -1679,7 +1716,10 @@ style={{
               {!gameState.settings.isTournament  && (
               <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
                 <button
-                  onClick={startNewGame}
+                  onClick={() => {
+                    setEloUpdated(false)
+
+                    startNewGame()}}
                   className="flex items-center space-x-2 px-4 sm:px-6 py-2 sm:py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm sm:text-base"
                 >
                   <RefreshCw className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -1716,9 +1756,15 @@ style={{
               <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
                 <div className="text-center sm:text-left">
                   <h3 className="text-lg font-semibold text-gray-900">Prochaine main</h3>
-                  <p className="text-gray-600">
-  Donneur: <span className="font-medium">{currentDealer?.name || '—'}</span>
-</p>
+                  <div className="flex items-center gap-2">
+  <p className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full whitespace-nowrap">
+    Donneur: <span className="font-medium">{currentDealer?.name.slice(0,5) || '—'}</span>
+  </p>
+
+  <p className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full whitespace-nowrap">
+    Commence: <span className="font-medium">{currentStart?.name.slice(0,5) || '—'}</span>
+  </p>
+</div>
                   <button
    onClick={nextDealer}
   className="mt-4 bg-gray-300 rounded-xl px-4 py-2 hover:bg-gray-400 transition"

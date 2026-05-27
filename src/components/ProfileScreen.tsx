@@ -828,7 +828,7 @@ setUnlockedCadre(prev =>
   }}
   >
     <UserPlus className="w-4 h-4" />
-    <span>Amis ({gameState.friends.length})</span>
+    <span className="hidden sm:inline">Amis ({gameState.friends.length})</span>
   </button>
 
   {/* Pastille rouge avec le nombre de demandes */}
@@ -850,8 +850,21 @@ setUnlockedCadre(prev =>
               >
                 <BarChart3 className="w-4 h-4" />
                 <span className="hidden sm:inline">Classements</span>
-                <span className="sm:hidden">Rank</span>
+                <span className=" sm:inline">Rank</span>
               </button>
+               <button
+  onClick={() => navigateTo('elo')}
+  className="flex items-center space-x-2 px-3 py-2 rounded-lg hover: transition-colors text-sm"
+style={{
+    color: league?.light || "#ffffff",
+    backgroundColor: league?.color || "#000000" 
+  }}>
+  <BarChart3 className="w-4 h-4 " style={{
+    color: league?.light || "#fafafa",
+  }} />
+
+  <span className="sm:inline">Elo</span>
+</button>
               <button
       onClick={() => navigateTo('history')}
       className="flex items-center space-x-2 px-3 py-2  rounded-lg hover: transition-colors text-sm"
@@ -873,19 +886,7 @@ setUnlockedCadre(prev =>
         <LogOut className="w-4 h-4" />
         <span className="hidden sm:inline">Déconnexion</span>
       </button>
-      <button
-  onClick={() => navigateTo('elo')}
-  className="flex items-center space-x-2 px-3 py-2 rounded-lg hover: transition-colors text-sm"
-style={{
-    color: league?.light || "#ffffff",
-    backgroundColor: league?.color || "#000000" 
-  }}>
-  <BarChart3 className="w-4 h-4 " style={{
-    color: league?.light || "#fafafa",
-  }} />
-
-  <span>Elo</span>
-</button>
+     
 
       {/* === POPUP DÉCONNEXION === */}
       {showLogoutPopup && (
