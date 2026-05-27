@@ -816,67 +816,7 @@ if (gameEnded) {
         await updatePlayerStatsInSupabase(player, winningTeam, [...gameState.hands, hand]);
       }
     }
-    const modeKey = `${gameState.settings.mode}${gameState.settings.playerCount}P` as GameModeKey;
-  const matchId = Date.now().toString();
-
-  const registeredPlayers = gameState.players.filter(p => p.userId);
-
-  const eloSnapshots: EloPlayerSnapshot[] = await Promise.all(
-    registeredPlayers.map(async (p) => {
-      const { data } = await supabase
-        .from('users')
-        .select('elo, stats')
-        .eq('id', p.userId)
-        .single();
-      const eloMap: EloMap = data?.elo ?? {};
-      const totalGamesForMode = (data?.stats?.[modeKey]?.games ?? 0);
-      return {
-        userId: p.userId!,
-        elo: eloMap[modeKey] ?? 1000,
-        totalGames: totalGamesForMode,
-      };
-    })
-  );
-
-  const allHands = [...gameState.hands, hand]; 
-  const hadCoinche    = allHands.some(h => h.coincher);
-  const hadSurcoinche = allHands.some(h => h.surcoincher);
-  const hadCapot      = allHands.some(h => h.isCapot);
-
-  const coincherHand  = allHands.find(h => h.coincher);
-  const coincherPlayer = gameState.players.find(p => p.id === coincherHand?.coincher);
-  const coincheWonByWinner = hadCoinche
-    ? (coincherHand?.isCoincheSuccessful && coincherPlayer?.team === winningTeam)
-    : false;
-
-  const surcoincherHand = allHands.find(h => h.surcoincher);
-  const surcoincherPlayer = gameState.players.find(p => p.id === surcoincherHand?.surcoincher);
-  const surcoincheWonByWinner = hadSurcoinche
-    ? (surcoincherHand?.isSurcoincheSuccessful && surcoincherPlayer?.team === winningTeam)
-    : false;
-
-  const capotByWinner = allHands.some(h => h.isCapot && h.winningTeam === winningTeam);
-
-  const teamA_ids = registeredPlayers.filter(p => p.team === 'A').map(p => p.userId!);
-  const teamB_ids = registeredPlayers.filter(p => p.team === 'B').map(p => p.userId!);
-
-  if (teamA_ids.length > 0 && teamB_ids.length > 0) {
-    await calculateAndUpdateElo(supabase, {
-      modeKey,
-      matchId,
-      players: eloSnapshots,
-      teamA_playerIds: teamA_ids,
-      teamB_playerIds: teamB_ids,
-      winningTeam,
-      scoreTeamA: newTeamAScore,
-      scoreTeamB: newTeamBScore,
-      hadCoinche,
-      coincheWonByWinner,
-      hadSurcoinche,
-      surcoincheWonByWinner,
-      hadCapot: capotByWinner,
-    });
-  }
+    
 
     const playersForHistory = gameState.players.map(p => ({
   id: p.id,

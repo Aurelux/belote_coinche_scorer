@@ -1,5 +1,5 @@
 import React, { useState, useEffect,useRef} from 'react';
-import { HelpCircle,ArrowLeft, BarChart3, RotateCcw, Trophy, Plus, History, RefreshCw, Skull, User, Settings, TurtleIcon} from 'lucide-react';
+import { HelpCircle,ArrowLeft, BarChart2, RotateCcw, Trophy, Plus, History, RefreshCw, Skull, User, Settings, TurtleIcon} from 'lucide-react';
 import {  useGame} from '../context/useGame';
 import { ScoreEntry } from './ScoreEntry';
 import { CapotCelebration } from './CapotCelebration';
@@ -47,6 +47,7 @@ const [TotGames, setTotGames] = useState<
 const [loadingElo, setLoadingElo] = useState(true);
 const [eloUpdated, setEloUpdated] = useState(false);
 const [eloLoading, setEloLoading] = useState(false);
+const [fakeDelta, setFakeDelta] = useState(0);
 const [reelDelta, setReelDelta] = useState<
   { user_id: string; delta: number }[]
 >([]);
@@ -744,8 +745,8 @@ if (streak < 0) {
 
 const expected =
   isTeamA
-    ? 1 / (1 + Math.pow(10, (-elo + avgB) / 1200))
-    : 1 / (1 + Math.pow(10, (-elo + avgA) / 1200))
+    ? 1 / (1 + Math.pow(10, (-elo + avgB) / 1100))
+    : 1 / (1 + Math.pow(10, (-elo + avgA) / 1100))
     const isWinner =
       winningTeam
         ? player.team === winningTeam
@@ -819,7 +820,7 @@ impactMultiplier =
       impactMultiplier += 0.15;
     }
 
-    if (!isWinner && expected > 0.7) {
+    if (isWinner === false && expected > 0.7) {
       impactMultiplier += 0.13;
     }
 
@@ -1033,11 +1034,13 @@ const updatedEloMap: EloMap = {
   return 'Intégration Delta terminee';
 }
 const termine = gameState.gameEnded
-if (termine && !eloUpdated ) {
+if (termine && !eloUpdated &&!eloLoading) {
+  setEloLoading(true)
   calculateAndUpdateElo(supabase,eloDeltas)
   
   
   setTimeout(() => {
+  setEloLoading(false);
   setEloUpdated(true) 
 }, 2000)}
 
@@ -1140,7 +1143,8 @@ if (termine && !eloUpdated ) {
       ?.games ?? 0;
 
   const placementGames = gamesPlayed < 4;
-
+ 
+  
   return (
     <div
       className="flex items-center justify-between flex-shrink-0 gap-4 px-3 py-2 rounded-xl border"
@@ -1171,8 +1175,11 @@ style={{
           : "#0649cf",
 
       filter: placementGames
-        ? "blur(4px)"
-        : "none",
+  ? "blur(3px)"
+  : eloLoading
+  ? "blur(1.8px) invert(0.85) brightness(0.65) saturate(1.3) contrast(1.1)"
+  : "none",
+      transition: eloLoading ? "filter 1.5s ease" : "none",
 
       opacity: placementGames
         ? 0.7
@@ -1383,7 +1390,7 @@ style={{
       onClick={() => navigateTo('analytics')}
       className="flex items-center space-x-2 px-4 py-3 text-base sm:px-3 sm:py-2 sm:text-sm bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors"
     >
-      <BarChart3 className="w-5 h-5 sm:w-4 sm:h-4" />
+      <BarChart2 className="w-5 h-5 sm:w-4 sm:h-4" />
       <span className="hidden sm:inline">Stats</span>
     </button>
   </div>

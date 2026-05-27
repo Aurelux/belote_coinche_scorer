@@ -629,7 +629,6 @@ setUnlockedCadre(prev =>
 
   const currentTitle = PROFILE_TITLES.find(t => t.title === currentUser.profileTitle);
   const uniqueCadre = [...new Set(unlockedCadre)];
-
   return (
     <div className="min-h-screen pt-safe pb-safe flex items-center justify-center p-4"
 
@@ -817,11 +816,11 @@ setUnlockedCadre(prev =>
               </div>
             </div>
             
-            <div className="flex flex-wrap gap-2 w-full sm:w-auto">
-              <div className="relative">
+            <div className="flex flex-wrap gap-3 w-full">
+             <div className="relative flex-1">
   <button
     onClick={() => navigateTo('friends')}
-    className="flex items-center space-x-2 px-3 py-2  rounded-lg hover: transition-colors text-sm"
+className="w-full flex h-10 items-center justify-center space-x-2 px-3 py-2 rounded-lg text-sm"
     style={{
     color: league?.light || "#043a10",
     backgroundColor: league?.color || "#69dd82"
@@ -837,25 +836,26 @@ setUnlockedCadre(prev =>
       {gameState.friendRequests.length}
     </span>
   )}
-</div>
+  </div>
 
 
-              <button
-                onClick={() => navigateTo('rankings')}
-                className="flex items-center space-x-2 px-3 py-2  rounded-lg hover: transition-colors text-sm"
-              style={{
-    color: league?.light || "#42032d",
-    backgroundColor: league?.color || "#fc9ddc"
-  }}
-              >
-                <BarChart3 className="w-4 h-4" />
-                <span className="hidden sm:inline">Classements</span>
-                <span className=" sm:inline">Rank</span>
-              </button>
+
+              {(gameState.currentUser?.displayName === "AurelB" || gameState.currentUser?.displayName === "Adele" )&& (
+  <button
+    onClick={() => navigateTo("rankings")}
+className="flex-1 min-w-[30px] h-10 flex items-center justify-center space-x-2 px-3 py-2 rounded-lg text-sm"    style={{
+      color: league?.light || "#42032d",
+      backgroundColor: league?.color || "#fc9ddc",
+    }}
+  >
+    <BarChart3 className="w-4 h-4" />
+    <span className="hidden sm:inline">Classements</span>
+    <span className="sm:inline">Test</span>
+  </button>
+)}
                <button
   onClick={() => navigateTo('elo')}
-  className="flex items-center space-x-2 px-3 py-2 rounded-lg hover: transition-colors text-sm"
-style={{
+className="flex-1 min-w-[30px] h-10 flex items-center justify-center space-x-2 px-3 py-2 rounded-lg text-sm"style={{
     color: league?.light || "#ffffff",
     backgroundColor: league?.color || "#000000" 
   }}>
@@ -867,19 +867,17 @@ style={{
 </button>
               <button
       onClick={() => navigateTo('history')}
-      className="flex items-center space-x-2 px-3 py-2  rounded-lg hover: transition-colors text-sm"
-    style={{
+className="flex-1 min-w-[30px] h-10 flex items-center justify-center space-x-2 px-3 py-2 rounded-lg text-sm"    style={{
     color: league?.light || "#374151",
     backgroundColor: league?.color || "#b6d1d1"
   }}>
                 <History className="w-4 h-4" />
-                <span className="hidden sm:inline">Historique</span>
+                <span className="hidden sm:inline">Hist</span>
               </button>
               {/* === BOUTON PRINCIPAL === */}
       <button
         onClick={() => setShowLogoutPopup(true)}
-        className="flex items-center space-x-2 px-3 py-2  rounded-lg hover: transition-colors text-sm"
-      style={{
+className="flex-1 min-w-[30px] h-10 flex items-center justify-center space-x-2 px-3 py-2 rounded-lg text-sm"      style={{
     color: league?.light || "#3a0505",
     backgroundColor: league?.color || "#ff2121"
   }}>

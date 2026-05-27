@@ -154,8 +154,8 @@ function HistoryModal({userId,mode,username,onClose}:{userId:string;mode:GameMod
   const [loading,setLoading]=useState(true);
   useEffect(()=>{
     supabase.from("elo_history").select("*").eq("user_id",userId).eq("game_mode",mode)
-      .order("created_at",{ascending:true}).limit(40)
-      .then(({data})=>{setRows(data??[]);setLoading(false);});
+      .order("created_at",{ascending:false}).limit(25)
+      .then(({data})=>{setRows((data??[]).reverse());setLoading(false);});
   },[userId,mode]);
   const curve=rows.map(r=>({date:new Date(r.created_at).toLocaleDateString("fr-FR",{day:"2-digit",month:"short"}),elo:r.elo_after}));
   const trend=curve.length>=2?curve[curve.length-1].elo-curve[0].elo:0;
@@ -630,8 +630,8 @@ function HeroCard({
         .select("elo_after,created_at")
         .eq("user_id",userId)
         .eq("game_mode",mode)
-        .order("created_at",{ascending:true})
-        .limit(30),
+        .order("created_at",{ascending:false})
+        .limit(25),
 
     ]).then(([{data:u},{data:h}])=>{
 
@@ -639,7 +639,7 @@ function HeroCard({
 
       if(h){
         setCurve(
-          h.map((r:any)=>({
+          h.reverse().map((r:any)=>({
             date:new Date(r.created_at).toLocaleDateString(
               "fr-FR",
               {day:"2-digit",month:"short"}

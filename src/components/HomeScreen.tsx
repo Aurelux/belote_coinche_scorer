@@ -9,9 +9,8 @@ export default function HomeScreen() {
   const menuItems = [
     { label: "Compter une partie", icon: <Spade className="w-5 h-5 sm:w-6 sm:h-6" />, page: "setup" },
     { label: "Tournois", icon: <Trophy className="w-5 h-5 sm:w-6 sm:h-6" />, page: "tournoi" },
-    { label: "Classement", icon: <BarChart3 className="w-5 h-5 sm:w-6 sm:h-6" />, page: "rankings" },
+    { label: "Classement", icon: <BarChart2 className="w-5 h-5 sm:w-6 sm:h-6" />, page: "elo" },
     { label: "Règles", icon: <BookOpen className="w-5 h-5 sm:w-6 sm:h-6" />, page: "help" },
-    { label: "Elo", icon: <BarChart2 className="w-5 h-5 sm:w-6 sm:h-6" />, page: "elo" },
   ];
 
   return (
@@ -86,7 +85,7 @@ export default function HomeScreen() {
 
         {/* Footer */}
         <p className="mt-8 text-xs sm:text-sm text-gray-500 text-center">
-          © 2025 Coinche Royale — Tous droits réservés
+          © 2026 Coinche Royale — Tous droits réservés
         </p>
       </div>
     </div>
