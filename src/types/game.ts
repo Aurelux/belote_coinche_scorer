@@ -126,7 +126,19 @@ export interface Player {
   isGuest?: boolean;
   profilePicture?: string;
   profileTitle?: string;
+  frames?: string;
+  // ✅ NOUVEAU — Élo du joueur au moment du lancement de la partie (par mode)
+  eloSnapshot?: number | {}; // Élo pour le mode de jeu en cours
 }
+type EloMap = {
+  belote2P: number;
+  belote3P: number;
+  belote4P: number;
+  coinche2P: number;
+  coinche3P: number;
+  coinche4P: number;
+};
+
 
 export interface User {
   id: string;
@@ -141,7 +153,11 @@ export interface User {
   achievements?: Achievement[];
   lastLoginAt?: Date;
   frames? : string;
+  elo? : EloMap;
 }
+
+
+
 
 export interface Achievement {
   id: string;
@@ -357,7 +373,7 @@ export interface GameState {
   showPlayerConfirmation?: boolean;
 }
 
-export type AppScreen = 'auth' | 'setup' | 'game-mode' | 'game' | 'analytics' | 'history' | 'profile' | 'user-profile' | 'rankings' | 'friends' | 'add-friends';
+export type AppScreen = 'auth' | 'setup' | 'game-mode' | 'game' | 'analytics' | 'history' | 'profile' | 'user-profile' | 'rankings' | 'friends' | 'add-friends' | "elo";
 
 // Enhanced profile titles with colors and unlock conditions
 export const PROFILE_TITLES = [

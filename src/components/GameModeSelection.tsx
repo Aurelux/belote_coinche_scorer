@@ -16,7 +16,8 @@ export function GameModeSelection() {
     mode: selectedMode,
     playerCount,
     withAnnouncements,
-    targetScore
+    targetScore,
+    matchId : `${Date.now()}-${Math.random().toString(36).substring(2, 10)}`
   };
 
   setGameSettings(settings);

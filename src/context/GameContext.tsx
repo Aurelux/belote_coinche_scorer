@@ -2,7 +2,7 @@ import React, { createContext, useContext, useReducer, ReactNode, useEffect,useS
 import { PlayerTree,PlayerStatsForTimeframe,GameState, Player, GameSettings, Hand, AppScreen, MatchHistory, User, UserStats, GameModeStats, PlayerRanking, FriendRequest, Achievement, PROFILE_TITLES, PlayerConfirmation, DEALER_ROTATION_4P } from '../types/game';
 import { supabase } from '../lib/supabase';
 import imageCompression from 'browser-image-compression';
-
+import { calculateAndUpdateElo, type EloMap, type GameModeKey, type EloPlayerSnapshot } from '../components/EloPlayer';
 
 interface GameContextType {
   gameState: GameState;
@@ -372,7 +372,11 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         currentDealer: null,
         gameEnded: false,
         winningTeam: undefined,
-        gameStartTime: new Date()
+        gameStartTime: new Date(),
+        settings: {
+      ...state.settings,
+      matchId: `${Date.now()}-${Math.random().toString(36).substring(2, 10)}`,
+    },
       };
 
     case 'START_REMATCH':
@@ -385,7 +389,11 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         currentDealer: null,
         gameEnded: false,
         winningTeam: undefined,
-        gameStartTime: new Date()
+        gameStartTime: new Date(),
+        settings: {
+      ...state.settings,
+      matchId: `${Date.now()}-${Math.random().toString(36).substring(2, 10)}`,
+    },
       };
 
     case 'SET_MATCH_HISTORY':
@@ -581,7 +589,7 @@ const nextDealer = () => {
     console.log('📜 History after pop:', history);
     console.log(currentScreen.length);
     if (currentScreen === 'help'){
-      console.log('coucocu')
+      
       const previous = prevHistory[history.length] || 'setup';
       
       setCurrentScreen(previous)
@@ -599,7 +607,11 @@ const nextDealer = () => {
       }
       return history
     }
-    
+    if (currentScreen === 'elo') {
+      const previous = prevHistory[history.length] || 'home';
+      setCurrentScreen(previous)
+      return prevHistory
+    }
     
     if (currentScreen === 'history') {
       const previous = prevHistory[history.length] || 'setup';
@@ -651,14 +663,12 @@ const nextDealer = () => {
   }, []);
 
   const setPlayers = (players: Player[]) => {
-    console.log('setPlayers called with:', players);
     dispatch({ type: 'SET_PLAYERS', payload: players });
     
     // Check if any registered users (other than current user) need confirmation
     const registeredUsersInGame = players.filter(p => p.userId && p.userId !== gameState.currentUser?.id);
     
-    console.log('Players set:', players);
-    console.log('Registered users in game that need confirmation:', registeredUsersInGame);
+
     // met un 0 si tu veux les codes //
     if (registeredUsersInGame.length > 5 && gameState.settings.isTournament === false) {
       // Create confirmation entries for each registered user
@@ -669,14 +679,11 @@ const nextDealer = () => {
         attempts: 0
       }));
       
-      console.log('Setting up confirmations:', confirmations);
       dispatch({ type: 'SET_PENDING_CONFIRMATIONS', payload: confirmations });
       
       // Show the confirmation modal
-      console.log('Showing confirmation modal');
       dispatch({ type: 'SHOW_PLAYER_CONFIRMATION' });
     } else {
-      console.log('No registered users need confirmation, proceeding to game mode');
       // No registered users to confirm, proceed directly to game mode selection
       navigateTo('game-mode');
     }
@@ -756,7 +763,6 @@ if (gameEnded) {
   const losers = gameState.players.filter((p) => p.team !== winningTeam);
 
   // 🗃️ 5️⃣ Met à jour le match dans la table tournament_matches
-  console.log('test:',gameState.settings.matchId)
   reportMatchResult(
     gameState.settings.matchId,
     winners,
@@ -810,6 +816,68 @@ if (gameEnded) {
         await updatePlayerStatsInSupabase(player, winningTeam, [...gameState.hands, hand]);
       }
     }
+    const modeKey = `${gameState.settings.mode}${gameState.settings.playerCount}P` as GameModeKey;
+  const matchId = Date.now().toString();
+
+  const registeredPlayers = gameState.players.filter(p => p.userId);
+
+  const eloSnapshots: EloPlayerSnapshot[] = await Promise.all(
+    registeredPlayers.map(async (p) => {
+      const { data } = await supabase
+        .from('users')
+        .select('elo, stats')
+        .eq('id', p.userId)
+        .single();
+      const eloMap: EloMap = data?.elo ?? {};
+      const totalGamesForMode = (data?.stats?.[modeKey]?.games ?? 0);
+      return {
+        userId: p.userId!,
+        elo: eloMap[modeKey] ?? 1000,
+        totalGames: totalGamesForMode,
+      };
+    })
+  );
+
+  const allHands = [...gameState.hands, hand]; 
+  const hadCoinche    = allHands.some(h => h.coincher);
+  const hadSurcoinche = allHands.some(h => h.surcoincher);
+  const hadCapot      = allHands.some(h => h.isCapot);
+
+  const coincherHand  = allHands.find(h => h.coincher);
+  const coincherPlayer = gameState.players.find(p => p.id === coincherHand?.coincher);
+  const coincheWonByWinner = hadCoinche
+    ? (coincherHand?.isCoincheSuccessful && coincherPlayer?.team === winningTeam)
+    : false;
+
+  const surcoincherHand = allHands.find(h => h.surcoincher);
+  const surcoincherPlayer = gameState.players.find(p => p.id === surcoincherHand?.surcoincher);
+  const surcoincheWonByWinner = hadSurcoinche
+    ? (surcoincherHand?.isSurcoincheSuccessful && surcoincherPlayer?.team === winningTeam)
+    : false;
+
+  const capotByWinner = allHands.some(h => h.isCapot && h.winningTeam === winningTeam);
+
+  const teamA_ids = registeredPlayers.filter(p => p.team === 'A').map(p => p.userId!);
+  const teamB_ids = registeredPlayers.filter(p => p.team === 'B').map(p => p.userId!);
+
+  if (teamA_ids.length > 0 && teamB_ids.length > 0) {
+    await calculateAndUpdateElo(supabase, {
+      modeKey,
+      matchId,
+      players: eloSnapshots,
+      teamA_playerIds: teamA_ids,
+      teamB_playerIds: teamB_ids,
+      winningTeam,
+      scoreTeamA: newTeamAScore,
+      scoreTeamB: newTeamBScore,
+      hadCoinche,
+      coincheWonByWinner,
+      hadSurcoinche,
+      surcoincheWonByWinner,
+      hadCapot: capotByWinner,
+    });
+  }
+
     const playersForHistory = gameState.players.map(p => ({
   id: p.id,
   name: p.name,
@@ -968,7 +1036,6 @@ allHands.forEach(hand => {
       }
     }
   }
-  console.log(player.name, pointsConceded, pointsScored)
 
         // Points scored when taking and succeeding contracts
         
@@ -1070,7 +1137,6 @@ allHands.forEach(hand => {
         .update({ stats: newStats })
         .eq('id', player.userId);
       
-      console.log(player.name, pointsScored, pointsConceded)
 
       if (updateError) throw updateError;
 
@@ -1421,7 +1487,6 @@ const is2Players = gameState.settings.playerCount === 2;
       }
     }
   }
-  console.log(player.name, pointsConceded, pointsScored)
 
         // Points scored when taking and succeeding contracts
         
@@ -1496,7 +1561,6 @@ const is2Players = gameState.settings.playerCount === 2;
       baseStats.contractsTaken +=contractsTaken;
       baseStats.successful_contracts +=successfulContracts;
 
-      console.log(baseStats)
       // --- Upsert propre (insertion ou mise à jour selon l'existence) ---
 
 
@@ -1647,7 +1711,6 @@ const reportMatchResult = async (
 
   // 🔍 Vérifie si le champ qu’on veut remplir est déjà occupé
   const targetField = nextMatch?.[updateField] || [];
-  console.log(targetField)
   let finalField = updateField;
 
   if (targetField.some((p) => p?.team)) {
@@ -1684,7 +1747,6 @@ let loserNextId: string | null = null;
   winnerNextId = winnerPart || null;
   loserNextId = loserPart || null;
 }
-console.log(winnerNextId,loserNextId)
 
       if (winnerNextId) {
   // Tentative de récupération du match lié
@@ -1738,7 +1800,6 @@ console.log(winnerNextId,loserNextId)
 
   // 🔍 Vérifie si le champ qu’on veut remplir est déjà occupé
   const targetField = upperMatch?.[updateField] || [];
-  console.log(targetField)
   let finalField = updateField;
 
   if (targetField.some((p) => p?.team)) {
@@ -1786,7 +1847,6 @@ console.log(winnerNextId,loserNextId)
 
   // 🔍 Vérifie si le champ qu’on veut remplir est déjà occupé
   const targetField = lowerMatch?.[updateField] || [];
-  console.log(targetField)
   let finalField = updateField;
 
   if (targetField.some((p) => p?.team)) {
@@ -1950,6 +2010,14 @@ dispatch({ type: 'SET_MATCH_HISTORY', payload: matchHistoryFiltered });
         lastLoginAt: new Date(),
         stats: createEmptyUserStats(),
         achievements: [],
+        elo : {
+  "belote2P": 1000,
+  "belote3P": 1000,
+  "belote4P": 1000,
+  "coinche2P": 1000,
+  "coinche3P": 1000,
+  "coinche4P": 1000
+}
       };
 
       const supabaseUser = {
@@ -1961,6 +2029,7 @@ dispatch({ type: 'SET_MATCH_HISTORY', payload: matchHistoryFiltered });
         profile_title: newUser.profileTitle ?? 'player',
         stats: newUser.stats,
         created_at: newUser.createdAt.toISOString(),
+        elo : newUser.elo
       };
 
       const { error } = await supabase.from('users').insert([supabaseUser]);
@@ -2104,7 +2173,6 @@ const isAfter = (dateA: Date, dateB: Date): boolean => {
         .or(`noaccent_name.ilike.%${query}%`)
         .throwOnError()
   .then((res) => res);
-    console.log(results)
 
     if (error) throw error;
 
@@ -2357,10 +2425,13 @@ const getTimeFrameUserRankings = async (
       filteredUsers = filteredUsers.filter(u => friendIds.includes(u.id));
     }
 
-    // 3. Charger les matchs
-    const { data: matches, error } = await supabase
-      .from('match_history')
-      .select('id, players, final_scores, winning_team, created_at, settings');
+  // 3. Charger les 200 derniers matchs
+const { data: matches, error } = await supabase
+  .from('match_history')
+  .select('id, players, final_scores, winning_team, created_at, settings')
+  .order('created_at', { ascending: false })
+  .limit(200);
+
 
     if (error) throw error;
     if (!matches) return [];
@@ -2371,11 +2442,9 @@ const getTimeFrameUserRankings = async (
     if (timeframe === 'week') startDate = startOfWeek(now);
     else if (timeframe === 'month') startDate = startOfMonth(now);
     else startDate = new Date(0);
-    console.log(startDate)
     let recentMatches = matches.filter(match =>
       isAfter(new Date(match.created_at), startDate)
     );
-    console.log(recentMatches)
     // 5. Filtrer aussi par mode & nombre de joueurs
     recentMatches = recentMatches.filter(match =>
       match.settings.mode === mode &&
@@ -2463,7 +2532,6 @@ const getTimeFrameUserRankings = async (
       .sort((a, b) => b.rankingScore - a.rankingScore)
       .map((ranking, index) => ({ ...ranking, rank: index + 1 }));
 
-    console.log(`Final ${timeframe} rankings:`, rankings);
     return rankings;
   } catch (error) {
     console.error('Error getting timeframe rankings:', error);
@@ -2509,7 +2577,6 @@ const getTimeFrameUserRankings = async (
         const modeStats = stats[modeKey] as GameModeStats;
           
           // Debug log to see what stats we're getting
-          console.log(`User ${user.display_name} stats for ${modeKey}:`, modeStats);
           
           return {
             userId: user.id,
@@ -2532,7 +2599,6 @@ const getTimeFrameUserRankings = async (
         .sort((a, b) => b.rankingScore - a.rankingScore)
         .map((ranking, index) => ({ ...ranking, rank: index + 1 }));
 
-      console.log('Final rankings:', rankings);
       return rankings;
     } catch (error) {
       console.error('Error getting rankings:', error);
@@ -2556,7 +2622,6 @@ const getTimeFrameUserRankings = async (
           const modeStats = stats[modeKey] as GameModeStats;
           
           // Debug log to see what stats we're getting
-          console.log(`User ${user.id} stats for ${modeKey}:`, modeStats);
           
           return {
             userId: user.id,

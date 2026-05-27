@@ -23,20 +23,25 @@ export function PlayerSetup() {
         .select("*");
       
       if (!error && data) {
-        const h = data.map(u => ({
-          id: u.id,
-          displayName: u.display_name,
-          email: u.email,
-          profilePicture: u.profile_picture,
-          frames : u.profile_frame,
-          accessCode: u.access_code,
-          profileTitle: u.profile_title,
-          friends: [],
-          createdAt: new Date(u.created_at),
-          stats: u.stats || createEmptyUserStats(),
-          achievements: [],
-          lastLoginAt: new Date()
-        }))
+        const h = data.map((u: any) => ({
+  id: u.id,
+  displayName: u.display_name,
+  email: u.email,
+  profilePicture: u.profile_picture,
+  frames: u.profile_frame,
+  accessCode: u.access_code,
+  profileTitle: u.profile_title,
+  friends: [],
+  createdAt: new Date(u.created_at),
+  stats: u.stats || {},
+  achievements: [],
+  lastLoginAt: new Date(),
+  elo: u.elo ?? {  // ✅ NOUVEAU
+    coinche4P: 1500, coinche3P: 1500, coinche2P: 1500,
+    belote4P: 1500,  belote3P: 1500,  belote2P: 1500,
+  },
+}))
+
         gameState.users = h;
       }
     };
@@ -57,7 +62,11 @@ export function PlayerSetup() {
   const handleSubmit = (e: React.FormEvent) => {
     gameState.settings.isTournament=false;
     e.preventDefault();
-    
+    const matchId =
+  gameState.settings.matchId ??
+  `${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
+
+gameState.settings.matchId = matchId;
     const activeInputs = playerInputs.slice(0, playerCount);
     if (activeInputs.every(name => name.trim())) {
       console.log('Form submitted with players:', activeInputs);
@@ -78,6 +87,9 @@ export function PlayerSetup() {
         let profilePicture: string | undefined;
         let profileTitle: string | undefined;
         let frames: string | undefined;
+        let eloSnapshot: number = 1500; 
+        const modeKey = `${gameState.settings.mode}${gameState.settings.playerCount}P`;
+
         
         if (index === 0 && gameState.currentUser) {
           // Current user
@@ -85,6 +97,7 @@ export function PlayerSetup() {
           profilePicture = gameState.currentUser.profilePicture;
           profileTitle = gameState.currentUser.profileTitle;
           frames = gameState.currentUser.frames;
+          eloSnapshot = gameState.currentUser.elo?.[modeKey] ?? 1500;
         } else {
           // Check if it's a registered user (from all users, not just friends)
           
@@ -97,6 +110,8 @@ export function PlayerSetup() {
           profilePicture = registeredUser.profilePicture;
           profileTitle = registeredUser.profileTitle;
           frames = registeredUser.frames;
+          eloSnapshot = registeredUser.elo?.[modeKey] ?? 1500;
+          
         } else {
           console.warn(`Aucun utilisateur trouvé pour le nom "${name.trim()}", ce joueur sera traité comme invité.`);
         }
@@ -110,7 +125,8 @@ export function PlayerSetup() {
           profilePicture,
           profileTitle,
           isGuest: !userId,
-          frames
+          frames,
+          eloSnapshot
         };
       });
       

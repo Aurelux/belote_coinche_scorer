@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect} from 'react';
 import { HelpCircle,ArrowLeft, BarChart3, RotateCcw, Trophy, Plus, History, RefreshCw, Skull, User, Settings, TurtleIcon} from 'lucide-react';
-import {  useGame } from '../context/useGame';
+import {  useGame} from '../context/useGame';
 import { ScoreEntry } from './ScoreEntry';
 import { CapotCelebration } from './CapotCelebration';
 import { CoincheSuccessAnimation } from './CoincheSuccessAnimation';
@@ -8,7 +8,10 @@ import { SurcoincheSuccessAnimation } from './SurcoincheSuccessAnimation';
 import { PlayerConfirmationModal } from './PlayerConfirmationModal';
 import { PenaltyModal } from './PenaltyModal';
 import DealerSelector from "../components/DealerSelector";
-import {availableFrames } from '../types/game';
+import {availableFrames,Player } from '../types/game';
+import { type EloMap } from '../components/EloPlayer';
+import { supabase } from '../lib/supabase';
+
 
 export function GameBoard() {
   const { gameState, setGameState,setCurrentScreen, getNextDealerIndex,startNewGame, resetGame, startRematch,navigateTo2, applyPenaltyToPlayer, navigateTo, goBack, nextDealer, setDealer} = useGame();
@@ -32,10 +35,155 @@ const [playerTeams, setPlayerTeams] = useState(() => {
 });
 const [keepTeams, setKeepTeams] = useState<boolean>(false);  // par défaut on garde les équipes
 const [changeTeams, setChangeTeams] = useState<boolean>(false); // par défaut, changement d'équipe non sélectionné
+const [playersWithElo, setPlayersWithElo] = useState<Player[]>([]);
+const [histStreak, setHistStreak] = useState<
+  { userId: string; streak: number }[]
+>([]);
 
+const [TotGames, setTotGames] = useState<
+  { userId: string; games: number }[]
+>([]);
+
+const [loadingElo, setLoadingElo] = useState(true);
+
+useEffect(() => {
+  async function loadElo() {
+    if (!gameState.players.length) return;
+
+    setLoadingElo(true);
+
+    const userIds = gameState.players
+      .map(p => p.userId)
+      .filter(Boolean);
+
+    if (userIds.length === 0) {
+      setPlayersWithElo(gameState.players);
+      setLoadingElo(false);
+      return;
+    }
+
+    const modeKey =
+      gameState.settings.mode +
+      gameState.settings.playerCount +
+      "P";
+
+    const { data, error } = await supabase
+      .from("users")
+      .select("id, elo")
+      .in("id", userIds);
+
+    const { data: data_game, error_game} = await supabase
+  .from("users")
+  .select("id, stats")
+  .in("id", userIds);
+    const gamesByUser = data_game?.map((user) => {
+  const stats = user.stats;
+
+  const games =
+    stats?.[modeKey]?.games ?? 0;
+
+  return {
+    userId: user.id,
+    games
+  };
+});
+
+setTotGames(gamesByUser)
+    
+
+    if (error) {
+      console.error(error);
+      setPlayersWithElo(gameState.players);
+      setLoadingElo(false);
+      return;
+    }
+    const { data: data_hist, error2 } = await supabase
+  .from("match_history")
+  .select(`
+    created_at,
+    winning_team,
+    players
+  `)
+  .order("created_at", { ascending: false })
+  .limit(200);
+  if (error2) {
+  console.error(error2);
+  return;
+}
+
+// userIds = tableau des userId à analyser
+// ex : ["1753617551516", "1752141690685"]
+const histByUser = userIds.filter((userId): userId is string => !!userId).map((userId) => {
+  const matches = data_hist
+    ?.filter(match =>
+      match.players?.some((p: any) => p.userId === userId)
+    )
+    .slice(0, 10);
+
+  return {
+    userId,
+    matches: matches ?? []
+  };
+});
+const streaks = histByUser.map(({ userId, matches }) => {
+  if (!matches.length) {
+    return {
+      userId,
+      streak: 0
+    };
+  }
+
+  let streak = 0;
+
+  for (const match of matches) {
+    const player = match.players.find(
+      (p: any) => p.userId === userId
+    );
+
+    if (!player) continue;
+    const won = player.team === match.winning_team;
+    if (streak === 0) {
+      streak = won ? 1 : -1;
+      continue;
+    }
+
+    if (won && streak > 0) {
+      streak++;
+    } else if (!won && streak < 0) {
+      streak--;
+    } else {
+      break;
+    }
+  }
+
+  return {
+    userId,
+    streak
+  };
+});
+setHistStreak(streaks);
+
+    const eloMap = new Map(
+      (data ?? []).map(u => [
+        u.id,
+        u.elo?.[modeKey] ?? 1000,
+      ])
+    );
+
+    const enriched = gameState.players.map(p => ({
+      ...p,
+      eloSnapshot: eloMap.get(p.userId) ?? 1000,
+    }));
+
+    setPlayersWithElo(enriched);
+    setLoadingElo(false);
+  }
+
+  loadElo();
+}, [gameState.players, gameState.settings.mode, gameState.settings.playerCount, gameState.gameEnded]);
 
 const WARNING_GAP = gameState.settings.playerCount === 3 ? 150 : 225;
-
+console.log(TotGames)
 const teamsScores = [
   gameState.teamAScore,
   gameState.teamBScore,
@@ -99,7 +247,6 @@ const updatePlayerTeam = (playerIndex, newTeam) => {
 
 
 
-console.log(playerTeams)
 
 
 
@@ -112,9 +259,9 @@ console.log(playerTeams)
   const currentDealer = gameState.currentDealer !== null ? gameState.players[gameState.currentDealer] 
   : null;
  
-  const teamAPlayers = gameState.players.filter(p => p.team === 'A');
-  const teamBPlayers = gameState.players.filter(p => p.team === 'B');
-  const teamCPlayers = gameState.players.filter(p => p.team === 'C');
+  const teamAPlayers = playersWithElo.filter(p => p.team === 'A');
+  const teamBPlayers = playersWithElo.filter(p => p.team === 'B');
+  const teamCPlayers = playersWithElo.filter(p => p.team === 'C');
 
   
 
@@ -167,7 +314,7 @@ console.log(playerTeams)
   const progressA = (gameState.teamAScore / gameState.settings.targetScore) * 100;
   const progressB = (gameState.teamBScore / gameState.settings.targetScore) * 100;
   const progressC = (gameState.teamCScore / gameState.settings.targetScore) * 100;
-  
+  console.log(gameState.settings.matchId)
  const getSuitDisplay = (suit: string) => {
   const suits: Record<string, string> = {
     hearts: '♥️',
@@ -198,6 +345,673 @@ console.log(playerTeams)
   const renderTeamCard = (team: 'A' | 'B' | 'C', players: any[], score: number, progress: number) => {
     const teamColor = getTeamColor(team);
     const isTeam = gameState.settings.playerCount === 4;
+  type EloEstimate = Record<
+  string,
+  {
+    winDelta: number;
+    loseDelta: number;
+    finalDelta?: number;
+    Kfactor : number;
+    Multiplier : number;
+    Expected : number;
+    Perfomance : number
+  }
+>;
+
+function getReliableElo(
+  elo: number | {},
+  games: number,
+  avg : number
+) {
+  const confidence =
+    Math.min(games / 48, 1);
+
+  return (
+    avg +
+    (elo - avg) * confidence
+  );
+}
+function estimateEloDeltas(
+  players: Player[],
+  winningTeam: 'A' | 'B' | 'C' | undefined,
+  teamAScore: number,
+  teamBScore: number,
+  hands: any[],
+): EloEstimate {
+  
+  const result: EloEstimate = {};
+  
+
+  const registered = playersWithElo
+  console.log('regist',registered)
+  if (registered.length < 2) return result;
+
+  const teamA = registered.filter(p => p.team === 'A');
+  const teamB = registered.filter(p => p.team === 'B');
+
+  if (!teamA.length || !teamB.length) return result;
+
+  
+
+  // ───────────────────────────────────────
+  // BASE ELO
+  // ───────────────────────────────────────
+const validPlayers = registered.filter(p => p.userId);
+
+const avg =
+  validPlayers.length > 0
+    ? (validPlayers.reduce((sum, p) => sum + (p.eloSnapshot), 0) /
+      validPlayers.length)- 100
+    : 1000;
+const avgA =
+  teamA.reduce((s, p) => {
+
+    const games =
+      TotGames.find(g => g.userId === p.userId)
+        ?.games ?? 0;
+
+    const reliableElo =
+      getReliableElo(
+        p.eloSnapshot ?? 1000,
+        games,
+        avg
+      );
+
+    return s + reliableElo;
+
+  }, 0) / teamA.length;
+  console.log('avgA:',avgA)
+
+  const avgB =
+  teamB.reduce((s, p) => {
+
+    const games =
+      TotGames.find(g => g.userId === p.userId)
+        ?.games ?? 0;
+
+    const reliableElo =
+      getReliableElo(
+        p.eloSnapshot ?? 1000,
+        games,
+        avg
+      );
+      
+
+
+    return s + reliableElo;
+
+  }, 0) / teamB.length;
+  console.log('avgB:',avgB)
+
+
+  // ───────────────────────────────────────
+  // TRACKING PAR JOUEUR
+  // ───────────────────────────────────────
+  const perf: Record<string, any> = {};
+
+  for (const p of registered) {
+    perf[p.id] = {
+      impact: 0,
+      risk: 0,
+      conceded: 0,
+      clutch: 0,
+      failedContracts: 0,
+      successfulContracts: 0,
+      coinches: 0,
+      successfulCoinches: 0,
+      surcoinches: 0,
+      capots: 0,
+      announcements: 0,
+      totalPointsWon: 0,
+      totalPointsLost: 0,
+    };
+  }
+
+  // ───────────────────────────────────────
+  // ANALYSE DES MAINS
+  // ───────────────────────────────────────
+  for (const hand of hands) {
+
+    const takerId = hand.taker;
+    const bidhand = hand.bid.value;
+
+    const taker = players.find(p => p.id === takerId);
+    
+
+    const takerTeam = taker.team;
+    const defenders = registered.filter(
+  p =>
+    p.team !== takerTeam
+);
+
+// partage des points entre défenseurs
+
+    if (!taker) continue;
+    const takerWon = hand.contractFulfilled;
+
+    const handWinnerTeam =
+      hand.teamAScore > hand.teamBScore
+        ? 'A'
+        : 'B';
+
+    const handLoserTeam =
+      handWinnerTeam === 'A'
+        ? 'B'
+        : 'A';
+
+    const winningPoints =
+      Math.max(hand.teamAScore, hand.teamBScore);
+
+    const losingPoints =
+      Math.min(hand.teamAScore, hand.teamBScore);
+    console.log(hand)
+
+      
+
+    const pointGap =
+      winningPoints - losingPoints;
+
+    // ─────────────────────────────
+    // PRENEUR
+    // ─────────────────────────────
+    if (perf[takerId] &&  hand.surcoincher == undefined && hand.coincher == undefined) {
+
+      perf[takerId].risk += (hand.bid?.value ?? 80) / 110;
+
+      if (takerWon) {
+
+        perf[takerId].impact += 1.2;
+        perf[takerId].successfulContracts += 1;
+
+        perf[takerId].totalPointsWon += winningPoints;
+
+        // gros contrat réussi
+        perf[takerId].clutch +=
+          Math.max((hand.bid?.value ?? 80) - 120, 0) / 70;
+        const sharedLoss =
+  losingPoints / defenders.length;
+         defenders.forEach(def => {
+
+      if (!perf[def.id]) return;
+
+      perf[def.id].totalPointsWon += sharedLoss;
+
+  });
+
+      } else {
+
+        perf[takerId].impact -= 1.1;
+        perf[takerId].failedContracts += 1;
+
+        perf[takerId].conceded += winningPoints;
+
+        perf[takerId].totalPointsLost += winningPoints;
+
+        // grosse annonce ratée
+        perf[takerId].clutch -=
+          Math.max((hand.bid?.value ?? 80) - 120, 0) / 80;
+        const sharedLoss =
+  winningPoints / defenders.length;
+         defenders.forEach(def => {
+
+      if (!perf[def.id]) return;
+
+      perf[def.id].totalPointsWon += sharedLoss;
+
+  });
+      }
+    }
+
+    // ─────────────────────────────
+    // COINCHE
+    // ─────────────────────────────
+    if (hand.coincher && perf[hand.coincher] && hand.surcoincher == undefined) {
+
+      perf[hand.coincher].coinches += 1;
+
+      const coincher = players.find(
+        p => p.id === hand.coincher
+      );
+
+      const successful =
+        hand.isCoincheSuccessful;
+
+      if (successful) {
+
+        perf[hand.coincher].successfulCoinches += 1;
+        
+        perf[hand.coincher].impact += 1.6;
+
+        perf[hand.coincher].clutch +=
+          Math.max(-(hand.bid?.value ?? 80) +120, 0) / 60;
+
+        perf[hand.coincher].totalPointsWon +=
+          winningPoints;
+
+        perf[takerId].impact -= 1.9;
+        perf[takerId].failedContracts += 1;
+
+        perf[takerId].conceded += winningPoints;
+
+        perf[takerId].totalPointsLost += winningPoints;
+
+
+      } else {
+
+        perf[hand.coincher].impact -= 1.4;
+        perf[hand.coincher].failedContracts += 1;
+        perf[hand.coincher].conceded +=
+          winningPoints ;
+
+        perf[takerId].impact += 1.8;
+        perf[takerId].successfulContracts += 1;
+
+        perf[takerId].totalPointsWon += winningPoints;
+
+        // gros contrat réussi
+        perf[takerId].clutch +=
+          Math.max((hand.bid?.value ?? 80) - 120, 0) / 60;
+      }
+    }
+
+    // ─────────────────────────────
+    // SURCOINCHE
+    // ─────────────────────────────
+    if (hand.surcoincher && perf[hand.surcoincher]) {
+
+      perf[hand.surcoincher].surcoinches += 1;
+
+      if (hand.isSurcoincheSuccessful) {
+
+        perf[hand.surcoincher].impact += 2.2;
+        perf[hand.surcoincher].successfulContracts += 1;
+        perf[hand.surcoincher].clutch += 0.8;
+
+        perf[hand.surcoincher].totalPointsWon +=
+          winningPoints;
+
+        perf[hand.coincher].impact -= 2.0;
+        perf[hand.coincher].failedContracts += 1;
+
+        perf[hand.coincher].conceded += winningPoints;
+
+        perf[hand.coincher].totalPointsLost += winningPoints;
+        if (!takerId==hand.surcoincher){
+          perf[takerId].impact += 1.3;
+        perf[takerId].successfulContracts += 1;
+        perf[takerId].clutch += 0.5;
+        }
+
+
+      } else {
+
+        perf[hand.surcoincher].impact -= 1.9;
+        perf[hand.surcoincher].conceded += winningPoints;
+        perf[hand.surcoincher].totalPointsLost +=
+          winningPoints;
+          perf[hand.surcoincher].failedContracts += 1;
+
+        perf[hand.coincher].impact += 2.0;
+        perf[hand.coincher].successfulContracts += 1;
+
+        perf[hand.coincher].clutch += 0.8;
+
+        perf[hand.coincher].totalPointsWon += winningPoints;
+      }
+    }
+
+    // ─────────────────────────────
+    // CAPOT
+    // ─────────────────────────────
+    if (hand.isCapot) {
+
+      registered
+        .filter(p => p.team === handWinnerTeam)
+        .forEach(p => {
+          perf[p.id].capots += 1;
+          perf[p.id].impact += 0.5;
+          perf[p.id].totalPointsWon += 75;
+        });
+
+      registered
+        .filter(p => p.team === handLoserTeam)
+        .forEach(p => {
+          perf[p.id].conceded += 75;
+        });
+    }
+
+    // ─────────────────────────────
+    // ANNONCES
+    // ─────────────────────────────
+    
+
+    // ─────────────────────────────
+    // DOMINATION DE MAIN
+    // ─────────────────────────────
+  
+  }
+  console.log(perf)
+
+  // ───────────────────────────────────────
+  // CALCUL FINAL
+  // ───────────────────────────────────────
+  for (const player of registered) {
+    const elo = player.eloSnapshot ?? 1000;
+    const isTeamA = player.team === 'A';
+    const streakData = histStreak.find(s => s.userId === player.userId);
+
+    const streak = streakData?.streak ?? 0;
+    let streakFactorplus = 1;
+    let streakFactorminus = 1;
+
+if (streak > 0) {
+  streakFactorplus += Math.min(streak * 0.05, 0.35);
+  streakFactorminus -= Math.min(streak * 0.05, 0.35);
+}
+
+if (streak < 0) {
+  streakFactorplus -= Math.min(Math.abs(streak) * 0.05, 0.35);
+  streakFactorminus += Math.min(Math.abs(streak) * 0.05, 0.35);
+
+}
+
+const expected =
+  isTeamA
+    ? 1 / (1 + Math.pow(10, (-elo + avgB) / 1200))
+    : 1 / (1 + Math.pow(10, (-elo + avgA) / 1200))
+    const isWinner =
+      winningTeam
+        ? player.team === winningTeam
+        : undefined;
+
+    
+
+    // ─────────────────────────────
+    // K FACTOR
+    // ─────────────────────────────
+    const games =
+      TotGames.find(g => g.userId === player.userId)
+        ?.games ?? 0;
+    const ratio_game = 2- Math.min(games/10,1)
+    let k = 28;
+
+    if (elo < 1200) k = 0.75*38*ratio_game;
+    else if (elo < 1500) k = 0.83*30*ratio_game;
+    else if (elo < 1900) k = 0.88*24*ratio_game;
+    else if (elo < 2300) k = 0.98*18*ratio_game;
+    else k = 14;
+
+    const p = perf[player.id];
+    // ─────────────────────────────
+    // IMPACT SCORE
+    // ─────────────────────────────
+    let impactMultiplier = 1;
+
+    impactMultiplier += p.impact * 0.06;
+
+    impactMultiplier += p.clutch * 0.09;
+
+    impactMultiplier += p.successfulContracts * 0.06;
+
+    impactMultiplier += p.successfulCoinches * 0.08;
+
+    impactMultiplier += p.capots * 0.12;
+
+    // risque récompensé
+    impactMultiplier += p.risk * 0.03;
+
+    // énormes points gagnés
+    impactMultiplier +=
+      Math.min(p.totalPointsWon / 2000, 0.6);
+
+    // énormes points concédés
+    impactMultiplier -=
+      Math.min(p.conceded / 1000, 0.8);
+
+    // gros fail
+    impactMultiplier -=
+      p.failedContracts * 0.09;
+
+    // clamp
+    const inMin = 0.25;
+const inMax = 2.7;
+
+const outMin = 0.5;
+const outMax = 2.1;
+
+const clamped = Math.max(inMin, Math.min(impactMultiplier, inMax));
+
+impactMultiplier =
+  outMin +
+  (outMax - outMin) *
+    ((clamped - inMin) / (inMax - inMin));
+    // ─────────────────────────────
+    // BONUS UPSET
+    // ─────────────────────────────
+    if (isWinner && expected < 0.35) {
+      impactMultiplier += 0.15;
+    }
+
+    if (!isWinner && expected > 0.7) {
+      impactMultiplier += 0.13;
+    }
+
+    // ─────────────────────────────
+    // DELTA FINAL
+    // ─────────────────────────────
+
+    const performanceScore =
+  p.impact * 0.08 +
+  p.clutch * 0.12 +
+  p.successfulContracts * 0.1 +
+  p.successfulCoinches * 0.08 +
+  p.capots * 0.2 -
+  p.failedContracts * 0.25 +
+  Math.min(p.totalPointsWon / 2000, 1)-
+  Math.min(p.conceded / 1000, 1);
+
+// compression [-1..1]
+const normalizedPerf = Math.tanh(performanceScore);
+
+// facteur asymétrique
+const perfFactor =
+  0.7 + (normalizedPerf + 1) * 0.3;
+console.log(perfFactor)
+// séparation gain / perte NON symétrique
+const winDeltaRaw =Math.max(Math.min(
+  k *
+  (1.5 - expected) *
+  impactMultiplier *
+  perfFactor *
+  streakFactorplus,2*k),5);
+
+// perte moins punitive si bonne perf
+const test = 1 + (1.2-impactMultiplier)/2.6
+const loseDeltaRaw =Math.min(Math.max(
+  k *
+  (-0.5 - expected) *
+  test *
+  (2 - perfFactor)*streakFactorminus,-2*k),-5); // 👈 clé du système
+
+if (isWinner === undefined) {
+
+  result[player.userId ?? player.id] = {
+    winDelta: Math.round(0.7*winDeltaRaw),
+    loseDelta: Math.round(0.7*loseDeltaRaw),
+    Kfactor : k,
+    Multiplier : impactMultiplier,
+    Expected : expected, 
+    Perfomance : perfFactor
+  };
+
+} else {
+
+  const actual = isWinner ? 1 : 0;
+  
+  const finalDelta = actual == 0 ? Math.round(0.7*loseDeltaRaw) : Math.round(0.7*winDeltaRaw)
+    
+  
+
+  result[player.userId ?? player.id] = {
+    winDelta: Math.round(0.7*winDeltaRaw),
+    loseDelta: Math.round(0.7*loseDeltaRaw),
+    finalDelta,
+    Kfactor : k,
+    Multiplier : impactMultiplier,
+    Expected : expected, 
+    Perfomance : perfFactor
+
+  };
+}
+  }
+  
+  return result;
+}
+
+
+const eloDeltas = estimateEloDeltas(
+  gameState.players,
+  gameState.gameEnded ? gameState.winningTeam : undefined,
+  gameState.teamAScore, gameState.teamBScore,
+  gameState.hands,
+);
+console.log(eloDeltas)
+async function calculateAndUpdateElo(
+  supabase: any,
+  eloDeltas : EloEstimate
+): Promise<string> {
+
+  // ─────────────────────────────────────
+  // 1. Calcul des deltas
+  // ─────────────────────────────────────
+  const deltas = eloDeltas;
+  const modeKey = gameState.settings.mode + gameState.settings.playerCount + 'P'
+  const ELO_DEFAULT = 1000
+  const ELO_FLOOR = 0
+  // ─────────────────────────────────────
+  // 2. Update DB
+  // ─────────────────────────────────────
+  for (const [userId, delta] of Object.entries(deltas)) {
+
+    try {
+
+      // ─────────────────────────────
+      // USER DATA
+      // ─────────────────────────────
+      const { data: userData, error: userError } = await supabase
+        .from("users")
+        .select("elo")
+        .eq("id", userId)
+        .single();
+
+      if (userError) {
+        console.error("[ELO] User fetch error:", userError);
+        continue;
+      }
+      
+      // ─────────────────────────────
+      // CURRENT ELO MAP
+      // ─────────────────────────────
+      const currentEloMap: EloMap =
+        userData?.elo ?? {
+          coinche4P: ELO_DEFAULT,
+          coinche3P: ELO_DEFAULT,
+          coinche2P: ELO_DEFAULT,
+          belote4P: ELO_DEFAULT,
+          belote3P: ELO_DEFAULT,
+          belote2P: ELO_DEFAULT,
+        };
+
+      // ─────────────────────────────
+      // BEFORE / AFTER
+      // ─────────────────────────────
+      const eloBefore =
+        currentEloMap[modeKey] ?? ELO_DEFAULT;
+
+      const eloAfter = Math.max(
+        ELO_FLOOR,
+        eloBefore + delta.finalDelta
+      );
+
+      const realDelta =
+        eloAfter - eloBefore;
+
+      // ─────────────────────────────
+      // UPDATED MAP
+      // ─────────────────────────────
+      
+
+      // ─────────────────────────────
+      // ELO HISTORY INSERT
+      // ─────────────────────────────
+      
+      const { error: historyError } = await supabase
+  .from("elo_history")
+  .upsert({
+    user_id: userId,
+    match_id:
+      gameState.settings.matchId,
+
+    game_mode: modeKey,
+
+    elo_before: eloBefore,
+    elo_after: eloAfter,
+    delta: realDelta,
+
+    won: delta.finalDelta > 0,
+
+    k_factor: delta.Kfactor ?? null,
+    multiplier: delta.Multiplier ?? 1,
+
+    events: [],
+
+    created_at: new Date().toISOString(),
+  });
+      if (historyError) {
+  console.error("[ELO] History insert error:", historyError);
+  break; // ⛔ IMPORTANT: stop pour CE joueur
+}
+const updatedEloMap: EloMap = {
+        ...currentEloMap,
+        [modeKey]: eloAfter,
+      };
+
+      // ─────────────────────────────
+      // UPDATE USER ELO
+      // ─────────────────────────────
+  if (!historyError){
+      const { error: updateError } = await supabase
+        .from("users")
+        .update({
+          elo: updatedEloMap,
+        })
+        .eq("id", userId);
+
+      if (updateError) {
+        console.error("[ELO] Update error:", updateError);
+        continue;
+      }
+  }
+
+    } catch (err) {
+
+      console.error(
+        `[ELO] Fatal update error for ${userId}:`,
+        err
+      );
+    }
+  
+  }
+
+  return 'Intégration Delta terminee';
+}
+
+const termine = gameState.gameEnded
+if (termine) {
+  calculateAndUpdateElo(supabase,eloDeltas)
+}
+ 
+
     
     return (
       <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6">
@@ -218,46 +1032,210 @@ console.log(playerTeams)
         </div>
         
         <div className="space-y-2 mb-4">
-          {players.map(player => (
-            <div key={player.id} className="flex items-center space-x-2">
-              <div className={`w-2 h-2 bg-${teamColor}-500 rounded-full flex-shrink-0`}></div>
-              <div className="flex items-center space-x-2 min-w-0 flex-1">
-                <div className="relative w-6 h-6 ">
-                {player.profilePicture ? (
-                  <img
-                    src={player.profilePicture}
-                    alt={player.name}
-                    className="w-6 h-6 rounded-full object-cover flex-shrink-0"
-                  />
-                ) : (
-                  <User className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                )}
-                {player.frames && (
-                    <img
-                      src={availableFrames[Number(player.frames) - 1]?.image}
-                      alt="Cadre décoratif"
-                      className="absolute -inset-0 w-auto h-auto pointer-events-none"
-                      style={{
-                          transform: `scale(${availableFrames[Number(player.frames) - 1]?.scale || 1})`, // par défaut scale 1 si non défini
-                        }}
-                    />
-                  )}
-                  </div>
-                <span className="text-gray-700 text-sm sm:text-base truncate">{player.name}</span>
-                {currentDealer && player.id === currentDealer.id && (
-  <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full whitespace-nowrap">
-    Donneur
-  </span>
-)}
-{currentStart && player.id === currentStart.id && (
-  <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full whitespace-nowrap">
-    Commence
-  </span>
-)}
-              </div>
-            </div>
-          ))}
+  {players.map(player => {
+    const delta = eloDeltas[player.userId];
+    const hasElo = !player.isGuest && player.eloSnapshot !== undefined;
+    const isWinner =
+      gameState.gameEnded && gameState.winningTeam === player.team;
+    const isLoser =
+      gameState.gameEnded &&
+      gameState.winningTeam &&
+      gameState.winningTeam !== player.team;
+
+    return (
+      <div key={player.id} className="flex items-center space-x-2">
+        <div
+          className={`w-2 h-2 bg-${teamColor}-500 rounded-full flex-shrink-0`}
+        ></div>
+
+        <div className="flex items-center space-x-2 min-w-0 flex-1">
+          {/* Avatar */}
+          <div className="relative w-6 h-6">
+            {player.profilePicture ? (
+              <img
+                src={player.profilePicture}
+                alt={player.name}
+                className="w-6 h-6 rounded-full object-cover flex-shrink-0"
+              />
+            ) : (
+              <User className="w-4 h-4 text-gray-400 flex-shrink-0" />
+            )}
+
+            {player.frames && (
+              <img
+                src={availableFrames[Number(player.frames) - 1]?.image}
+                alt="Cadre décoratif"
+                className="absolute -inset-0 w-auto h-auto pointer-events-none"
+                style={{
+                  transform: `scale(${
+                    availableFrames[Number(player.frames) - 1]?.scale || 1
+                  })`,
+                }}
+              />
+            )}
+          </div>
+
+          {/* Nom */}
+          <span className="text-gray-700 text-sm sm:text-base truncate">
+            {player.name}
+          </span>
+
+          {/* Badges */}
+          {currentDealer && player.id === currentDealer.id && (
+            <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full whitespace-nowrap">
+              Donneur
+            </span>
+          )}
+
+          {currentStart && player.id === currentStart.id && (
+            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full whitespace-nowrap">
+              Commence
+            </span>
+          )}
         </div>
+
+        {/* ÉLO */}
+        {/* ÉLO */}
+{hasElo && delta !== undefined && (() => {
+
+  const streak =
+    histStreak.find(s => s.userId === player.userId)
+      ?.streak ?? 0;
+
+  const gamesPlayed =
+    TotGames.find(g => g.userId === player.userId)
+      ?.games ?? 0;
+
+  const placementGames = gamesPlayed < 4;
+
+  return (
+    <div
+      className="flex items-center justify-between flex-shrink-0 gap-4 px-3 py-2 rounded-xl border"
+style={{
+  background: "rgba(15, 17, 23, 0.06)",   // un peu plus teinté (gris/bleuté léger)
+  borderColor: "rgba(15, 17, 23, 0.18)",  // bordure plus visible
+  borderWidth: "1px",
+  minWidth: 165,
+  backdropFilter: "blur(8px)",
+  WebkitBackdropFilter: "blur(8px)",
+}}
+    >
+      {/* ───── LEFT : ELO ───── */}
+      <div className="flex flex-col leading-none gap-1">
+        <span className="text-[9px] text-gray-400 uppercase tracking-[0.15em]">
+          Elo
+        </span>
+
+       <div className="flex items-center gap-2">
+  <span
+    className="text-sm font-bold tabular-nums transition-all"
+    style={{
+      color:
+        gameState.gameEnded && delta
+          ? (delta.finalDelta ?? 0) >= 0
+            ? "#166534" // vert foncé
+            : "#991b1b" // rouge foncé
+          : "#0649cf",
+
+      filter: placementGames
+        ? "blur(4px)"
+        : "none",
+
+      opacity: placementGames
+        ? 0.7
+        : 1,
+    }}
+  >
+    {gameState.gameEnded && delta
+      ? (player.eloSnapshot ?? 1000) +
+        (delta.finalDelta ?? 0)
+      : player.eloSnapshot ?? 1000}
+  </span>
+
+          {/* ───── STREAK ───── */}
+          {Math.abs(streak) > 1 && (
+            <span
+              className="text-[10px] px-1.5 py-[2px] rounded-md font-semibold tabular-nums"
+              style={{
+                background:
+                  streak > 0
+                    ? "rgba(34,197,94,0.10)"
+                    : "rgba(239,68,68,0.10)",
+                color:
+                  streak > 0
+                    ? "#22c55e"
+                    : "#ef4444",
+                border:
+                  streak > 0
+                    ? "1px solid rgba(34,197,94,0.18)"
+                    : "1px solid rgba(239,68,68,0.18)",
+              }}
+            >
+              {streak > 0 ? "X" : "X"}
+              {Math.abs(streak)}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* ───── RIGHT : DELTAS ───── */}
+      {placementGames ? (
+        <div className="flex flex-col items-end leading-none">
+          <span className="text-[9px] text-gray-400 uppercase tracking-[0.15em]">
+            Placement
+          </span>
+
+          <span
+            className="text-sm font-semibold tabular-nums"
+            style={{ color: "#d1d5db" }}
+          >
+            {gamesPlayed}/4
+          </span>
+        </div>
+      ) : gameState.gameEnded ? (
+        <div className="flex flex-col items-end leading-none">
+          <span className="text-[9px] text-gray-400 uppercase tracking-[0.15em]">
+            Delta
+          </span>
+
+          <span
+            className="text-sm font-bold tabular-nums"
+            style={{
+              color:
+                (delta.finalDelta ?? 0) >= 0
+                  ? "#22c55e"
+                  : "#ef4444",
+            }}
+          >
+            {(delta.finalDelta ?? 0) >= 0 ? "+" : ""}
+            {delta.finalDelta}
+          </span>
+        </div>
+      ) : (
+        <div className="flex flex-col items-end leading-none">
+          <span className="text-[9px] text-gray-400 uppercase tracking-[0.15em]">
+            Win / Lose
+          </span>
+
+          <div className="flex flex-col items-end">
+            <span className="text-xs font-semibold text-green-500 tabular-nums">
+              +{delta.winDelta}
+            </span>
+
+            <span className="text-[11px] text-red-400 tabular-nums">
+              {delta.loseDelta}
+            </span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+})()}
+      </div>
+    );
+  })}
+</div>
+
         
         <div className="w-full bg-gray-200 rounded-full h-3">
           <div 

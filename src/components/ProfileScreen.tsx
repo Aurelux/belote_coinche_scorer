@@ -24,13 +24,77 @@ export function ProfileScreen() {
   const [unlockedTitles, setUnlockedTitles] = useState<string[]>([]);
   const [showLogoutPopup, setShowLogoutPopup] = useState(false);
   const [showDeletePopup, setShowDeletePopup] = useState(false);
-  
-
+  const LEAGUES = [
+  { name:"Bronze",  min:0,    max:1099, color:"#a87030", dark:"#7A4A1E",light:"#fcbb83",  symbol:"♣" },
+  { name:"Argent",  min:1100, max:1299, color:"#B0BEC5", dark:"#546E7A",light:"#e5f5fa", symbol:"♠" },
+  { name:"Or",      min:1300, max:1499, color:"#F0C040", dark:"#8B6914",light:"#f2fd8b", symbol:"♦" },
+  { name:"Platine", min:1500, max:1699, color:"#59a8b3", dark:"#00838F",light:"#eef5f7", symbol:"♥" },
+  { name:"Diamant", min:1700, max:1899, color:"#7db5e4", dark:"#1565C0",light:"#c0e2f5", symbol:"★" },
+  { name:"Légende", min:1900, max:9999, color:"#F48FB1", dark:"#AD1457",light:"#fad8ed", symbol:"♛" },
+];
+function getLeague(elo:number){ return LEAGUES.find(l=>elo>=l.min&&elo<=l.max)??LEAGUES[0]; }
+function getTierInfo(elo:number){
+  const league=getLeague(elo);
+  if(league.name==="Légende") return {league,tierLabel:"",points:elo-league.min,pct:Math.min(100,((elo-league.min)/200)*100)};
+  if(league.name==="Bronze"){league.min=900}
+  const tierSize=(league.max-league.min+1)/4;
+  const tierIdx=Math.min(3,Math.floor((elo-league.min)/tierSize));
+  const tierLabel=["IV","III","II","I"][tierIdx];
+  const floorInTier=league.min+tierIdx*tierSize;
+  const pct=Math.min(99,((elo-floorInTier)/tierSize)*100);
+  if (elo<900){return {league,tierLabel:"V",points:Math.floor(pct)+'/100',pct:Math.min(100,(elo/9000)*100)}}
+  return {league,tierLabel,points:Math.floor(pct/2)+'/50',pct};
+}
   
   const currentUser = gameState.currentUser;
-
+  
   const [allUserRankings, setAllUserRankings] = useState<Record<string, number | null>>({});
+const [userElo, setUserElo] = useState<Record<string, number>>({});
+const leagueBg = {
+  Bronze: "#F3E1CF",
+  Argent: "#E5E7EB",
+  Or: "#FDE68A",
+  Platine: "#A5F3FC",
+  Diamant: "#BFDBFE",
+  Légende: "#FBCFE8",
+};
+useEffect(() => {
+  const fetchElo = async () => {
+    if (!gameState?.currentUser?.id) return;
 
+    const { data, error } = await supabase
+      .from("users")
+      .select("elo,stats")
+      .eq("id", gameState.currentUser.id)
+      .single();
+
+    if (error) {
+      console.error("[ELO] fetch error:", error);
+      return;
+    }
+
+    const eloMap = data?.elo ?? {};
+    
+    // tous les modes avec elo != 1500
+   const filteredElo = Object.fromEntries(
+  Object.entries(eloMap ?? {})
+    .filter(([mode, elo]) => {
+      const modeStats = data?.stats?.[mode];
+      
+      if (!modeStats || typeof modeStats !== "object") return false;
+
+      return (modeStats.games ?? 0) > 3 && elo !== 0;
+    })
+) as Record<string, number>;
+
+
+setUserElo(filteredElo);
+  };
+
+  fetchElo();
+}, [gameState?.currentUser?.id, gameState.settings.mode, gameState.settings.playerCount]);
+
+console.log(userElo)
 useEffect(() => {
   const loadAllUserRanks = async () => {
     if (!currentUser) return;
@@ -79,7 +143,6 @@ useEffect(() => {
       }
 
       if (!data || data.length === 0) return;
-      console.log(data)
       // Récupérer les noms des premiers éléments de chaque top3
       const firstNames: string[] = data
         .map((entry: any) => {
@@ -98,7 +161,6 @@ useEffect(() => {
           return top3[0]?.name || "";
         })
         .filter(Boolean); // on garde que ceux qui existent
-      console.log(firstNames)
       // Créer une liste unique de tous les joueurs
       const allPlayers = firstNames
         .flatMap(name => name.replace(/\[|\]/g, "").split("&").map(n => n.trim()))
@@ -106,7 +168,6 @@ useEffect(() => {
 
       // Vérifier si le user fait partie de cette liste
       const userPrefix = currentUser?.displayName.slice(0, 5);
-      console.log(allPlayers)
       if (allPlayers.some(p => p.slice(0, 5) === userPrefix)) {
         setUnlockedCadre(prev => 
     prev.includes("1") ? prev : [...prev, "1"]
@@ -217,7 +278,6 @@ function checkCondition2(allowedDigits: string[]): boolean {
       const player = match.players.find(p => p.userId === currentUser.id);
       if (!player || !player.team || !match.winningTeam) return null;
       const score = player.team === "A" ? match.finalScores.teamA.toString() : match.finalScores.teamB.toString();
-      console.log(score)
       return endsWithTwoFours(score) ? 'O' : 'N';
     })
     .filter(r => r !== null) as ('O' | 'N')[];
@@ -323,7 +383,6 @@ if (currentType === 'L') maxLossStreak = Math.max(maxLossStreak, currentStreak);
     });
   });
 
-  console.log(teammateCounts)
   // Trouver le joueur avec qui on a le plus joué
   const bestEntry = Object.entries(teammateCounts).reduce(
     (acc, [userId, data]) => {
@@ -422,8 +481,7 @@ if (eligibleTeammates.length > 0) {
   worstTeammate2 = eligibleTeammates.reduce((acc, curr) => (curr.winRate < acc.winRate ? curr : acc), eligibleTeammates[0]);
 }
 
-console.log('Meilleur coéquipier:', bestTeammate);
-console.log('Pire coéquipier:', worstTeammate2);
+
 
 const teammateStats2: Record<string, TeammateStats> = {};
 // Parcourir l'historique
@@ -470,8 +528,7 @@ if (eligibleTeammatesAG.length > 0) {
   worstTeammate2AG = eligibleTeammatesAG.reduce((acc, curr) => (curr.winRate < acc.winRate ? curr : acc), eligibleTeammatesAG[0]);
 }
 
-console.log('Meilleur victime:', bestTeammateAG);
-console.log('Pire victime:', worstTeammate2AG);
+
 
 
   const getGameModeStats = (mode: 'belote' | 'coinche', playerCount: 2 | 3 | 4) => {
@@ -520,7 +577,7 @@ console.log('Pire victime:', worstTeammate2AG);
         return currentValue >= title.threshold && meetsMinGames;
         
       }
-      console.log(iscaracaca)
+      
       if (title.requirement === 'isCaracaca'){
         
         currentValue = iscaracaca? 1 : 0
@@ -594,26 +651,77 @@ setUnlockedCadre(prev =>
 >
       <div className="max-w-4xl mx-auto relative" style={{ top: 'calc(1.5rem + env(safe-area-inset-top))' }}>
         {/* Header */}
-        <div className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 mb-6">
+        {(() => {
+  const elo = undefined;
+  const league = elo ? getTierInfo(elo)?.league : undefined;
+
+ 
+
+  const leagueBgMap: Record<string, string> = { Bronze:"#2D1A0E", Argent:"#1A1F2E", Or:"#2D1F00", Platine:"#00252E", Diamant:"#1E1B4B", Légende:"#2D0A1E" };
+
+  return (
+    <div className="mb-6 rounded-2xl p-4 relative overflow-hidden"
+      style={{
+  background: league ? leagueBgMap[league.name] : "white",
+  border: `1.5px solid ${league?.color ?? "#ccc"}55`,
+}}>
+      {/* Watermark */}
+      <span
+  style={{
+    position: "absolute",
+    right: 60,
+    top: -8,
+    fontSize: 72,
+    color: `${league?.light ?? "#000"}35`,
+    pointerEvents: "none",
+    userSelect: "none",
+  }}
+>
+  {league?.symbol ?? ""}
+</span>
+      {/* Header */}
+      {league && (
+  <div className="flex items-center justify-between mb-3">
+    <div>
+      <p
+        className="text-base font-semibold"
+        style={{
+          position: "absolute",
+          left: 55,
+          color: league.light ?? league.color,
+        }}
+      >
+        S1 - {league.name.slice(0,4)} {getTierInfo(elo).tierLabel}
+      </p>
+    </div>
+  </div>
+)}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-4 sm:space-y-0">
             <div className="flex items-center space-x-4 w-full sm:w-auto">
               <button
-                onClick={goBack}
-                className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <ArrowLeft className="w-6 h-6" />
-              </button>
+  onClick={goBack}
+  className="p-2 rounded-lg transition-colors hover:bg-gray-100"
+  style={{
+    color: league?.light || "#4B5563", // gris par défaut
+  }}
+>
+  <ArrowLeft className="w-6 h-6" />
+</button>
               <div className="flex items-center space-x-4 min-w-0 flex-1">
                 <div className="relative">
                   <div className="relative w-12 h-12 sm:w-16 sm:h-16">
                   
   {/* Bouton triangle à gauche */}
-  <button
-    onClick={() => setShowCadreSelector(true)}
-    className="absolute -left-4 top-1/2 -translate-y-1/2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-full p-1 shadow-sm z-10"
-  >
-    <ChevronDown className="w-4 h-4" />
-  </button>
+ <button
+  onClick={() => setShowCadreSelector(true)}
+  className="absolute -left-4 top-1/2 -translate-y-1/2  rounded-full p-1 shadow-sm z-10 transition-colors hover:bg-gray-100"
+  style={{
+    color: league?.light || "#d0dff7",
+    backgroundColor: league?.color ||  "#9facb9"
+  }}
+>
+  <ChevronDown className="w-4 h-4" />
+</button>
 
   {/* Image ou avatar par défaut */}
   {currentUser.profilePicture ? (
@@ -642,7 +750,10 @@ setUnlockedCadre(prev =>
 )}
   </div>
 
-                  <label className="absolute bottom-0 right-0 bg-green-600 text-white p-1 rounded-full cursor-pointer hover:bg-green-700 transition-colors">
+                  <label className="absolute bottom-0 right-0 p-1 rounded-full cursor-pointer hover: transition-colors" style={{
+    color: league?.light || "#81fcb4",
+    backgroundColor: league?.color || "#018036"
+  }} >
                     {uploadingPhoto ? (
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                     ) : (
@@ -658,9 +769,23 @@ setUnlockedCadre(prev =>
                   </label>
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h1 className="text-xl sm:text-3xl font-bold text-gray-900 truncate">{currentUser.displayName}</h1>
-                  <div className="flex items-center space-x-2">
-                    <span className={`text-sm sm:text-base font-medium ${currentTitle?.color || 'text-green-600'}`}>
+<h1
+  className="text-xl sm:text-3xl font-bold truncate text-white"
+  style={{
+    WebkitTextStroke: `0.5px ${league?.light || " 0px #3c48eb"}`,
+    color : league ? "#ffffff" : "#3c48eb" 
+  }}
+>
+  {currentUser.displayName}
+</h1>                  <div className="flex items-center space-x-2">
+                    <span
+  className={`text-sm sm:text-base font-medium ${
+    !league && currentTitle?.color ? currentTitle.color : ""
+  }`}
+  style={{
+    color: league?.light,
+  }}
+>
                       {currentTitle?.title}
                     </span>
                     <button
@@ -670,14 +795,19 @@ setUnlockedCadre(prev =>
                       <Edit className="w-3 h-3 sm:w-4 sm:h-4" />
                     </button>
                   </div>
-                  <p className="text-xs sm:text-sm text-gray-500">
+                  <p className="text-xs sm:text-sm " style={{
+    color: league?.light || "#374151",
+  }}>
                     Membre depuis {new Intl.DateTimeFormat('fr-FR', { 
                       year: 'numeric', 
                       month: 'long' 
                     }).format(currentUser.createdAt)}
                   </p>
                   {mostPlayedWith && (
-  <div className="flex items-center gap-1 mt-1 text-sm text-pink-500">
+  <div className="flex items-center gap-1 mt-1 text-sm" style={{
+    color: league?.light || "#ee53b3"
+    
+  }}>
     <HeartIcon className="w-4 h-4" /> {/* Utilise ton icône cœur */}
     <span>{mostPlayedWith.name}</span>
     <span className="text-gray-400">({mostPlayedWith.count} parties)</span>
@@ -691,7 +821,11 @@ setUnlockedCadre(prev =>
               <div className="relative">
   <button
     onClick={() => navigateTo('friends')}
-    className="flex items-center space-x-2 px-3 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors text-sm"
+    className="flex items-center space-x-2 px-3 py-2  rounded-lg hover: transition-colors text-sm"
+    style={{
+    color: league?.light || "#043a10",
+    backgroundColor: league?.color || "#69dd82"
+  }}
   >
     <UserPlus className="w-4 h-4" />
     <span>Amis ({gameState.friends.length})</span>
@@ -708,7 +842,11 @@ setUnlockedCadre(prev =>
 
               <button
                 onClick={() => navigateTo('rankings')}
-                className="flex items-center space-x-2 px-3 py-2 bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors text-sm"
+                className="flex items-center space-x-2 px-3 py-2  rounded-lg hover: transition-colors text-sm"
+              style={{
+    color: league?.light || "#42032d",
+    backgroundColor: league?.color || "#fc9ddc"
+  }}
               >
                 <BarChart3 className="w-4 h-4" />
                 <span className="hidden sm:inline">Classements</span>
@@ -716,19 +854,38 @@ setUnlockedCadre(prev =>
               </button>
               <button
       onClick={() => navigateTo('history')}
-      className="flex items-center space-x-2 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm"
-    >
+      className="flex items-center space-x-2 px-3 py-2  rounded-lg hover: transition-colors text-sm"
+    style={{
+    color: league?.light || "#374151",
+    backgroundColor: league?.color || "#b6d1d1"
+  }}>
                 <History className="w-4 h-4" />
                 <span className="hidden sm:inline">Historique</span>
               </button>
               {/* === BOUTON PRINCIPAL === */}
       <button
         onClick={() => setShowLogoutPopup(true)}
-        className="flex items-center space-x-2 px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors text-sm"
-      >
+        className="flex items-center space-x-2 px-3 py-2  rounded-lg hover: transition-colors text-sm"
+      style={{
+    color: league?.light || "#3a0505",
+    backgroundColor: league?.color || "#ff2121"
+  }}>
         <LogOut className="w-4 h-4" />
         <span className="hidden sm:inline">Déconnexion</span>
       </button>
+      <button
+  onClick={() => navigateTo('elo')}
+  className="flex items-center space-x-2 px-3 py-2 rounded-lg hover: transition-colors text-sm"
+style={{
+    color: league?.light || "#ffffff",
+    backgroundColor: league?.color || "#000000" 
+  }}>
+  <BarChart3 className="w-4 h-4 " style={{
+    color: league?.light || "#fafafa",
+  }} />
+
+  <span>Elo</span>
+</button>
 
       {/* === POPUP DÉCONNEXION === */}
       {showLogoutPopup && (
@@ -806,7 +963,9 @@ setUnlockedCadre(prev =>
             </div>
           </div>
         </div>
-
+        );
+})()}
+       
         {/* Title Selector Modal */}
         {showCadreSelector && (
   <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -928,6 +1087,84 @@ setUnlockedCadre(prev =>
             </div>
           </div>
         )}
+
+<div className="mb-6 sm:mb-8">
+  {(() => {
+    const elos = userElo ?? {};
+    const entries = Object.entries(elos);
+
+    return (
+      <div className="flex flex-col gap-3">
+        {entries.map(([mode, elo]) => {
+          const league = getLeague(elo);
+          const tier = getTierInfo(elo);
+
+          return (
+            <div
+              key={mode}
+              className="rounded-xl p-4 shadow border flex items-center justify-between"
+              style={{
+                background: leagueBg[league.name] ?? "#f3f4f6",
+                borderColor: league.color,
+              }}
+            >
+              {/* LEFT */}
+              <div className="flex flex-col">
+                <span className="text-xs uppercase tracking-widest text-gray-700">
+                  {mode}
+                </span>
+
+                <span
+                  className="text-2xl font-bold"
+                  style={{ color: league.dark }}
+                >
+                  {elo}
+                </span>
+              </div>
+
+              {/* RIGHT */}
+              <div className="flex items-end gap-3">
+                <div className="flex flex-col items-end leading-tight">
+                  {/* LEAGUE NAME */}
+                  <span
+                    className="text-sm font-semibold"
+                    style={{ color: league.dark }}
+                  >
+                    {league.name} {tier.tierLabel}
+                  </span>
+
+                  {/* PROGRESS BAR */}
+                  <div className="w-24 h-1.5 bg-black/10 rounded-full mt-1 overflow-hidden">
+                    <div
+                      className="h-full rounded-full"
+                      style={{
+                        width: `${tier.pct}%`,
+                        backgroundColor: league.color,
+                      }}
+                    />
+                  </div>
+
+                  {/* PERCENT / POINTS */}
+                  <span className="text-[10px] text-gray-600 mt-1">
+                    {tier.points} pts
+                  </span>
+                </div>
+
+                {/* SYMBOL */}
+                <span
+                  className="text-xl"
+                  style={{ color: league.dark }}
+                >
+                  {league.symbol}
+                </span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  })()}
+</div>
 
         {/* Overall Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
@@ -1374,7 +1611,7 @@ if (isUnlocked && title.threshold>=10 && !unlockedCadre.includes("4")){
   setUnlockedTitles(prev => [...prev, title.id]);
 }
 if (isUnlocked && title.threshold>=10 && !unlockedCadre.includes("2")){
-  console.log('coucou', title.threshold)
+  
   setUnlockedCadre(prev => 
     prev.includes("2") ? prev : [...prev, "2"]
   );

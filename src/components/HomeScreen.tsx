@@ -1,5 +1,5 @@
 import React from "react";
-import { Trophy, Gamepad2, BarChart3, BookOpen, Spade } from "lucide-react";
+import { Trophy, Gamepad2, BarChart3, BookOpen, Spade, BarChart2 } from "lucide-react";
 import {  useGame } from '../context/useGame';
 import AppIcon from '../assets/AppIcon-512@2x.png';
 
@@ -11,6 +11,7 @@ export default function HomeScreen() {
     { label: "Tournois", icon: <Trophy className="w-5 h-5 sm:w-6 sm:h-6" />, page: "tournoi" },
     { label: "Classement", icon: <BarChart3 className="w-5 h-5 sm:w-6 sm:h-6" />, page: "rankings" },
     { label: "Règles", icon: <BookOpen className="w-5 h-5 sm:w-6 sm:h-6" />, page: "help" },
+    { label: "Elo", icon: <BarChart2 className="w-5 h-5 sm:w-6 sm:h-6" />, page: "elo" },
   ];
 
   return (
@@ -45,7 +46,7 @@ export default function HomeScreen() {
         {/* MENU */}
         <div className="flex flex-col space-y-4 w-full">
   {menuItems.map((item) => {
-    const isDisabled = item.page === "rankings" && !gameState.currentUser;
+    const isDisabled = (item.page === "rankings" || item.page ==="elo") && !gameState.currentUser;
     const isSemiBlock = item.page === "tournoi" && !gameState.currentUser;
     return (
       <div key={item.page} className="flex flex-col">

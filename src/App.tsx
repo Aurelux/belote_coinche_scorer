@@ -9,6 +9,8 @@ import { Analytics } from './components/Analytics';
 import { MatchHistory } from './components/MatchHistory';
 import { ProfileScreen } from './components/ProfileScreen';
 import { UserProfileScreen } from './components/UserProfileScreen';
+import EloPage from './components/EloPage';
+
 import { RankingsScreen } from './components/RankingsScreen';
 import { FriendsScreen } from './components/FriendsScreen';
 import SplashScreen from './components/SplashScreen';
@@ -79,6 +81,8 @@ function AppContent() {
         switch (currentScreen) {
           case 'auth':
             return <AuthScreen />;
+          case 'elo':
+            return <EloPage />;
           case 'setup':
             return <PlayerSetup />;
           case 'game-mode':
