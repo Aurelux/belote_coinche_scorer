@@ -1070,7 +1070,8 @@ if (termine && !eloUpdated &&!eloLoading) {
         <div className="space-y-2 mb-4">
   {players.map(player => {
     const delta = eloDeltas[player.userId];
-    const hasElo = !player.isGuest && player.eloSnapshot !== undefined;
+    const hasElo = gameState.settings.isTournament? player.eloSnapshot !== undefined : !player.isGuest && player.eloSnapshot !== undefined  ;
+    console.log(hasElo)
     const isWinner =
       gameState.gameEnded && gameState.winningTeam === player.team;
     const isLoser =
@@ -1431,7 +1432,8 @@ style={{
       {/* Choix équipes */}
 {gameState.settings.playerCount === 4 && (
   <div className="flex justify-center gap-4 mb-4">
-    <button
+    <button 
+    disabled={eloLoading}
       className={`px-4 py-2 rounded-lg font-semibold ${
         keepTeams ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
       }`}
@@ -1463,6 +1465,7 @@ style={{
 {gameState.settings.playerCount != 4 && (
   <div className="flex justify-center gap-4 mb-4">
     <button
+    disabled={eloLoading}
       className={`px-4 py-2 rounded-lg font-semibold ${
         keepTeams ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
       }`}
@@ -1545,6 +1548,7 @@ style={{
         
         
           <button
+          disabled={eloLoading}
             className="px-4 py-2 rounded-lg bg-green-800 border-2 border-green-900 text-white font-semibold hover:bg-green-900"
             onClick={() => {
               setChangeTeams(false);
@@ -1723,6 +1727,7 @@ style={{
               {!gameState.settings.isTournament  && (
               <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
                 <button
+                disabled={eloLoading}
                   onClick={() => {
                     setEloUpdated(false)
 
@@ -1733,6 +1738,7 @@ style={{
                   <span>Revanche</span>
                 </button>
                 <button
+                disabled={eloLoading}
                   onClick={() => setShowNewGameModal(true)}
                   className="px-4 sm:px-6 py-2 sm:py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm sm:text-base"
                 >
@@ -1749,7 +1755,9 @@ style={{
                 {gameState.settings.isTournament  && (
                   <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
         <button
-          onClick={() => navigateTo2('tournamentview', { code: gameState.settings.codeTournoi })}
+          onClick={() => { setEloUpdated(false)
+            navigateTo2('tournamentview', { code: gameState.settings.codeTournoi })
+        }}
           className="px-4 sm:px-6 py-2 sm:py-3 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors text-sm sm:text-base"
         >
           Voir l'arbre du tournoi
