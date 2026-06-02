@@ -218,7 +218,6 @@ const teamsScores = [
   gameState.teamBScore,
   gameState.teamCScore,
 ].filter((score): score is number => typeof score === "number");
-
 const LEAGUES = [
   { name:"Bronze",  min:0,    max:1099, color:"#a87030", dark:"#7A4A1E",light:"#fcbb83",  symbol:"♣" },
   { name:"Argent",  min:1100, max:1299, color:"#B0BEC5", dark:"#546E7A",light:"#e5f5fa", symbol:"♠" },

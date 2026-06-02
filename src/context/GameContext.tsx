@@ -375,7 +375,8 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         gameStartTime: new Date(),
         settings: {
       ...state.settings,
-      matchId: state.settings.matchId || `${Date.now()}-${Math.random().toString(36).substring(2, 10)}`,
+      matchId: state.settings.isTournament
+    ? state.settings.matchId : `${Date.now()}-${Math.random().toString(36).substring(2, 10)}`,
     },
       };
 
