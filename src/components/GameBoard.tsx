@@ -51,6 +51,7 @@ const [fakeDelta, setFakeDelta] = useState(0);
 const [reelDelta, setReelDelta] = useState<
   { user_id: string; delta: number }[]
 >([]);
+
 useEffect(() => {
   async function loadElo() {
     if (!gameState.players.length) return;
@@ -218,7 +219,27 @@ const teamsScores = [
   gameState.teamCScore,
 ].filter((score): score is number => typeof score === "number");
 
-
+const LEAGUES = [
+  { name:"Bronze",  min:0,    max:1099, color:"#a87030", dark:"#7A4A1E",light:"#fcbb83",  symbol:"♣" },
+  { name:"Argent",  min:1100, max:1299, color:"#B0BEC5", dark:"#546E7A",light:"#e5f5fa", symbol:"♠" },
+  { name:"Or",      min:1300, max:1499, color:"#F0C040", dark:"#8B6914",light:"#f2fd8b", symbol:"♦" },
+  { name:"Platine", min:1500, max:1699, color:"#59a8b3", dark:"#00838F",light:"#eef5f7", symbol:"♥" },
+  { name:"Diamant", min:1700, max:1899, color:"#7db5e4", dark:"#1565C0",light:"#c0e2f5", symbol:"★" },
+  { name:"Légende", min:1900, max:9999, color:"#F48FB1", dark:"#AD1457",light:"#fad8ed", symbol:"♛" },
+];
+function getLeague(elo:number){ return LEAGUES.find(l=>elo>=l.min&&elo<=l.max)??LEAGUES[0]; }
+function getTierInfo(elo:number){
+  const league=getLeague(elo);
+  if(league.name==="Légende") return {league,tierLabel:"",points:elo-league.min,pct:Math.min(100,((elo-league.min)/200)*100)};
+  if(league.name==="Bronze"){league.min=900}
+  const tierSize=(league.max-league.min+1)/4;
+  const tierIdx=Math.min(3,Math.floor((elo-league.min)/tierSize));
+  const tierLabel=["IV","III","II","I"][tierIdx];
+  const floorInTier=league.min+tierIdx*tierSize;
+  const pct=Math.min(99,((elo-floorInTier)/tierSize)*100);
+  if (elo<900){return {league,tierLabel:"V",points:Math.floor(pct)+'/100',pct:Math.min(100,(elo/9000)*100)}}
+  return {league,tierLabel,points:Math.floor(pct/2)+'/50',pct};
+}
 const isNearGameEnd = teamsScores.some(
   (score) =>
     gameState.settings.targetScore - score <= WARNING_GAP &&
@@ -745,8 +766,8 @@ if (streak < 0) {
 
 const expected =
   isTeamA
-    ? 1 / (1 + Math.pow(10, (-elo + avgB) / 1100))
-    : 1 / (1 + Math.pow(10, (-elo + avgA) / 1100))
+    ? 1 / (1 + Math.pow(10, (-elo + avgB) / 900))
+    : 1 / (1 + Math.pow(10, (-elo + avgA) / 900))
     const isWinner =
       winningTeam
         ? player.team === winningTeam
@@ -855,6 +876,7 @@ const winDeltaRaw =Math.max(Math.min(
 
 // perte moins punitive si bonne perf
 const test = 1 + (1.2-impactMultiplier)/2.6
+console.log(expected)
 const loseDeltaRaw =Math.min(Math.max(
   k *
   (-0.5 - expected) *
@@ -1114,7 +1136,7 @@ if (termine && !eloUpdated &&!eloLoading) {
 
           {/* Nom */}
           <span className="text-gray-700 text-sm sm:text-base truncate">
-            {player.name.slice(0,10)}
+            {player.name.slice(0,8)}
           </span>
 
           {/* Badges */}
@@ -1134,6 +1156,7 @@ if (termine && !eloUpdated &&!eloLoading) {
         {/* ÉLO */}
         {/* ÉLO */}
 {hasElo && delta !== undefined && (() => {
+  
 
   const streak =
     histStreak.find(s => s.userId === player.userId)
@@ -1144,36 +1167,67 @@ if (termine && !eloUpdated &&!eloLoading) {
       ?.games ?? 0;
 
   const placementGames = gamesPlayed < 4;
+
+  const currentLeague = getLeague(player.eloSnapshot ?? 1000);
+  const Tierinfo = getTierInfo(player.eloSnapshot ?? 1000)
+
+
+// Pendant les placements on garde la couleur neutre (ou bleu actuel)
+const leagueColor = placementGames
+  ? "#0649cf"
+  : currentLeague.color;
+
+const leagueDark = placementGames
+  ? "#0649cf"
+  : currentLeague.dark;
+
+const leagueLight = placementGames
+  ? "#0649cf"
+  : currentLeague.light;
+
+const leagueLogo = placementGames
+  ? ""
+  : currentLeague.symbol;
+const LeagueTier = placementGames ? "" : Tierinfo.tierLabel
  
   
   return (
     <div
-      className="flex items-center justify-between flex-shrink-0 gap-4 px-3 py-2 rounded-xl border"
+      className="flex items-center justify-between flex-shrink-0 gap-0 px-3 py-2 rounded-xl border"
 style={{
-  background: "rgba(15, 17, 23, 0.06)",   // un peu plus teinté (gris/bleuté léger)
-  borderColor: "rgba(15, 17, 23, 0.18)",  // bordure plus visible
+  background: placementGames
+    ? "rgba(15, 17, 23, 0.06)"
+    : `${leagueColor}40`,
+  borderColor: placementGames
+    ? "rgba(15, 17, 23, 0.18)"
+    : `${leagueColor}70`,
   borderWidth: "1px",
   minWidth: 165,
+  maxWidth : 165,
   backdropFilter: "blur(8px)",
   WebkitBackdropFilter: "blur(8px)",
 }}
     >
       {/* ───── LEFT : ELO ───── */}
       <div className="flex flex-col leading-none gap-1">
-        <span className="text-[9px] text-gray-400 uppercase tracking-[0.15em]">
-          Elo
+        <span className="text-[9px] text-gray-400 uppercase tracking-[0.15em]"
+        style={{
+   
+    color: `${leagueDark ?? "#000"}`,
+   
+  }}
+        >
+          Elo 
         </span>
 
-       <div className="flex items-center gap-2">
+       <div className="flex items-center gap-2 relative">
   <span
     className="text-sm font-bold tabular-nums transition-all"
     style={{
       color:
-        gameState.gameEnded && delta
-          ? (delta.finalDelta ?? 0) >= 0
-            ? "#166534" // vert foncé
-            : "#991b1b" // rouge foncé
-          : "#0649cf",
+  (delta.finalDelta ?? 0) >= 0
+    ? leagueDark
+    : leagueColor,
 
       filter: placementGames
   ? "blur(3px)"
@@ -1191,6 +1245,7 @@ style={{
       ?  (player.eloSnapshot ?? 1000) 
       : player.eloSnapshot ?? 1000}
   </span>
+
 
           {/* ───── STREAK ───── */}
           {Math.abs(streak) > 1 && (
@@ -1214,7 +1269,48 @@ style={{
               {streak > 0 ? "X" : "X"}
               {Math.abs(streak)}
             </span>
+            
           )}
+          <div
+  style={{
+    position: "absolute",
+    left: 80,
+    top: -8,
+    width: 40,
+    height: 40,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "column",
+    pointerEvents: "none",
+    userSelect: "none",
+  }}
+>
+  {/* LOGO */}
+  <span
+    style={{
+      fontSize: 32,
+      color: `${leagueDark}70`,
+      lineHeight: 1,
+    }}
+  >
+    {leagueLogo}
+  </span>
+
+  {/* TIER (overlay ou petit badge) */}
+  <span
+    style={{
+      position: "absolute",
+      bottom: 14,
+      fontSize: 10,
+      fontWeight: 700,
+      color: leagueLight,
+      textShadow: "0 1px 2px rgba(0,0,0,0.4)",
+    }}
+  >
+    {LeagueTier}
+  </span>
+</div>
         </div>
       </div>
 
@@ -1234,7 +1330,12 @@ style={{
         </div>
       ) : gameState.gameEnded ? (
         <div className="flex flex-col items-end leading-none">
-          <span className="text-[9px] text-gray-400 uppercase tracking-[0.15em]">
+          <span className="text-[9px] text-gray-400 uppercase tracking-[0.15em]"
+          style={{
+   
+    color: `${leagueDark ?? "#000"}`,
+   
+  }}>
             Delta
           </span>
 
@@ -1242,9 +1343,9 @@ style={{
             className="text-sm font-bold tabular-nums"
             style={{
               color:
-                (delta.finalDelta ?? 0) >= 0
-                  ? "#22c55e"
-                  : "#ef4444",
+  (delta.finalDelta ?? 0) >= 0
+    ? leagueDark
+    : leagueColor,
             }}
           >
             {(delta.finalDelta ?? 0) >= 0 ? "+" : ""}
@@ -1253,18 +1354,30 @@ style={{
         </div>
       ) : (
         <div className="flex flex-col items-end leading-none">
-          <span className="text-[9px] text-gray-400 uppercase tracking-[0.15em]">
+          <span className="text-[9px] text-gray-400 uppercase tracking-[0.15em]"
+          
+          style={{ 
+            color: `${leagueDark ?? "#000"}`,
+            whiteSpace: "nowrap" }}>
             Win / Lose
           </span>
 
           <div className="flex flex-col items-end">
-            <span className="text-xs font-semibold text-green-500 tabular-nums">
-              +{delta.winDelta}
-            </span>
+            <span
+  className="text-xs font-semibold tabular-nums"
+  style={{ color: leagueDark }}
+>
+  +{delta.winDelta}
+</span>
 
-            <span className="text-[11px] text-red-400 tabular-nums">
-              {delta.loseDelta}
-            </span>
+<span
+  className="text-[11px] tabular-nums"
+  style={{
+  color: `${leagueDark}90`, // ~70% opacity
+}}
+>
+  {delta.loseDelta}
+</span>
           </div>
         </div>
       )}
