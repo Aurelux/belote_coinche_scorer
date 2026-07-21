@@ -28,14 +28,40 @@ export function ProfileScreen() {
   { name:"Bronze",  min:0,    max:1099, color:"#a87030", dark:"#7A4A1E",light:"#fcbb83",  symbol:"♣" },
   { name:"Argent",  min:1100, max:1299, color:"#B0BEC5", dark:"#546E7A",light:"#e5f5fa", symbol:"♠" },
   { name:"Or",      min:1300, max:1499, color:"#F0C040", dark:"#8B6914",light:"#f2fd8b", symbol:"♦" },
-  { name:"Platine", min:1500, max:1699, color:"#59a8b3", dark:"#00838F",light:"#eef5f7", symbol:"♥" },
-  { name:"Diamant", min:1700, max:1899, color:"#7db5e4", dark:"#1565C0",light:"#c0e2f5", symbol:"★" },
-  { name:"Légende", min:1900, max:9999, color:"#F48FB1", dark:"#AD1457",light:"#fad8ed", symbol:"♛" },
+{
+  name: "Emeraude",
+  min: 1500,
+  max: 1699,
+  color: "#069464",
+  bg: "#06281F",
+  light: "#9affda",
+  symbol: "♥",
+  gradient: "linear-gradient(135deg,#047857,#10B981)"
+},   { name:"Diamant", min:1700, max:1899, color:"#7db5e4", dark:"#1565C0",light:"#c0e2f5", symbol:"★" },
+  { name:"Légende", min:1900, max:2099, color:"#F48FB1", dark:"#AD1457",light:"#fad8ed", symbol:"♛" },
+  {
+  name:"Master",
+  min:2100,
+  max:2299,
+  color:"#9C27B0",
+  dark:"#4A148C",
+  light:"#E1BEE7",
+  symbol:"✦"
+},
+{
+  name:"Grand Master",
+  min:2300,
+  max:9999,
+  color:"#b11616",
+  dark:"#7F0000",
+  light:"#f8a2ab",
+  symbol:"♜"
+},
 ];
 function getLeague(elo:number){ return LEAGUES.find(l=>elo>=l.min&&elo<=l.max)??LEAGUES[0]; }
 function getTierInfo(elo:number){
   const league=getLeague(elo);
-  if(league.name==="Légende") return {league,tierLabel:"",points:elo-league.min,pct:Math.min(100,((elo-league.min)/200)*100)};
+  if(league.name==="Grand Master") return {league,tierLabel:"",points:elo-league.min,pct:Math.min(100,((elo-league.min)/200)*100)};
   if(league.name==="Bronze"){league.min=900}
   const tierSize=(league.max-league.min+1)/4;
   const tierIdx=Math.min(3,Math.floor((elo-league.min)/tierSize));
@@ -54,9 +80,11 @@ const leagueBg = {
   Bronze: "#F3E1CF",
   Argent: "#E5E7EB",
   Or: "#FDE68A",
-  Platine: "#A5F3FC",
+  Emeraude: "#A5FCC6",
   Diamant: "#BFDBFE",
   Légende: "#FBCFE8",
+  Master: "#dab9fd",
+  "Grand Master": "#FECACA",
 };
 useEffect(() => {
   const fetchElo = async () => {
@@ -651,12 +679,21 @@ setUnlockedCadre(prev =>
       <div className="max-w-4xl mx-auto relative" style={{ top: 'calc(1.5rem + env(safe-area-inset-top))' }}>
         {/* Header */}
         {(() => {
-  const elo = undefined;
+  const elo = Math.max(...Object.values(userElo));
   const league = elo ? getTierInfo(elo)?.league : undefined;
 
  
 
-  const leagueBgMap: Record<string, string> = { Bronze:"#2D1A0E", Argent:"#1A1F2E", Or:"#2D1F00", Platine:"#00252E", Diamant:"#1E1B4B", Légende:"#2D0A1E" };
+  const leagueBgMap: Record<string, string> = { 
+  Bronze:"#2D1A0E",
+  Argent:"#1A1F2E",
+  Or:"#2D1F00",
+  Platine:"#00252E",
+  Diamant:"#1E1B4B",
+  Légende:"#2D0A1E",
+  Master:"#2A1038",
+  "Grand Master":"#330202"
+};
 
   return (
     <div className="mb-6 rounded-2xl p-4 relative overflow-hidden"
@@ -768,15 +805,35 @@ setUnlockedCadre(prev =>
                   </label>
                 </div>
                 <div className="min-w-0 flex-1">
-<h1
-  className="text-xl sm:text-3xl font-bold truncate text-white"
-  style={{
-    WebkitTextStroke: `0.5px ${league?.light || " 0px #3c48eb"}`,
-    color : league ? "#ffffff" : "#3c48eb" 
-  }}
->
-  {currentUser.displayName}
-</h1>                  <div className="flex items-center space-x-2">
+<div className="flex items-center gap-2">
+  <h1
+    className="text-xl sm:text-3xl font-bold truncate text-white"
+    style={{
+      WebkitTextStroke: `0.5px ${league?.light || "#3c48eb"}`,
+      color: league ? "#ffffff" : "#3c48eb"
+    }}
+  >
+    {currentUser.displayName}
+  </h1>
+
+  {(league?.name === "Master" || league?.name === "Grand Master") && (
+    <span
+      className="flex items-center justify-center font-bold text-white rounded-md shadow-md"
+      style={{
+        width: "32px",
+        height: "32px",
+        fontSize: "12px",
+        background:
+          league.name === "Grand Master"
+            ? "#790202"
+            : "#9C27B0",
+        border: "2px solid rgba(255,255,255,0.4)"
+      }}
+    >
+      {league.name === "Grand Master" ? "GM" : "M"}
+    </span>
+  )}
+</div>                  <div className="flex items-center space-x-2">
                     <span
   className={`text-sm sm:text-base font-medium ${
     !league && currentTitle?.color ? currentTitle.color : ""
@@ -840,7 +897,7 @@ className="w-full flex h-10 items-center justify-center space-x-2 px-3 py-2 roun
 
 
 
-              {(gameState.currentUser?.displayName === "AurelB" || gameState.currentUser?.displayName === "Adele" )&& (
+              {(gameState.currentUser?.displayName === "Azazaz" || gameState.currentUser?.displayName === "zazaz" )&& (
   <button
     onClick={() => navigateTo("rankings")}
 className="flex-1 min-w-[30px] h-10 flex items-center justify-center space-x-2 px-3 py-2 rounded-lg text-sm"    style={{

@@ -6,10 +6,21 @@ import { Player } from '../types/game';
 import { debounce } from 'lodash'; 
 import { supabase } from '../lib/supabase';// ou tu peux coder ton propre debounce
 
+interface PlayerInput {
+  displayName: string;
+  elo: number;
+  eloBadge: "L" | "M" | "GM" | null;
+}
+
 export function PlayerSetup() {
-  const { gameState, setPlayers, setCurrentScreen,createEmptyUserStats, searchUsers, sendFriendRequest, showPlayerConfirmationModal, goBack, navigateTo } = useGame();
+  const { gameState, setPlayers, setCurrentScreen,createEmptyUserStats,setGameState, searchUsers, sendFriendRequest, showPlayerConfirmationModal, goBack, navigateTo } = useGame();
   const [playerCount, setPlayerCount] = useState<2 | 3 | 4>(4);
-  const [playerInputs, setPlayerInputs] = useState(['', '', '', '']);
+const [playerInputs, setPlayerInputs] = useState<PlayerInput[]>([
+  { displayName: "", elo: 0, eloBadge: null },
+  { displayName: "", elo: 0, eloBadge: null },
+  { displayName: "", elo: 0, eloBadge: null },
+  { displayName: "", elo: 0, eloBadge: null }
+]);
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [activeInputIndex, setActiveInputIndex] = useState<number | null>(null);
   const [showAddFriend, setShowAddFriend] = useState(false);
@@ -42,33 +53,49 @@ export function PlayerSetup() {
   },
 }))
 
-        gameState.users = h;
+         setGameState({
+  ...gameState,
+  users: h
+});
       }
     };
 
     fetchUsers();
   }, []);
+console.log(gameState.users)
   useEffect(() => {
     
-    if (gameState.currentUser) {
+    if (gameState.currentUser && gameState.users.length > 0) {
       setPlayerInputs(prev => {
         const newInputs = [...prev];
-        newInputs[0] = gameState.currentUser!.displayName;
+        const currentUserData = gameState.users.find(
+  u => u.displayName === gameState.currentUser?.displayName
+);
+        const elo = currentUserData?.elo
+  ? Math.max(...Object.values(currentUserData.elo))
+  : 1500;
+        newInputs[0] = {
+  displayName: gameState.currentUser!.displayName,
+  elo: elo,
+  eloBadge: elo >= 2300
+    ? "GM"
+    : elo >= 2100
+      ? "M"
+      : elo >= 1900
+        ? "L"
+        : null,
+};
         return newInputs;
       });
     }
-  }, [gameState.currentUser]);
-
+  }, [gameState.currentUser,gameState.users]);
+  console.log(playerInputs)
   const handleSubmit = (e: React.FormEvent) => {
     gameState.settings.isTournament=false;
     e.preventDefault();
-    const matchId =
-  gameState.settings.matchId ??
-  `${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
-
-gameState.settings.matchId = matchId;
+    
     const activeInputs = playerInputs.slice(0, playerCount);
-    if (activeInputs.every(name => name.trim())) {
+    if (activeInputs.every(player => player.displayName.trim())) {
       console.log('Form submitted with players:', activeInputs);
       
       const players: Player[] = activeInputs.map((name, index) => {
@@ -102,7 +129,7 @@ gameState.settings.matchId = matchId;
           // Check if it's a registered user (from all users, not just friends)
           
           const registeredUser = gameState.users.find(
-          u => u.displayName.toLowerCase() === name.trim().toLowerCase()
+          u => u.displayName.toLowerCase() === name.displayName.trim().toLowerCase()
         );
 
         if (registeredUser) {
@@ -113,13 +140,13 @@ gameState.settings.matchId = matchId;
           eloSnapshot = registeredUser.elo?.[modeKey] ?? 1500;
           
         } else {
-          console.warn(`Aucun utilisateur trouvé pour le nom "${name.trim()}", ce joueur sera traité comme invité.`);
+          console.warn(`Aucun utilisateur trouvé pour le nom "${name.displayName.trim()}", ce joueur sera traité comme invité.`);
         }
       }
         
         return {
           id: `player-${index}`,
-          name: name.trim(),
+          name: name.displayName.trim(),
           team,
           userId,
           profilePicture,
@@ -140,7 +167,25 @@ gameState.settings.matchId = matchId;
 
 const handleInputChange = (index: number, value: string) => {
   const newInputs = [...playerInputs];
-  newInputs[index] = value;
+   const userData = gameState.users.find(
+  u => u.displayName === value
+);
+
+const elo = userData?.elo
+  ? Math.max(...Object.values(userData.elo))
+  : 1500;
+
+newInputs[index] = {
+  displayName: value,
+  elo,
+  eloBadge: elo >= 2300
+    ? "GM"
+    : elo >= 2100
+      ? "M"
+      : elo >= 1900
+        ? "L"
+        : null
+};
   setPlayerInputs(newInputs);
 
   if (index === 0) return;
@@ -161,16 +206,35 @@ const debouncedSearch = debounce(async (index: number, value: string) => {
   const allUserResults = await searchUsers(query); // normalisation
   const filteredResults = allUserResults
   .filter(user => user.id !== gameState.currentUser?.id)
-  .filter(user => !playerInputs.some(u => u === user.displayName));
+  .filter(user => 
+  !playerInputs.some(u => u.displayName === user.displayName)
+);
  // correspondance stricte
 
 
 
   setSearchResults(filteredResults);
 }, 200); // délai de 300ms pour éviter le spam
+console.log(searchResults)
   const selectUser = (index: number, user: any) => {
     const newInputs = [...playerInputs];
-    newInputs[index] = user.displayName;
+    const userData = gameState.users.find(
+  u => u.displayName === user.displayName
+);
+const elo = userData?.elo
+  ? Math.max(...Object.values(userData.elo))
+  : 1500;
+    newInputs[index] = {
+    displayName: user.displayName,
+    elo: elo,
+    eloBadge: elo >= 2300
+    ? "GM"
+    : elo >= 2100
+      ? "M"
+      : elo >= 1900
+        ? "L"
+        : null
+  };
     
     setPlayerInputs(newInputs);
     setSearchResults([]);
@@ -183,7 +247,8 @@ const debouncedSearch = debounce(async (index: number, value: string) => {
       setShowAddFriend(false);
       // Refresh search results
       if (activeInputIndex !== null) {
-        const currentValue = playerInputs[activeInputIndex];
+        const currentValue = playerInputs[activeInputIndex]?.displayName || "";
+
         if (currentValue.trim().length > 0) {
           const results = await searchUsers(currentValue);
           setSearchResults(results);
@@ -193,9 +258,10 @@ const debouncedSearch = debounce(async (index: number, value: string) => {
       console.error('Error sending friend request:', error);
     }
   };
-
-  const isFormValid = playerInputs.slice(0, playerCount).every(name => name.trim());
-
+  const isFormValid = playerInputs
+  .slice(0, playerCount)
+  .every(player => player.displayName.trim());
+console.log(playerInputs)
   const getTeamStructure = () => {
     switch (playerCount) {
       case 2:
@@ -321,10 +387,11 @@ const debouncedSearch = debounce(async (index: number, value: string) => {
                         {index === 0 ? 'Vous' : `Joueur ${index + 1}`}
                       </label>
                       <div className="relative">
+                      
                         <input
                           type="text"
-                          value={playerInputs[index]}
-                          onChange={(e) => handleInputChange(index, e.target.value)}
+value={playerInputs[index].displayName}                          
+onChange={(e) => handleInputChange(index, e.target.value)}
                           onFocus={() => setActiveInputIndex(index)}
                           onBlur={() => setTimeout(() => setActiveInputIndex(null), 200)}
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all duration-200"
@@ -340,6 +407,23 @@ const debouncedSearch = debounce(async (index: number, value: string) => {
                           disabled={index === 0 && gameState.currentUser}
                           required
                         />
+                        {playerInputs[index].eloBadge && (
+    <span
+  className="absolute top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center rounded-md text-xs font-bold text-white"
+  style={{
+    left: `${playerInputs[index].displayName.length * 9 + 16}px`,
+    background:
+      playerInputs[index].eloBadge === "GM"
+        ? "#C62828"
+        : playerInputs[index].eloBadge === "M"
+          ? "#9C27B0"
+          : "#F48FB1",
+  }}
+>
+  {playerInputs[index].eloBadge}
+</span>
+  )}
+  
                         {index > 0 && (
                           <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                         )}
@@ -369,7 +453,21 @@ const debouncedSearch = debounce(async (index: number, value: string) => {
                                 </div>
                               )}
                               <div className="flex-1">
-                                <div className="font-medium text-gray-900">{user.displayName}</div>
+                                <div className="font-medium text-gray-900">{user.displayName}  {user.eloBadge && (
+    <span
+      className="px-1.5 py-0.5 rounded text-xs font-bold text-white"
+      style={{
+        background:
+          user.eloBadge === "GM"
+            ? "#C62828"
+            : user.eloBadge === "M"
+            ? "#9C27B0"
+            : "#F48FB1"
+      }}
+    >
+      {user.eloBadge}
+    </span>
+  )}</div>
                                 <div className="text-sm text-gray-500">{user.profileTitle}</div>
                               </div>
                               {!gameState.friends.some(f => f.id === user.id) && (
@@ -401,7 +499,7 @@ const debouncedSearch = debounce(async (index: number, value: string) => {
                       <div className="relative">
                         <input
                           type="text"
-                          value={playerInputs[index]}
+                          value={playerInputs[index].displayName}
                           onChange={(e) => handleInputChange(index, e.target.value)}
                           onFocus={() => setActiveInputIndex(index)}
                           onBlur={() => setTimeout(() => setActiveInputIndex(null), 200)}
@@ -417,6 +515,20 @@ const debouncedSearch = debounce(async (index: number, value: string) => {
   }
                           required
                         />
+                        {playerInputs[index].eloBadge && ( <span
+  className="absolute top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center rounded-md text-xs font-bold text-white"
+  style={{
+    left: `${playerInputs[index].displayName.length * 9 + 16}px`,
+    background:
+      playerInputs[index].eloBadge === "GM"
+        ? "#C62828"
+        : playerInputs[index].eloBadge === "M"
+          ? "#9C27B0"
+          : "#F48FB1",
+  }}
+>
+  {playerInputs[index].eloBadge}
+</span> )}
                         <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                       </div>
                       
@@ -443,7 +555,21 @@ const debouncedSearch = debounce(async (index: number, value: string) => {
                                 </div>
                               )}
                               <div className="flex-1">
-                                <div className="font-medium text-gray-900">{user.displayName}</div>
+                                <div className="font-medium text-gray-900">{user.displayName} {user.eloBadge && (
+    <span
+      className="px-1.5 py-0.5 rounded text-xs font-bold text-white"
+      style={{
+        background:
+          user.eloBadge === "GM"
+            ? "#C62828"
+            : user.eloBadge === "M"
+            ? "#9C27B0"
+            : "#F48FB1"
+      }}
+    >
+      {user.eloBadge}
+    </span>
+  )}</div>
                                 <div className="text-sm text-gray-500">{user.profileTitle}</div>
                               </div>
                               {!gameState.friends.some(f => f.id === user.id) && (
@@ -491,7 +617,7 @@ const debouncedSearch = debounce(async (index: number, value: string) => {
                       <div className="relative">
                         <input
                           type="text"
-                          value={playerInputs[index]}
+                          value={playerInputs[index].displayName}
                           onChange={(e) => handleInputChange(index, e.target.value)}
                           onFocus={() => setActiveInputIndex(index)}
                           onBlur={() => setTimeout(() => setActiveInputIndex(null), 200)}
@@ -500,6 +626,20 @@ const debouncedSearch = debounce(async (index: number, value: string) => {
                           disabled={index === 0 && gameState.currentUser}
                           required
                         />
+                        {playerInputs[index].eloBadge && ( <span
+  className="absolute top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center rounded-md text-xs font-bold text-white"
+  style={{
+    left: `${playerInputs[index].displayName.length * 9 + 16}px`,
+    background:
+      playerInputs[index].eloBadge === "GM"
+        ? "#C62828"
+        : playerInputs[index].eloBadge === "M"
+          ? "#9C27B0"
+          : "#F48FB1",
+  }}
+>
+  {playerInputs[index].eloBadge}
+</span> )}
                         {index > 0 && (
                           <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                         )}
@@ -529,7 +669,21 @@ const debouncedSearch = debounce(async (index: number, value: string) => {
                                 </div>
                               )}
                               <div className="flex-1">
-                                <div className="font-medium text-gray-900">{user.displayName}</div>
+                                <div className="font-medium text-gray-900">{user.displayName}  {user.eloBadge && (
+    <span
+      className="px-1.5 py-0.5 rounded text-xs font-bold text-white"
+      style={{
+        background:
+          user.eloBadge === "GM"
+            ? "#C62828"
+            : user.eloBadge === "M"
+            ? "#9C27B0"
+            : "#F48FB1"
+      }}
+    >
+      {user.eloBadge}
+    </span>
+  )}</div>
                                 <div className="text-sm text-gray-500">{user.profileTitle}</div>
                               </div>
                               {!gameState.friends.some(f => f.id === user.id) && (

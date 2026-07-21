@@ -1891,41 +1891,58 @@ const deleteUser = async () => {
   };
 
   const loadMatchHistory = async () => {
-    try {
+  try {
+    let allMatches: any[] = [];
+    let from = 0;
+    const pageSize = 1000;
+
+    while (true) {
       const { data, error } = await supabase
-        .from('match_history')
-        .select('*')
-        .order('created_at', { ascending: false });
-        
+        .from("match_history")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .range(from, from + pageSize - 1);
 
       if (error) throw error;
 
-      const matchHistory: MatchHistory[] = (data || []).map(match => ({
-        id: match.id,
-        players: match.players,
-        settings: match.settings,
-        finalScores: match.final_scores,
-        winningTeam: match.winning_team,
-        handsPlayed: match.hands_played,
-        duration: match.duration,
-        penalties: match.penalties,
-        timestamp: new Date(match.created_at)
-      }));
-     // Sécurité : s'assurer que currentUser.id est défini
-const userId = gameState.currentUser?.id;
+      if (!data || data.length === 0) break;
 
-const matchHistoryFiltered = userId
-  ? matchHistory.filter(game =>
-      game.players.some(player => player.userId === userId)
-    ).reverse() // 👈 tri décroissant
-  : [];
+      allMatches.push(...data);
 
-// Dispatch de l’historique filtré
-dispatch({ type: 'SET_MATCH_HISTORY', payload: matchHistoryFiltered });
-    } catch (error) {
-      console.error('Error loading match history:', error);
+      if (data.length < pageSize) break;
+
+      from += pageSize;
     }
-  };
+
+    const matchHistory: MatchHistory[] = allMatches.map(match => ({
+      id: match.id,
+      players: match.players,
+      settings: match.settings,
+      finalScores: match.final_scores,
+      winningTeam: match.winning_team,
+      handsPlayed: match.hands_played,
+      duration: match.duration,
+      penalties: match.penalties,
+      timestamp: new Date(match.created_at)
+    }));
+
+    const userId = gameState.currentUser?.id;
+
+    const matchHistoryFiltered = userId
+      ? matchHistory.filter(game =>
+          game.players.some(player => player.userId === userId)
+        ).reverse()
+      : [];
+
+    dispatch({
+      type: "SET_MATCH_HISTORY",
+      payload: matchHistoryFiltered,
+    });
+
+  } catch (error) {
+    console.error("Error loading match history:", error);
+  }
+};
 
   const resetGame = () => {
     dispatch({ type: 'RESET_GAME' });
@@ -2102,7 +2119,17 @@ const startOfMonth = (date: Date): Date => {
 const isAfter = (dateA: Date, dateB: Date): boolean => {
   return dateA.getTime() > dateB.getTime();
 };
+const getEloBadge = (userElo: Record<string, number> | null) => {
+  if (!userElo) return { elo: 0, badge: null };
 
+  const elo = Math.max(...Object.values(userElo));
+
+  if (elo >= 2300) return { elo, badge: "GM" };
+  if (elo >= 2100) return { elo, badge: "M" };
+  if (elo >= 1900) return { elo, badge: "L" };
+
+  return { elo, badge: null };
+};
 
   const searchUsers = async (query: string): Promise<User[]> => {
   if (!query.trim()) return [];
@@ -2117,19 +2144,30 @@ const isAfter = (dateA: Date, dateB: Date): boolean => {
 
     if (error) throw error;
 
-    return (results || []).map(u => ({
-      id: u.id,
-      displayName: u.display_name,
-      email: u.email,
-      profilePicture: u.profile_picture,
-      accessCode: u.access_code,
-      profileTitle: u.profile_title,
-      friends: [],
-      createdAt: new Date(u.created_at),
-      stats: u.stats || createEmptyUserStats(),
-      achievements: [],
-      lastLoginAt: new Date()
-    }));
+    return (results || []).map(u => {
+
+      const { elo, badge } = getEloBadge(u.elo);
+
+      return {
+        id: u.id,
+        displayName: u.display_name,
+        email: u.email,
+        profilePicture: u.profile_picture,
+        accessCode: u.access_code,
+        profileTitle: u.profile_title,
+
+        // nouveau
+        elo,
+        eloBadge: badge,
+
+        friends: [],
+        createdAt: new Date(u.created_at),
+        stats: u.stats || createEmptyUserStats(),
+        achievements: [],
+        lastLoginAt: new Date()
+      };
+    });
+
   } catch (error) {
     console.error('Error searching users:', error);
     return [];

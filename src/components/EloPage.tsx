@@ -12,17 +12,43 @@ interface EloHistoryRow { id:string; elo_before:number; elo_after:number; delta:
 
 // ─── LIGUES ──────────────────────────────────────────────────────────────────
 const LEAGUES = [
-  { name:"Bronze",  min:0,    max:1099, color:"#CD853F", bg:"#2D1A0E", light:"#F4A460", symbol:"♣", gradient:"linear-gradient(135deg,#8B4513,#CD853F)" },
-  { name:"Argent",  min:1100, max:1299, color:"#94A3B8", bg:"#1A1F2E", light:"#CBD5E1", symbol:"♠", gradient:"linear-gradient(135deg,#475569,#94A3B8)" },
-  { name:"Or",      min:1300, max:1499, color:"#F59E0B", bg:"#2D1F00", light:"#FCD34D", symbol:"♦", gradient:"linear-gradient(135deg,#B45309,#F59E0B)" },
-  { name:"Platine", min:1500, max:1699, color:"#22D3EE", bg:"#00252E", light:"#67E8F9", symbol:"♥", gradient:"linear-gradient(135deg,#0891B2,#22D3EE)" },
-  { name:"Diamant", min:1700, max:1899, color:"#818CF8", bg:"#1E1B4B", light:"#A5B4FC", symbol:"★", gradient:"linear-gradient(135deg,#4338CA,#818CF8)" },
-  { name:"Légende", min:1900, max:9999, color:"#F472B6", bg:"#2D0A1E", light:"#FBCFE8", symbol:"♛", gradient:"linear-gradient(135deg,#BE185D,#F472B6)" },
+  { name:"Bronze",  min:0,    max:1099, color:"#a87030", dark:"#7A4A1E",light:"#fcbb83",  symbol:"♣" },
+  { name:"Argent",  min:1100, max:1299, color:"#B0BEC5", dark:"#546E7A",light:"#e5f5fa", symbol:"♠" },
+  { name:"Or",      min:1300, max:1499, color:"#F0C040", dark:"#8B6914",light:"#f2fd8b", symbol:"♦" },
+{
+  name: "Emeraude",
+  min: 1500,
+  max: 1699,
+  color: "#069464",
+  bg: "#06281F",
+  light: "#9affda",
+  symbol: "♥",
+  gradient: "linear-gradient(135deg,#047857,#10B981)"
+},   { name:"Diamant", min:1700, max:1899, color:"#7db5e4", dark:"#1565C0",light:"#c0e2f5", symbol:"★" },
+  { name:"Légende", min:1900, max:2099, color:"#F48FB1", dark:"#AD1457",light:"#fad8ed", symbol:"♛" },
+  {
+  name:"Master",
+  min:2100,
+  max:2299,
+  color:"#9C27B0",
+  dark:"#4A148C",
+  light:"#E1BEE7",
+  symbol:"✦"
+},
+{
+  name:"Grand Master",
+  min:2300,
+  max:9999,
+  color:"#b11616",
+  dark:"#7F0000",
+  light:"#f8a2ab",
+  symbol:"♜"
+},
 ];
 function getLeague(elo:number){ return LEAGUES.find(l=>elo>=l.min&&elo<=l.max)??LEAGUES[0]; }
 function getTierInfo(elo:number){
   const league=getLeague(elo);
-  if(league.name==="Légende") return {league,tierLabel:"",pct:Math.min(100,((elo-league.min)/200)*100)};
+  if(league.name==="Grand Master") return {league,tierLabel:"",pct:Math.min(100,((elo-league.min)/200)*100)};
   if(league.name==="Bronze"){league.min=900}
   const tierSize=(league.max-league.min+1)/4;
   const tierIdx=Math.min(3,Math.floor((elo-league.min)/tierSize));
@@ -962,8 +988,10 @@ function Simulator({ onClose }: { onClose: () => void }) {
   const elo4 = getTierInfo(1675).league
   const elo5 = getTierInfo(1875).league
   const elo6 = getTierInfo(2075).league
+  const elo7 = getTierInfo(2175).league
+  const elo8 = getTierInfo(2375).league
 
-  const REWARDS = {elo1,elo2,elo3,elo4,elo5,elo6}
+  const REWARDS = {elo1,elo2,elo3,elo4,elo5,elo6,elo7,elo8}
 
 
   
@@ -975,6 +1003,8 @@ function Simulator({ onClose }: { onClose: () => void }) {
     Platine: "#00252E",
     Diamant: "#1E1B4B",
     Légende: "#2D0A1E",
+      Master:"#2A1038",
+  "Grand Master":"#330202"
   };
 
   const leagues = Object.keys(REWARDS);
