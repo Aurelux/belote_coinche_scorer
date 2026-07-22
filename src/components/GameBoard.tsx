@@ -219,9 +219,29 @@ const teamsScores = [
   gameState.teamCScore,
 ].filter((score): score is number => typeof score === "number");
 const LEAGUES = [
-  { name:"Bronze",  min:0,    max:1099, color:"#a87030", dark:"#7A4A1E",light:"#fcbb83",  symbol:"♣" },
-  { name:"Argent",  min:1100, max:1299, color:"#B0BEC5", dark:"#546E7A",light:"#e5f5fa", symbol:"♠" },
-  { name:"Or",      min:1300, max:1499, color:"#F0C040", dark:"#8B6914",light:"#f2fd8b", symbol:"♦" },
+  {
+    name: "Bois",
+    min: 0,
+    max: 699,
+    color: "#663322",
+    dark: "#572e25",
+    light: "#D7CCC8",
+    symbol: "◈",
+    gradient: "linear-gradient(135deg,#5D4037,#8D6E63)"
+  },
+  {
+    name: "Fer",
+    min: 700,
+    max: 899,
+    color: "#757575",
+    dark: "#424242",
+    light: "#E0E0E0",
+    symbol: "⬢",
+    gradient: "linear-gradient(135deg,#424242,#9E9E9E)"
+  },
+  { name:"Bronze",  min:900,    max:1099, color:"#a87030", dark:"#7A4A1E",light:"#fcbb83",  symbol:"♣" ,gradient: "linear-gradient(135deg,#7A4A1E,#D08C3C)"},
+  { name:"Argent",  min:1100, max:1299, color:"#B0BEC5", dark:"#546E7A",light:"#e5f5fa", symbol:"♠",gradient: "linear-gradient(135deg,#607D8B,#CFD8DC)" },
+  { name:"Or",      min:1300, max:1499, color:"#F0C040", dark:"#8B6914",light:"#f2fd8b", symbol:"♦",gradient: "linear-gradient(135deg,#B8860B,#FFD54F)" },
 {
   name: "Emeraude",
   min: 1500,
@@ -231,8 +251,8 @@ const LEAGUES = [
   light: "#9affda",
   symbol: "♥",
   gradient: "linear-gradient(135deg,#047857,#10B981)"
-},   { name:"Diamant", min:1700, max:1899, color:"#7db5e4", dark:"#1565C0",light:"#c0e2f5", symbol:"★" },
-  { name:"Légende", min:1900, max:2099, color:"#F48FB1", dark:"#AD1457",light:"#fad8ed", symbol:"♛" },
+},   { name:"Diamant", min:1700, max:1899, color:"#7db5e4", dark:"#1565C0",light:"#c0e2f5", symbol:"★",gradient: "linear-gradient(135deg,#1565C0,#64B5F6)" },
+  { name:"Légende", min:1900, max:2099, color:"#F48FB1", dark:"#AD1457",light:"#fad8ed", symbol:"♛" , gradient: "linear-gradient(135deg,#AD1457,#F06292)"},
   {
   name:"Master",
   min:2100,
@@ -240,7 +260,8 @@ const LEAGUES = [
   color:"#9C27B0",
   dark:"#4A148C",
   light:"#E1BEE7",
-  symbol:"✦"
+  symbol:"✦",
+  gradient: "linear-gradient(135deg,#4A148C,#AB47BC)"
 },
 {
   name:"Grand Master",
@@ -249,20 +270,21 @@ const LEAGUES = [
   color:"#b11616",
   dark:"#7F0000",
   light:"#f8a2ab",
-  symbol:"♜"
+  symbol:"♜",
+  gradient: "linear-gradient(135deg,#7F0000,#E53935)"
 },
 ];
 function getLeague(elo:number){ return LEAGUES.find(l=>elo>=l.min&&elo<=l.max)??LEAGUES[0]; }
 function getTierInfo(elo:number){
   const league=getLeague(elo);
   if(league.name==="Grand Master") return {league,tierLabel:"",points:elo-league.min,pct:Math.min(100,((elo-league.min)/200)*100)};
-  if(league.name==="Bronze"){league.min=900}
+  if(league.name==="Bois"){league.min=500}
   const tierSize=(league.max-league.min+1)/4;
   const tierIdx=Math.min(3,Math.floor((elo-league.min)/tierSize));
   const tierLabel=["IV","III","II","I"][tierIdx];
   const floorInTier=league.min+tierIdx*tierSize;
   const pct=Math.min(99,((elo-floorInTier)/tierSize)*100);
-  if (elo<900){return {league,tierLabel:"V",points:Math.floor(pct)+'/100',pct:Math.min(100,(elo/9000)*100)}}
+  if (elo<500){return {league,tierLabel:"V",points:Math.floor(pct)+'/100',pct:Math.min(100,(elo/5000)*100)}}
   return {league,tierLabel,points:Math.floor(pct/2)+'/50',pct};
 }
 const isNearGameEnd = teamsScores.some(

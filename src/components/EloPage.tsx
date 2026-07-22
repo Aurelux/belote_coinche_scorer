@@ -12,9 +12,29 @@ interface EloHistoryRow { id:string; elo_before:number; elo_after:number; delta:
 
 // ─── LIGUES ──────────────────────────────────────────────────────────────────
 const LEAGUES = [
-  { name:"Bronze",  min:0,    max:1099, color:"#a87030", dark:"#7A4A1E",light:"#fcbb83",  symbol:"♣" },
-  { name:"Argent",  min:1100, max:1299, color:"#B0BEC5", dark:"#546E7A",light:"#e5f5fa", symbol:"♠" },
-  { name:"Or",      min:1300, max:1499, color:"#F0C040", dark:"#8B6914",light:"#f2fd8b", symbol:"♦" },
+  {
+    name: "Bois",
+    min: 0,
+    max: 699,
+    color: "#8D6E63",
+    dark: "#4E342E",
+    light: "#D7CCC8",
+    symbol: "◈",
+    gradient: "linear-gradient(135deg,#5D4037,#8D6E63)"
+  },
+  {
+    name: "Fer",
+    min: 700,
+    max: 899,
+    color: "#757575",
+    dark: "#424242",
+    light: "#E0E0E0",
+    symbol: "⬢",
+    gradient: "linear-gradient(135deg,#424242,#9E9E9E)"
+  },
+  { name:"Bronze",  min:900,    max:1099, color:"#a87030", dark:"#7A4A1E",light:"#fcbb83",  symbol:"♣" ,gradient: "linear-gradient(135deg,#7A4A1E,#D08C3C)"},
+  { name:"Argent",  min:1100, max:1299, color:"#B0BEC5", dark:"#546E7A",light:"#e5f5fa", symbol:"♠",gradient: "linear-gradient(135deg,#607D8B,#CFD8DC)" },
+  { name:"Or",      min:1300, max:1499, color:"#F0C040", dark:"#8B6914",light:"#f2fd8b", symbol:"♦",gradient: "linear-gradient(135deg,#B8860B,#FFD54F)" },
 {
   name: "Emeraude",
   min: 1500,
@@ -24,8 +44,8 @@ const LEAGUES = [
   light: "#9affda",
   symbol: "♥",
   gradient: "linear-gradient(135deg,#047857,#10B981)"
-},   { name:"Diamant", min:1700, max:1899, color:"#7db5e4", dark:"#1565C0",light:"#c0e2f5", symbol:"★" },
-  { name:"Légende", min:1900, max:2099, color:"#F48FB1", dark:"#AD1457",light:"#fad8ed", symbol:"♛" },
+},   { name:"Diamant", min:1700, max:1899, color:"#7db5e4", dark:"#1565C0",light:"#c0e2f5", symbol:"★",gradient: "linear-gradient(135deg,#1565C0,#64B5F6)" },
+  { name:"Légende", min:1900, max:2099, color:"#F48FB1", dark:"#AD1457",light:"#fad8ed", symbol:"♛" , gradient: "linear-gradient(135deg,#AD1457,#F06292)"},
   {
   name:"Master",
   min:2100,
@@ -33,7 +53,8 @@ const LEAGUES = [
   color:"#9C27B0",
   dark:"#4A148C",
   light:"#E1BEE7",
-  symbol:"✦"
+  symbol:"✦",
+  gradient: "linear-gradient(135deg,#4A148C,#AB47BC)"
 },
 {
   name:"Grand Master",
@@ -42,20 +63,21 @@ const LEAGUES = [
   color:"#b11616",
   dark:"#7F0000",
   light:"#f8a2ab",
-  symbol:"♜"
+  symbol:"♜",
+  gradient: "linear-gradient(135deg,#7F0000,#E53935)"
 },
 ];
 function getLeague(elo:number){ return LEAGUES.find(l=>elo>=l.min&&elo<=l.max)??LEAGUES[0]; }
 function getTierInfo(elo:number){
   const league=getLeague(elo);
   if(league.name==="Grand Master") return {league,tierLabel:"",pct:Math.min(100,((elo-league.min)/200)*100)};
-  if(league.name==="Bronze"){league.min=900}
+  if(league.name==="Bois"){league.min=500}
   const tierSize=(league.max-league.min+1)/4;
   const tierIdx=Math.min(3,Math.floor((elo-league.min)/tierSize));
   const tierLabel=["IV","III","II","I"][tierIdx];
   const floorInTier=league.min+tierIdx*tierSize;
   const pct=Math.min(99,((elo-floorInTier)/tierSize)*100);
-  if (elo<900){return {league,tierLabel:"V",pct:Math.min(100,(elo/9000)*100)}}
+  if (elo<500){return {league,tierLabel:"V",pct:Math.min(100,(elo/5000)*100)}}
   return {league,tierLabel,pct};
 }
 const MODE_LABELS:Record<GameModeKey,string>={coinche4P:"Coinche 4J",coinche3P:"Coinche 3J",coinche2P:"Coinche 2J",belote4P:"Belote 4J",belote3P:"Belote 3J",belote2P:"Belote 2J"};
@@ -174,6 +196,7 @@ function TierBar({elo,thick=4}:{elo:number;thick?:number}){
   );
 }
 
+
 // ─── HISTORY MODAL ───────────────────────────────────────────────────────────
 function HistoryModal({userId,mode,username,onClose}:{userId:string;mode:GameModeKey;username:string;onClose:()=>void}){
   const [rows,setRows]=useState<EloHistoryRow[]>([]);
@@ -272,6 +295,34 @@ function ProfileSheet({
   onClose: () => void;
 }) {
   const [showHistory, setShowHistory] = useState(false);
+  const [maxElo,setmaxElo]=useState(0);
+ useEffect(()=>{
+    if(!player.id)return;
+
+    Promise.all([
+      
+      
+        supabase
+  .from("elo_history")
+  .select("elo_after")
+  .eq("user_id", player.id)
+  .eq("game_mode",mode)
+  .order("elo_after", { ascending: false })
+  .limit(1),
+
+    ]).then(([{data:k}])=>{
+
+      
+      if(k){
+        setmaxElo(k?.[0].elo_after ?? 1500);
+
+      }
+
+      
+    });
+
+  },[player,mode]);
+  
 
   const elo = player.elo?.[mode] ?? 1000;
 
@@ -283,12 +334,9 @@ function ProfileSheet({
 
   const placementGames = games < 4;
 
-  const kf =
-    games < 30
-      ? 40
-      : games < 100
-      ? 25
-      : 15;
+  
+
+  
 
   if (showHistory)
     return (
@@ -505,9 +553,9 @@ function ProfileSheet({
                 icon: "💀",
               },
               {
-                label: "K-factor",
-                val: kf,
-                icon: "⚙️",
+                label: "Elo max",
+                val: maxElo,
+                icon: "🏔️",
               },
               {
                 label: "Contrats",
@@ -640,6 +688,7 @@ function HeroCard({
   const [player,setPlayer]=useState<PlayerRow|null>(null);
   const [curve,setCurve]=useState<{date:string;elo:number}[]>([]);
   const [loading,setLoading]=useState(true);
+ 
 
   useEffect(()=>{
     if(!userId)return;
@@ -658,6 +707,8 @@ function HeroCard({
         .eq("game_mode",mode)
         .order("created_at",{ascending:false})
         .limit(25),
+      
+        
 
     ]).then(([{data:u},{data:h}])=>{
 
@@ -673,7 +724,9 @@ function HeroCard({
             elo:r.elo_after
           }))
         );
+        
       }
+      
 
       setLoading(false);
     });
@@ -982,178 +1035,134 @@ function HeroCard({
   );
 }
 function Simulator({ onClose }: { onClose: () => void }) {
-  const elo1 = getTierInfo(1075).league
-  const elo2= getTierInfo(1275).league
-  const elo3 = getTierInfo(1475).league
-  const elo4 = getTierInfo(1675).league
-  const elo5 = getTierInfo(1875).league
-  const elo6 = getTierInfo(2075).league
-  const elo7 = getTierInfo(2175).league
-  const elo8 = getTierInfo(2375).league
-
-  const REWARDS = {elo1,elo2,elo3,elo4,elo5,elo6,elo7,elo8}
-
-
-  
-
-  const leagueBgMap = {
-    Bronze: "#2D1A0E",
-    Argent: "#1A1F2E",
-    Or: "#2D1F00",
-    Platine: "#00252E",
-    Diamant: "#1E1B4B",
-    Légende: "#2D0A1E",
-      Master:"#2A1038",
-  "Grand Master":"#330202"
-  };
-
-  const leagues = Object.keys(REWARDS);
-
   return (
-    <div style={{position:"fixed",inset:0,zIndex:300,background:"rgba(2,6,23,0.92)",display:"flex",flexDirection:"column"}} onClick={onClose}>
-      <div onClick={e=>e.stopPropagation()} style={{
-        position:"absolute",bottom:0,left:0,right:0,
-        background:"#0F172A",borderRadius:"20px 20px 0 0",
-        maxHeight:"75vh",overflow:"hidden",display:"flex",flexDirection:"column",
-      }}>
-      <div className="w-full max-w-5xl max-h-[90vh] overflow-y-auto rounded-2xl bg-gray-900 p-6 shadow-2xl">
-
-        {/* Header */}
-        <div className="text-center mb-6">
-          <h1 className="text-2xl font-bold text-white">
-            Récompenses de saison
-          </h1>
-          <p className="text-sm text-gray-400">
-            Aperçu complet des arrières plan de profil
-          </p>
-        </div>
-
-        {/* Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {leagues.map((elo) => {
-            const league = REWARDS[elo];
-
-            return (
-              <div
-  className="mb-6 rounded-2xl p-4 relative overflow-hidden flex flex-col min-h-[240px]"
-  style={{
-    background: league ? leagueBgMap[league.name] : "white",
-    border: `1.5px solid ${league?.color ?? "#ccc"}55`,
-  }}
->
-      {/* Watermark */}
-      <span
-  style={{
-    position: "absolute",
-    right: 60,
-    top: -8,
-    fontSize: 72,
-    color: `${league?.light ?? "#000"}35`,
-    pointerEvents: "none",
-    userSelect: "none",
-  }}
->
-  {league?.symbol ?? ""}
-</span>
-{/* Header */}
-      {league && (
-  <div className="flex items-center justify-between mb-3">
-    <div>
-      <p
-        className="text-base font-semibold"
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 300,
+        background: "rgba(2,6,23,0.92)",
+        display: "flex",
+        flexDirection: "column",
+      }}
+      onClick={onClose}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
         style={{
           position: "absolute",
-          left: 55,
-          color: league.light ?? league.color,
+          bottom: 0,
+          left: 0,
+          right: 0,
+          background: "#0F172A",
+          borderRadius: "20px 20px 0 0",
+          maxHeight: "85vh",
+          overflow: "hidden",
+          display: "flex",
+          flexDirection: "column",
         }}
       >
-        S1 - {league.name.slice(0,4)} {league.tierLabel}
-      </p>
-    </div>
-  </div>
-)}
-<div className="flex-1" />
-<div className="flex flex-wrap gap-4 mt-auto">
-                <div className="relative">
-  <button disabled
-onClick={(e) => e.preventDefault()}    className="flex items-center space-x-2 px-3 py-2  rounded-lg hover: transition-colors text-sm"
-    style={{
-    color: league?.light || "#043a10",
-    backgroundColor: league?.color || "#69dd82"
-  }}
-  >
-    <UserPlus className="w-4 h-4" />
-    
-  </button>
+        <div className="w-full max-w-5xl max-h-[90vh] overflow-y-auto rounded-2xl bg-gray-900 p-6 shadow-2xl">
+          {/* Header */}
+          <div className="text-center mb-6">
+            <h1 className="text-2xl font-bold text-white tracking-tight">
+              Les Ligues
+            </h1>
+            <p className="text-sm text-gray-400">
+              Du Bois au Grand Master — toute la hiérarchie Coinche Royale
+            </p>
+          </div>
 
-  {/* Pastille rouge avec le nombre de demandes */}
-  
-</div>
+          {/* Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {LEAGUES.map((league, idx) => {
+              const bg =
+                league.gradient ??
+                `linear-gradient(135deg, ${league.dark ?? league.color}, ${league.color})`;
 
+              return (
+                <div
+                  key={league.name}
+                  className="relative overflow-hidden rounded-2xl p-5 flex flex-col justify-between min-h-[190px] transition-transform hover:scale-[1.02]"
+                  style={{
+                    background: bg,
+                    border: `1.5px solid ${league.light}55`,
+                    boxShadow: `0 8px 24px -8px ${league.color}66`,
+                  }}
+                >
+                  {/* Watermark symbole */}
+                  <span
+                    style={{
+                      position: "absolute",
+                      right: -6,
+                      top: -18,
+                      fontSize: 96,
+                      color: `${league.light}30`,
+                      pointerEvents: "none",
+                      userSelect: "none",
+                      lineHeight: 1,
+                    }}
+                  >
+                    {league.symbol}
+                  </span>
 
-              <button disabled
-onClick={(e) => e.preventDefault()}                className="flex items-center space-x-2 px-3 py-2  rounded-lg hover: transition-colors text-sm"
-              style={{
-    color: league?.light || "#42032d",
-    backgroundColor: league?.color || "#fc9ddc"
-  }}
-              >
-                <BarChart3 className="w-4 h-4" />
-                
-              </button>
-              <button disabled
-onClick={(e) => e.preventDefault()}      className="flex items-center space-x-2 px-3 py-2  rounded-lg hover: transition-colors text-sm"
-    style={{
-    color: league?.light || "#374151",
-    backgroundColor: league?.color || "#b6d1d1"
-  }}>
-                <History className="w-4 h-4" />
-                <span className="hidden sm:inline">Historique</span>
-              </button>
-              {/* === BOUTON PRINCIPAL === */}
-      <button disabled
-onClick={(e) => e.preventDefault()}        className="flex items-center space-x-2 px-3 py-2  rounded-lg hover: transition-colors text-sm"
-      style={{
-    color: league?.light || "#3a0505",
-    backgroundColor: league?.color || "#ff2121"
-  }}>
-        <LogOut className="w-4 h-4" />
-        <span className="hidden sm:inline">Déconnexion</span>
-      </button>
-      <button disabled
-onClick={(e) => e.preventDefault()}  className="flex items-center space-x-2 px-3 py-2 rounded-lg hover: transition-colors text-sm"
-style={{
-    color: league?.light || "#ffffff",
-    backgroundColor: league?.color || "#000000" 
-  }}>
-  <BarChart3 className="w-4 h-4 " style={{
-    color: league?.light || "#fafafa",
-  }} />
+                  {/* Rang */}
+                  <span
+                    style={{
+                      position: "absolute",
+                      top: 12,
+                      left: 12,
+                      fontSize: 11,
+                      fontWeight: 700,
+                      letterSpacing: 1,
+                      color: league.light,
+                      opacity: 0.7,
+                    }}
+                  >
+                    #{idx + 1}
+                  </span>
 
-</button>
-</div>
+                  {/* Contenu */}
+                  <div className="relative z-10 mt-4">
+                    <h2
+                      className="text-xl font-bold"
+                      style={{ color: league.light }}
+                    >
+                      {league.name}
+                    </h2>
+                    <div
+                      className="mt-1 text-3xl"
+                      style={{ color: league.light, opacity: 0.9 }}
+                    >
+                      {league.symbol}
+                    </div>
+                  </div>
 
+                  {/* Range Elo */}
+                  <div
+                    className="relative z-10 mt-4 flex items-center gap-2 px-3 py-1.5 rounded-lg w-fit text-xs font-semibold"
+                    style={{
+                      backgroundColor: "rgba(0,0,0,0.35)",
+                      color: league.light,
+                      border: `1px solid ${league.light}40`,
+                    }}
+                  >
+                    {league.min} – {league.max === 9999 ? "∞" : league.max} Elo
+                  </div>
+                </div>
+              );
+            })}
+          </div>
 
-                
-
-                {/* Flavor */}
-                
-              </div>
-            );
-          })}
+          <p className="text-center text-xs text-gray-500 mt-6">
+            Cliquez en dehors pour fermer
+          </p>
         </div>
-
-        {/* Close hint */}
-        
-        <p className="text-center text-xs text-gray-500 mt-6">
-          Cliquez en dehors pour fermer
-        </p>
       </div>
     </div>
-    </div>
-    
   );
 }
+
 // ─── PAGE PRINCIPALE ─────────────────────────────────────────────────────────
 export default function EloPage(){
   const {gameState,goBack}=useGame();
@@ -1745,7 +1754,7 @@ export default function EloPage(){
           cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8,
           marginBottom:12,transition:"all 0.2s",
         }}>
-          🎁 {showSim?"Fermer les recompenses":"Récompenses de saison"}
+          🛡️ {showSim?"Fermer les ligues":"Les différentes ligues"}
         </button>
         {showSim&&<Simulator  onClose={()=>setShowSim(v=>!v)}/>}
 
@@ -1754,12 +1763,12 @@ export default function EloPage(){
           <div style={{fontSize:12,fontWeight:600,color:"#64748B",marginBottom:12}}>Multiplicateurs de gain Élo</div>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}}>
             {[
-              {l:"Coinche réussie",m:"×1.60",c:"#A78BFA"},
-              {l:"Surcoinche réussie",m:"×2.20",c:"#F472B6"},
-              {l:"Capot infligé",m:"×1.70",c:"#FB923C"},
-              {l:"Victoire écrasante",m:"×1.30",c:"#FBBF24"},
-              {l:"Série de victoires",m:"1+V*0.1",c:"#CD853F"},
-              {l:"Contrat Réussi",m:"×1.15",m2:"×1.20",c:"#60A5FA"},
+              {l:"Coinche réussie",m:"×1.25",c:"#A78BFA"},
+              {l:"Surcoinche réussie",m:"×1.50",c:"#F472B6"},
+              {l:"Capot infligé",m:"×1.30",c:"#FB923C"},
+              {l:"Victoire écrasante",m:"×1.25",c:"#FBBF24"},
+              {l:"Série de victoires",m:"1+V*0.15",c:"#CD853F"},
+              {l:"Contrat Réussi",m:"×1.05",m2:"×1.20",c:"#60A5FA"},
             ].map(m=>(
               <div key={m.l} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 10px",background:"#1E293B",borderRadius:10}}>
                 <span style={{fontSize:11,color:"#94A3B8"}}>{m.l}</span>
@@ -1767,7 +1776,7 @@ export default function EloPage(){
               </div>
             ))}
           </div>
-          <div style={{marginTop:10,fontSize:11,color:"#334155",textAlign:"center"}}>Les multiplicateurs se cumulent · Coinche + Capot = ~×2.60</div>
+          <div style={{marginTop:10,fontSize:11,color:"#334155",textAlign:"center"}}>Les multiplicateurs se cumulent · Coinche + Capot = ~×1.6</div>
         </div>
 
       </div>
