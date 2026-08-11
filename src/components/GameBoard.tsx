@@ -829,13 +829,31 @@ const expected =
       TotGames.find(g => g.userId === player.userId)
         ?.games ?? 0;
     const ratio_game = 2- Math.min(games/10,1)
-    let k = 28;
+   let k = 28;
+let kmin = 28;
 
-    if (elo < 1200) k = 0.75*38*ratio_game;
-    else if (elo < 1500) k = 0.83*30*ratio_game;
-    else if (elo < 1900) k = 0.88*24*ratio_game;
-    else if (elo < 2300) k = 0.98*18*ratio_game;
-    else k = 14;
+if (elo < 1200) {
+  k = 0.75 * 38 * ratio_game;
+  kmin = k;
+} else if (elo < 1500) {
+  k = 0.83 * 30 * ratio_game;
+  kmin = k;
+} else if (elo < 1700) {
+  k = 0.88 * 24 * ratio_game;
+  kmin = k;
+} else if (elo < 1850) {
+  k = 0.88 * 17 * ratio_game;
+  kmin = 16;
+} else if (elo < 2000) {
+  k = 12 * ratio_game;
+  kmin = 13;
+} else if (elo < 2200) {
+  k = 9.75 * ratio_game;
+  kmin = 12;
+} else {
+  k = 7;
+  kmin = 10;
+}
 
     const p = perf[player.id];
     // ─────────────────────────────
@@ -925,10 +943,10 @@ const winDeltaRaw =Math.max(Math.min(
 const test = 1 + (1.2-impactMultiplier)/2.6
 console.log(expected)
 const loseDeltaRaw =Math.min(Math.max(
-  k *
+  kmin *
   (-0.5 - expected) *
   test *
-  (2 - perfFactor)*streakFactorminus,-2*k),-5); // 👈 clé du système
+  (2 - perfFactor)*streakFactorminus,-2*kmin),-5); // 👈 clé du système
 
 if (isWinner === undefined) {
 

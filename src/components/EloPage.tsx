@@ -295,11 +295,17 @@ function ProfileSheet({
   onClose: () => void;
 }) {
   const [showHistory, setShowHistory] = useState(false);
+  const {navigateTo, setSelectedUser,gameState} = useGame()
   const [maxElo,setmaxElo]=useState(0);
  useEffect(()=>{
     if(!player.id)return;
 
     Promise.all([
+      supabase
+        .from("users")
+        .select("*")
+        .eq("id",player.id)
+        .single(),
       
       
         supabase
@@ -310,20 +316,35 @@ function ProfileSheet({
   .order("elo_after", { ascending: false })
   .limit(1),
 
-    ]).then(([{data:k}])=>{
+    ]).then(([{data:k},{data:h}])=>{
 
       
-      if(k){
-        setmaxElo(k?.[0].elo_after ?? 1500);
+      if(h){
+        setmaxElo(h?.[0].elo_after ?? 1500);
 
       }
+      if (k) {
+  setSelectedUser({
+    id: k.id,
+    displayName: k.display_name,
+    email: k.email,
+    profilePicture: k.profile_picture,
+    accessCode: k.access_code,
+    profileTitle: k.profile_title,
+    createdAt: k.created_at ? new Date(k.created_at) : undefined,
+    stats: k.stats,
+    frames: k.profile_frame,
+    elo: k.elo,
+  });
+}
+
 
       
     });
 
   },[player,mode]);
   
-
+  console.log(gameState.selectedUser)
   const elo = player.elo?.[mode] ?? 1000;
 
   const { league, pct } = getTierInfo(elo);
@@ -452,7 +473,29 @@ function ProfileSheet({
                   {games}/4 parties de classement
                 </div>
               )}
+              <button
+  onClick={() =>{
+    
+          navigateTo('user-profile');
+          
+        }}
+  style={{
+    marginTop: 10,
+    marginLeft: 5,
+    padding: "4px 14px",
+    borderRadius: 10,
+    border: "1px solid #334155",
+    background: "#1E293B",
+    color: league.color,
+    fontSize: 12,
+    fontWeight: 700,
+    cursor: "pointer",
+  }}
+>
+  Profil
+</button>
             </div>
+            
 
             <div style={{ textAlign: "right" }}>
               <div

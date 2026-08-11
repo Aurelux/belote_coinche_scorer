@@ -1,5 +1,5 @@
 import React from "react";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft,XCircle } from "lucide-react";
 import {  useGame } from '../context/useGame';
 
 export default function HelpCoinche2j() {
@@ -119,6 +119,28 @@ export default function HelpCoinche2j() {
             <li>Si le preneur échoue et aucun adversaire n’a coinché : 0 pour le preneur, +162 +mise pour l’adversaire.</li>
             
           </ul>
+
+          {/* Annulation d'une partie */}
+<div>
+  <h2 className="flex items-center text-xl font-semibold text-green-700 mb-2">
+    <XCircle className="w-5 h-5 mr-2" /> Annulation d'une partie
+  </h2>
+  <ul className="list-disc pl-6 space-y-1">
+    <li>
+      <strong>Couleur annoncée :</strong> La partie
+      peut être annulée si le joueur <strong>ne possède aucun atout </strong> et que la somme
+      des points de sa main est de <strong>11 points ou moins</strong>.
+    </li>
+    <li>
+      <strong>À Tout Atout:</strong> la partie peut être annulée si la somme des points de sa main est de
+      <strong> 7 points ou moins</strong>.
+    </li>
+    <li>
+      <strong>À Sans Atout :</strong> la partie peut être annulée si la somme
+      des points de sa main est de <strong>6 points ou moins</strong>.
+    </li>
+  </ul>
+</div>
 
           <h2 className="text-xl font-semibold text-green-600 mt-4">🏆 Objectif</h2>
           <p>

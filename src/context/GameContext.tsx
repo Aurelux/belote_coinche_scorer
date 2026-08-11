@@ -596,6 +596,12 @@ const nextDealer = () => {
       setCurrentScreen(previous)
       return []
     }
+    if (currentScreen === 'user-profile') {
+      const previous = prevHistory[history.length] || 'elo';
+      setCurrentScreen(previous)
+      return prevHistory.slice(0, -1);
+    }
+
     if (currentScreen.length>10){
       const previous = prevHistory[history.length] || 'setup';
       console.log('directionnn', previous);

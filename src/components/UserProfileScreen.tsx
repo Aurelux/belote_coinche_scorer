@@ -65,7 +65,7 @@ export function UserProfileScreen() {
         <div className="bg-white text-gray-900 rounded-xl shadow-md p-6 mb-6">
           <div className="flex items-center space-x-4">
             <button
-              onClick={() => navigateTo('friends')}
+              onClick={() => goBack()}
               className="p-2 text-gray-500 hover:text-gray-800"
             >
               <ArrowLeft className="w-6 h-6" />

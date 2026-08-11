@@ -1,5 +1,5 @@
 import React from "react";
-import { ArrowLeft, BookOpen, Users, Megaphone, Trophy, Calculator, Brain, Scale, CheckCircle } from "lucide-react";
+import { ArrowLeft, BookOpen, Users, Megaphone, Trophy, Calculator, Brain, Scale, CheckCircle, XCircle } from "lucide-react";
 import {  useGame } from '../context/useGame';
 
 export default function HelpCoinche4j() {
@@ -170,6 +170,29 @@ export default function HelpCoinche4j() {
               <li>Belote-Rebelote (Roi+Dame d’atout) ➝ 20 points.</li>
             </ul>
           </div>
+
+          {/* Annulation d'une partie */}
+<div>
+  <h2 className="flex items-center text-xl font-semibold text-green-700 mb-2">
+    <XCircle className="w-5 h-5 mr-2" /> Annulation d'une partie
+  </h2>
+  <ul className="list-disc pl-6 space-y-1">
+    <li>
+      <strong>Couleur annoncée :</strong> La partie
+      peut être annulée si le joueur <strong>ne possède aucun atout </strong> et que la somme
+      des points de sa main est de <strong>11 points ou moins</strong>.
+    </li>
+    <li>
+      <strong>À Tout Atout:</strong> la partie peut être annulée si le joueur ne
+      possède aucun atout et que la somme des points de sa main est de
+      <strong> 7 points ou moins</strong>.
+    </li>
+    <li>
+      <strong>À Sans Atout :</strong> la partie peut être annulée si la somme
+      des points de la main est de <strong>6 points ou moins</strong>.
+    </li>
+  </ul>
+</div>
 
           {/* Objectif */}
           <div>
